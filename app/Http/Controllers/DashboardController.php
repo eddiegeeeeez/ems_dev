@@ -2,26 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display the main dashboard.
-     */
     public function index(): View
     {
-        // Here you would fetch data for the dashboard, like counts
-        $totalBookings = 2; // Example data
-        $pendingBookings = 1;
-        $approvedBookings = 1;
+        $user = Auth::user();
 
-        // Pass the data to the view
-        return view('dashboard', [
-            'totalBookings' => $totalBookings,
-            'pendingBookings' => $pendingBookings,
-            'approvedBookings' => $approvedBookings
-        ]);
+        // Fallback redirect if somehow $user is null
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $totalBookings = 12;
+        $pendingBookings = 3;
+        $approvedBookings = 9;
+
+        // Pass $user to the view
+        return view('dashboard', compact('user', 'totalBookings', 'pendingBookings', 'approvedBookings'));
     }
 }
