@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.hero')
 
-@section('title', 'Login')
+@section('title', 'Login - UM Events')
 
 @section('content')
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
