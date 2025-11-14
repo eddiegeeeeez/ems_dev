@@ -19,7 +19,15 @@
     <div class="flex pt-16"> {{-- Match header height (h-16 = 4rem = 64px) --}}
         {{-- Sidebar --}}
         <aside class="hidden md:flex fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 flex-col border-r border-gray-200 bg-white">
-            @include('components.sidebar')
+            @auth
+                @if(auth()->user()->role === 'ADMIN')
+                    @include('components.sidebar-admin')
+                @else
+                    @include('components.sidebar-organizer')
+                @endif
+            @else
+                @include('components.sidebar-organizer')
+            @endauth
         </aside>
 
         {{-- Main Content --}}
@@ -28,23 +36,36 @@
         </main>
     </div>
 
+    {{-- Mobile Sidebar --}}
+    <aside id="mobile-sidebar" class="fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 flex-col border-r border-gray-200 bg-white z-40 transform -translate-x-full transition-transform duration-300 md:hidden">
+        @auth
+            @if(auth()->user()->role === 'ADMIN')
+                @include('components.sidebar-admin')
+            @else
+                @include('components.sidebar-organizer')
+            @endif
+        @else
+            @include('components.sidebar-organizer')
+        @endauth
+    </aside>
+
     {{-- Mobile Sidebar Overlay --}}
     <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden hidden"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
+            const mobileSidebar = document.getElementById('mobile-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
 
-            if (menuToggle && sidebar && overlay) {
+            if (menuToggle && mobileSidebar && overlay) {
                 menuToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('-translate-x-full');
+                    mobileSidebar.classList.toggle('-translate-x-full');
                     overlay.classList.toggle('hidden');
                 });
 
                 overlay.addEventListener('click', () => {
-                    sidebar.classList.add('-translate-x-full');
+                    mobileSidebar.classList.add('-translate-x-full');
                     overlay.classList.add('hidden');
                 });
             }

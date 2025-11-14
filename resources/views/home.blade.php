@@ -19,9 +19,14 @@
                         <div class="text-xs text-muted-foreground">University of Mindanao</div>
                     </div>
                 </div>
-                <a href="{{ route('login') }}" class="rounded-full px-6 py-2 bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition-colors">
-                    Sign In
-                </a>
+                <div class="flex items-center gap-8">
+                    <a href="#" class="text-sm text-foreground hover:text-primary transition-colors font-medium">Discover</a>
+                    <a href="#" class="text-sm text-foreground hover:text-primary transition-colors font-medium">Calendar</a>
+                    <a href="#" class="text-sm text-foreground hover:text-primary transition-colors font-medium">About</a>
+                    <a href="{{ route('login') }}" class="rounded-full px-6 py-2 bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">
+                        Sign In
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
@@ -31,7 +36,7 @@
         <div class="mx-auto max-w-7xl px-6 lg:px-12">
             <div class="max-w-4xl mx-auto text-center space-y-12">
                 {{-- Badge --}}
-                <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary/20 border border-secondary/30">
+                <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary/20 border border-secondary/30 animate-on-scroll">
                     <svg class="h-4 w-4 text-secondary fill-secondary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M12 17.27l5.18 3.73-1.64-6.03L20 10.92l-6.19-.51L12 5l-1.81 5.41L4 10.92l4.46 4.05L6.82 21z" />
                     </svg>
@@ -39,7 +44,7 @@
                 </div>
 
                 {{-- Heading --}}
-                <div class="space-y-6">
+                <div class="space-y-6 animate-on-scroll animate-on-scroll-delay-1">
                     <h1 class="text-6xl sm:text-7xl lg:text-8xl font-extrabold text-foreground leading-[1.1] tracking-tight">
                         Your Campus
                         <br />
@@ -50,24 +55,8 @@
                     </p>
                 </div>
 
-                {{-- Search Bar --}}
-                <div class="max-w-xl mx-auto">
-                    <div class="flex gap-3 p-2 bg-card rounded-2xl border border-border shadow-lg">
-                        <div class="flex-1 relative">
-                            <svg class="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <circle cx="11" cy="11" r="7" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
-                            <input type="text" placeholder="Search events, workshops, activities..." class="pl-12 w-full border-0 bg-transparent focus:ring-0 text-base" />
-                        </div>
-                        <button class="rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors">
-                            Explore
-                        </button>
-                    </div>
-                </div>
-
                 {{-- Stats --}}
-                <div class="grid grid-cols-3 gap-8 pt-12 max-w-2xl mx-auto">
+                <div class="grid grid-cols-3 gap-8 pt-12 max-w-2xl mx-auto animate-on-scroll animate-on-scroll-delay-2">
                     <div class="space-y-2">
                         <div class="text-4xl font-bold text-primary">250+</div>
                         <p class="text-sm text-muted-foreground font-light">Active Events</p>
@@ -88,7 +77,7 @@
     {{-- FACILITIES SECTION --}}
     <section class="py-24 bg-muted/30">
         <div class="mx-auto max-w-7xl px-6 lg:px-12">
-            <div class="text-center mb-16 space-y-4">
+            <div class="text-center mb-16 space-y-4 animate-on-scroll">
                 <div class="inline-flex items-center justify-center mb-4">
                     <svg class="h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -103,7 +92,7 @@
             {{-- Featured Facilities (3 columns) --}}
             <div class="grid lg:grid-cols-3 gap-8 mb-12">
                 {{-- Convention Center --}}
-                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-primary/50 hover:shadow-2xl transition-all duration-500">
+                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-primary/50 hover:shadow-2xl transition-all duration-500 animate-on-scroll animate-on-scroll-delay-1">
                     <div class="aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center relative overflow-hidden">
                         <img src="/modern-university-convention-center-interior-with-.jpg" alt="UM Convention Center" class="w-full h-full object-cover" />
                         <div class="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent"></div>
@@ -130,7 +119,7 @@
                 </div>
 
                 {{-- Sports Complex --}}
-                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-secondary/50 hover:shadow-2xl transition-all duration-500">
+                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-secondary/50 hover:shadow-2xl transition-all duration-500 animate-on-scroll animate-on-scroll-delay-2">
                     <div class="aspect-[4/3] bg-gradient-to-br from-secondary/20 to-secondary/5 flex items-center justify-center relative overflow-hidden">
                         <img src="/university-sports-gymnasium-with-basketball-court.jpg" alt="UM Sports Complex" class="w-full h-full object-cover" />
                         <div class="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent"></div>
@@ -157,7 +146,7 @@
                 </div>
 
                 {{-- Performing Arts Theater --}}
-                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-accent/50 hover:shadow-2xl transition-all duration-500">
+                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-accent/50 hover:shadow-2xl transition-all duration-500 animate-on-scroll animate-on-scroll-delay-3">
                     <div class="aspect-[4/3] bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center relative overflow-hidden">
                         <img src="/modern-university-auditorium-with-red-seats-and-st.jpg" alt="UM Performing Arts Theater" class="w-full h-full object-cover" />
                         <div class="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent"></div>
@@ -187,7 +176,7 @@
             {{-- Additional Facilities (2 columns) --}}
             <div class="grid lg:grid-cols-2 gap-8">
                 {{-- Open Grounds --}}
-                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-chart-4/50 hover:shadow-2xl transition-all duration-500">
+                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-chart-4/50 hover:shadow-2xl transition-all duration-500 animate-on-scroll animate-on-scroll-delay-1">
                     <div class="aspect-[16/9] bg-gradient-to-br from-blue-400/20 to-blue-400/5 flex items-center justify-center relative overflow-hidden">
                         <img src="/university-outdoor-amphitheater-with-grass-lawn.jpg" alt="UM Open Grounds" class="w-full h-full object-cover" />
                         <div class="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent"></div>
@@ -214,7 +203,7 @@
                 </div>
 
                 {{-- Academic Halls --}}
-                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-primary/50 hover:shadow-2xl transition-all duration-500">
+                <div class="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-primary/50 hover:shadow-2xl transition-all duration-500 animate-on-scroll animate-on-scroll-delay-2">
                     <div class="aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center relative overflow-hidden">
                         <img src="/modern-university-lecture-hall-with-projector-and-.jpg" alt="UM Academic Hall" class="w-full h-full object-cover" />
                         <div class="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent"></div>
@@ -243,58 +232,10 @@
         </div>
     </section>
 
-    {{-- CATEGORIES SECTION --}}
-    <section class="py-24">
-        <div class="mx-auto max-w-7xl px-6 lg:px-12">
-            <div class="text-center mb-16 space-y-4">
-                <h2 class="text-5xl font-extrabold text-foreground">Explore By Category</h2>
-                <p class="text-xl text-muted-foreground font-light">Find events that match your interests</p>
-            </div>
-
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {{-- Academic --}}
-                <button class="group text-left bg-card rounded-3xl p-8 border border-border/50 hover:border-primary/50 hover:shadow-lg transition-all duration-300">
-                    <div class="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                        <span class="text-3xl">📚</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-foreground mb-2">Academic</h3>
-                    <p class="text-sm text-muted-foreground font-light">Seminars, workshops & lectures</p>
-                </button>
-
-                {{-- Sports --}}
-                <button class="group text-left bg-card rounded-3xl p-8 border border-border/50 hover:border-secondary/50 hover:shadow-lg transition-all duration-300">
-                    <div class="h-16 w-16 rounded-2xl bg-secondary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                        <span class="text-3xl">🏆</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-foreground mb-2">Sports</h3>
-                    <p class="text-sm text-muted-foreground font-light">Tournaments & competitions</p>
-                </button>
-
-                {{-- Cultural --}}
-                <button class="group text-left bg-card rounded-3xl p-8 border border-border/50 hover:border-accent/50 hover:shadow-lg transition-all duration-300">
-                    <div class="h-16 w-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                        <span class="text-3xl">🎭</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-foreground mb-2">Cultural</h3>
-                    <p class="text-sm text-muted-foreground font-light">Arts, festivals & performances</p>
-                </button>
-
-                {{-- Organizations --}}
-                <button class="group text-left bg-card rounded-3xl p-8 border border-border/50 hover:border-blue-500/50 hover:shadow-lg transition-all duration-300">
-                    <div class="h-16 w-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                        <span class="text-3xl">👥</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-foreground mb-2">Organizations</h3>
-                    <p class="text-sm text-muted-foreground font-light">Club events & activities</p>
-                </button>
-            </div>
-        </div>
-    </section>
-
     {{-- CTA SECTION --}}
     <section class="py-32 bg-gradient-to-b from-muted/30 to-background">
         <div class="mx-auto max-w-4xl px-6 lg:px-12 text-center space-y-8">
-            <div class="space-y-6">
+            <div class="space-y-6 animate-on-scroll">
                 <h2 class="text-5xl sm:text-6xl font-extrabold text-foreground leading-tight">
                     Ready to <span class="text-primary">Get Involved?</span>
                 </h2>
@@ -302,7 +243,7 @@
                     Join thousands of UM students discovering and participating in amazing campus events every day
                 </p>
             </div>
-            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-full px-10 py-6 bg-primary text-primary-foreground text-base font-medium hover:bg-primary/90 transition-colors">
+            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-full px-10 py-6 bg-primary text-white text-base font-semibold hover:bg-primary/90 transition-colors animate-on-scroll animate-on-scroll-delay-1">
                 Start Exploring
                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />

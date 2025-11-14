@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Organizer Dashboard')
 
 @section('content')
 
@@ -19,7 +19,7 @@ $roleBgColor = $roleColors[$role] ?? '#4caf50';
     <!-- Header background -->
     <div class="h-32 md:h-28 w-full bg-cover bg-center relative" 
          style="background-image: url('https://picsum.photos/1200/200?grayscale&blur=1')">
-        <div class="absolute inset-0 bg-gradient-to-r from-red-800 via-red-900 to-black opacity-80"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-green-600 via-green-700 to-green-800 opacity-80"></div>
     </div>
 
     <!-- Profile Avatar -->
@@ -46,7 +46,7 @@ $roleBgColor = $roleColors[$role] ?? '#4caf50';
     {{-- User Profile Banner Component --}}
     @include('components.user_profile_banner', compact('user'))
 
-    {{-- Key Metrics Cards --}}
+    {{-- Organizer Key Metrics Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
 
         {{-- Total Bookings Card --}}
@@ -55,7 +55,7 @@ $roleBgColor = $roleColors[$role] ?? '#4caf50';
                 <div class="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Bookings</div>
             </div>
             <div class="p-4 flex items-center justify-between">
-                <div class="text-3xl font-extrabold text-[#c41e3a]">12</div>
+                <div class="text-3xl font-extrabold text-[#c41e3a]">{{ $totalBookings ?? 12 }}</div>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -68,7 +68,7 @@ $roleBgColor = $roleColors[$role] ?? '#4caf50';
                 <div class="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">Pending Approval</div>
             </div>
             <div class="p-4 flex items-center justify-between">
-                <div class="text-3xl font-extrabold text-yellow-600">3</div>
+                <div class="text-3xl font-extrabold text-yellow-600">{{ $pendingBookings ?? 3 }}</div>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -81,7 +81,7 @@ $roleBgColor = $roleColors[$role] ?? '#4caf50';
                 <div class="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">Approved Events</div>
             </div>
             <div class="p-4 flex items-center justify-between">
-                <div class="text-3xl font-extrabold text-[#4caf50]">9</div>
+                <div class="text-3xl font-extrabold text-[#4caf50]">{{ $approvedBookings ?? 9 }}</div>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -96,9 +96,9 @@ $roleBgColor = $roleColors[$role] ?? '#4caf50';
                 <h2 class="text-xl font-bold text-gray-900">Recent Bookings</h2>
                 <p class="text-gray-500 text-sm">Your latest event reservations</p>
             </div>
-            <button class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 bg-transparent hover:bg-gray-50 text-sm font-medium transition duration-150 ease-in-out">
+            <a href="{{ route('bookings.index') }}" class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 bg-transparent hover:bg-gray-50 text-sm font-medium transition duration-150 ease-in-out">
                 View All
-            </button>
+            </a>
         </div>
 
         <!-- Booking List -->
@@ -128,5 +128,51 @@ $roleBgColor = $roleColors[$role] ?? '#4caf50';
             </div>
         </div>
     </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="{{ route('venues.index') }}" class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
+            <div class="flex items-center gap-4">
+                <div class="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900">Browse Venues</h3>
+                    <p class="text-sm text-gray-500">Find available venues</p>
+                </div>
+            </div>
+        </a>
+
+        <a href="{{ route('bookings.index') }}" class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
+            <div class="flex items-center gap-4">
+                <div class="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900">My Bookings</h3>
+                    <p class="text-sm text-gray-500">View all your bookings</p>
+                </div>
+            </div>
+        </a>
+
+        <a href="{{ route('feedback.index') }}" class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow">
+            <div class="flex items-center gap-4">
+                <div class="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900">My Feedback</h3>
+                    <p class="text-sm text-gray-500">View feedback & reviews</p>
+                </div>
+            </div>
+        </a>
+    </div>
 </div>
 @endsection
+

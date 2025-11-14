@@ -9,18 +9,37 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
+        // Auth middleware already ensures user is authenticated
         $user = Auth::user();
+        $role = $user->role ?? 'ORGANIZER';
 
-        // Fallback redirect if somehow $user is null
-        if (!$user) {
-            return redirect()->route('login');
+        // Different data for different roles
+        if ($role === 'ADMIN') {
+            // Admin-specific metrics
+            $pendingRequests = 15;
+            $totalVenues = 8;
+            $activeBookings = 42;
+            $totalUsers = 156;
+
+            return view('dashboard-admin', compact(
+                'user',
+                'pendingRequests',
+                'totalVenues',
+                'activeBookings',
+                'totalUsers'
+            ));
+        } else {
+            // Organizer-specific metrics
+            $totalBookings = 12;
+            $pendingBookings = 3;
+            $approvedBookings = 9;
+
+            return view('dashboard-organizer', compact(
+                'user',
+                'totalBookings',
+                'pendingBookings',
+                'approvedBookings'
+            ));
         }
-
-        $totalBookings = 12;
-        $pendingBookings = 3;
-        $approvedBookings = 9;
-
-        // Pass $user to the view
-        return view('dashboard', compact('user', 'totalBookings', 'pendingBookings', 'approvedBookings'));
     }
 }

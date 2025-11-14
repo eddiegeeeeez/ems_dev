@@ -1,15 +1,28 @@
-<a 
-    href="{{ auth()->user()?->role === 'admin' ? route('admin.dashboard') : route('dashboard') }}" 
-    class="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity"
->
-    <div class="flex h-8 md:h-10 w-8 md:w-10 items-center justify-center rounded-full bg-[#4caf50] text-white font-bold text-xs md:text-sm">
-        UM
-    </div>
-    <div class="hidden sm:flex flex-col">
-        <span class="text-xs md:text-sm font-bold text-[#c41e3a]">UM EVENTS</span>
-        <span class="text-xs text-gray-600">Management</span>
-    </div>
-</a>
+<div class="flex items-center gap-3">
+    {{-- Mobile Menu Toggle --}}
+    <button 
+        id="menu-toggle"
+        class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        aria-label="Toggle menu"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+    
+    <a 
+        href="{{ route('dashboard') }}" 
+        class="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity"
+    >
+        <div class="flex h-8 md:h-10 w-8 md:w-10 items-center justify-center rounded-full bg-[#4caf50] text-white font-bold text-xs md:text-sm">
+            UM
+        </div>
+        <div class="hidden sm:flex flex-col">
+            <span class="text-xs md:text-sm font-bold text-[#c41e3a]">UM EVENTS</span>
+            <span class="text-xs text-gray-600">Management</span>
+        </div>
+    </a>
+</div>
 <div class="flex items-center gap-2 md:gap-4">
 
     {{-- ✨ CHANGED: Replaced user icon with a borderless notification bell --}}
@@ -40,7 +53,7 @@
                 <p class="text-sm font-medium">{{ auth()->user()?->name }}</p>
                 <p class="text-xs text-gray-500">{{ auth()->user()?->email }}</p>
                 <p class="text-xs text-[#c41e3a] font-semibold mt-1 uppercase">
-                    {{ auth()->user()?->role === 'admin' ? 'Facility Manager' : 'Event Organizer' }}
+                    {{ auth()->user()?->role === 'ADMIN' ? 'Administrator' : 'Event Organizer' }}
                 </p>
             </div>
 
