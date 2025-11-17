@@ -101,7 +101,10 @@ A comprehensive event management system for the University of Mindanao, built wi
 #### Views
 - **Layouts**: `app.blade.php`, `hero.blade.php`
 - **Components**: `sidebar-admin.blade.php`, `sidebar-organizer.blade.php`, `header.blade.php`, `user_profile_banner.blade.php`
-- **Pages**: `home.blade.php`, `dashboard-admin.blade.php`, `dashboard-organizer.blade.php`, `login.blade.php`
+- **Pages**: `home.blade.php`, `login.blade.php`
+- **Dashboards**: 
+  - `admin/dashboard.blade.php` - Admin dashboard
+  - `user/dashboard.blade.php` - Organizer/User dashboard
 
 #### Configuration Files
 - `config/admin_emails.php` - Admin email configuration
@@ -337,8 +340,10 @@ ems_dev/
 │       ├── layouts/                       # Layout templates
 │       ├── components/                    # Reusable components
 │       ├── auth/                          # Authentication views
-│       ├── dashboard-admin.blade.php     # Admin dashboard
-│       ├── dashboard-organizer.blade.php  # Organizer dashboard
+│       ├── admin/                         # Admin views
+│       │   └── dashboard.blade.php       # Admin dashboard
+│       ├── user/                          # User/Organizer views
+│       │   └── dashboard.blade.php       # Organizer dashboard
 │       └── home.blade.php                # Landing page
 ├── routes/
 │   └── web.php                           # Web routes

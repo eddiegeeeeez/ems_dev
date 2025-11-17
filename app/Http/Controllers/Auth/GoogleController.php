@@ -16,7 +16,7 @@ class GoogleController extends Controller
     public function redirectToGoogle()
     {
         return Socialite::driver('google')
-            ->with(['hd' => 'umindanao.edu.ph']) // restrict login to UM domain
+            ->with(['hd' => 'umindanao.edu.ph'])
             ->redirect();
     }
 
@@ -29,13 +29,13 @@ class GoogleController extends Controller
             $googleUser = Socialite::driver('google')->stateless()->user();
             Log::info('Google user retrieved', ['email' => $googleUser->getEmail()]);
 
-            // Only allow @umindanao.edu.ph emails
+
             if (!str_ends_with($googleUser->getEmail(), '@umindanao.edu.ph')) {
                 Log::warning('Email not allowed', ['email' => $googleUser->getEmail()]);
                 return redirect('/')->with('error', 'Only @umindanao.edu.ph accounts allowed.');
             }
 
-            // Check if user is an admin based on email
+
             $adminEmails = config('admin_emails.admin_emails', []);
             $userEmail = $googleUser->getEmail();
             $isAdmin = in_array($userEmail, $adminEmails);

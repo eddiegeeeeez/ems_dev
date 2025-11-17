@@ -16,17 +16,17 @@ class DashboardController extends Controller
         // Different data for different roles
         if ($role === 'ADMIN') {
             // Admin-specific metrics
-            $pendingRequests = 15;
+            $pendingBookings = 15;
+            $approvedBookings = 42;
+            $totalBookings = 156;
             $totalVenues = 8;
-            $activeBookings = 42;
-            $totalUsers = 156;
 
-            return view('dashboard-admin', compact(
+            return view('admin.dashboard', compact(
                 'user',
-                'pendingRequests',
-                'totalVenues',
-                'activeBookings',
-                'totalUsers'
+                'pendingBookings',
+                'approvedBookings',
+                'totalBookings',
+                'totalVenues'
             ));
         } else {
             // Organizer-specific metrics
@@ -34,7 +34,7 @@ class DashboardController extends Controller
             $pendingBookings = 3;
             $approvedBookings = 9;
 
-            return view('dashboard-organizer', compact(
+            return view('user.dashboard', compact(
                 'user',
                 'totalBookings',
                 'pendingBookings',

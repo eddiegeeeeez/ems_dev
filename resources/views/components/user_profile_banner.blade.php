@@ -1,9 +1,32 @@
-@props(['user'])
+@props(['user', 'role' => 'ORGANIZER'])
 
 @php
-// Constants for colors to easily manage them (mirroring React component)
-$profileBgColor = '#4caf50'; // Green
-$roleBgColor = '#941a1d'; // Dark Red
+// Constants for colors based on role
+$colors = [
+    'ADMIN' => [
+        'profileBg' => '#c41e3a',  // Red
+        'headerFrom' => 'from-red-800',
+        'headerVia' => 'via-red-900',
+        'headerTo' => 'to-black',
+        'roleBg' => '#c41e3a',     // Red
+        'shape1Bg' => 'bg-red-800',
+        'shape3Bg' => 'bg-red-800',
+    ],
+    'ORGANIZER' => [
+        'profileBg' => '#4caf50',  // Green
+        'headerFrom' => 'from-green-600',
+        'headerVia' => 'via-green-700',
+        'headerTo' => 'to-green-800',
+        'roleBg' => '#4caf50',     // Green
+        'shape1Bg' => 'bg-green-600',
+        'shape3Bg' => 'bg-green-600',
+    ],
+];
+
+$selectedRole = strtoupper($role ?? 'ORGANIZER');
+$colorConfig = $colors[$selectedRole] ?? $colors['ORGANIZER'];
+$profileBgColor = $colorConfig['profileBg'];
+$roleBgColor = $colorConfig['roleBg'];
 
 // Generate initials from user name if not provided
 if (!isset($user->initials) && isset($user->name)) {
@@ -21,10 +44,10 @@ $initials = $user->initials ?? 'U';
         style="background-image: url('https://picsum.photos/1200/200?grayscale&blur=1')">
 
         <!-- Gradient overlay -->
-        <div class="absolute inset-0 bg-gradient-to-r from-red-800 via-red-900 to-black opacity-80"></div>
+        <div class="absolute inset-0 bg-gradient-to-r {{ $colorConfig['headerFrom'] }} {{ $colorConfig['headerVia'] }} {{ $colorConfig['headerTo'] }} opacity-80"></div>
 
         <!-- Decorative shape 1 (left side) -->
-        <div class="absolute top-0 left-0 w-1/3 h-full bg-red-800"
+        <div class="absolute top-0 left-0 w-1/3 h-full {{ $colorConfig['shape1Bg'] }}"
             style="clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%)"></div>
 
         <!-- Decorative shape 2 (right side) -->
@@ -32,14 +55,15 @@ $initials = $user->initials ?? 'U';
             style="clip-path: polygon(25% 0, 100% 0, 100% 100%, 0 100%)"></div>
 
         <!-- Decorative shape 3 (accent bar) -->
-        <div class="absolute bottom-0 right-[70px] h-full w-6 bg-red-800"
+        <div class="absolute bottom-0 right-[70px] h-full w-6 {{ $colorConfig['shape3Bg'] }}"
             style="clip-path: polygon(25% 0, 100% 0, 100% 100%, 0 100%)"></div>
 
         <!-- Header content (title + contact info) -->
         <div class="absolute top-0 left-0 right-0 h-full flex items-center justify-between px-4 sm:px-8 text-white">
-            <h1 class="text-2xl md:text-4xl font-bold tracking-wider uppercase" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">
-                Digital Library Portal
-            </h1>
+        <h1 class="text-right text-2xl md:text-4xl font-bold tracking-wider uppercase"
+            style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">
+            UM EVENTS
+        </h1>
             <div class="hidden md:flex items-center space-x-4 text-xs">
                 <!-- Facebook -->
                 <div class="flex items-center space-x-1">
@@ -77,7 +101,7 @@ $initials = $user->initials ?? 'U';
     </div>
 
     <!-- 2. Profile Avatar & Details Section -->
-    <div class="relative px-4 sm:px-6 pb-4 pt-0">
+    <div class="relative px-4 sm:px-6 pb-6 pt-8">
 
         <div class="absolute -top-10 left-4 sm:left-6">
             @if($user->avatar)
@@ -90,9 +114,8 @@ $initials = $user->initials ?? 'U';
             @endif
         </div>
 
-
         <!-- User Details Block -->
-        <div class="ml-0 pt-12 md:ml-[110px] md:pt-4">
+        <div class="ml-0 pt-12 md:ml-[130px] md:pt-0">
             <div class="flex items-baseline space-x-3 flex-wrap">
                 <h2 class="text-lg md:text-xl font-bold text-gray-800">{{ $user->name }}</h2>
                 <span class="inline-block text-xs font-semibold text-white px-3 py-1 rounded-md uppercase tracking-wide mt-1 sm:mt-0"

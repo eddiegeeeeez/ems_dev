@@ -14,9 +14,9 @@
         href="{{ route('dashboard') }}" 
         class="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity"
     >
-        <div class="flex h-8 md:h-10 w-8 md:w-10 items-center justify-center rounded-full bg-[#4caf50] text-white font-bold text-xs md:text-sm">
-            UM
-        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-8 w-8 text-[#c41e3a]">
+            <path d="M22 10v6m0 0l-8.5 4.35a2 2 0 01-1.998 0L2 16m20-6V8a2 2 0 00-2-2H4a2 2 0 00-2 2v2m20 0l-9-4.35a2 2 0 00-2 0l-9 4.35"/>
+        </svg>
         <div class="hidden sm:flex flex-col">
             <span class="text-xs md:text-sm font-bold text-[#c41e3a]">UM EVENTS</span>
             <span class="text-xs text-gray-600">Management</span>
@@ -42,29 +42,31 @@
             onclick="toggleDropdown()" 
             class="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
-            <div class="h-8 md:h-9 w-8 md:w-9 rounded-full flex items-center justify-center bg-[#4caf50] text-white font-bold text-xs md:text-sm">
-                {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
-            </div>
+            <img 
+                src="{{ auth()->user()->avatar ?? '' }}" 
+                alt="{{ auth()->user()->name ?? 'User' }}" 
+                class="h-8 w-8 md:h-9 md:w-9 rounded-full object-cover"
+            >
         </button>
 
         <div id="userDropdown" 
-             class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg hidden">
-            <div class="px-4 py-3 border-b border-gray-100">
-                <p class="text-sm font-medium">{{ auth()->user()?->name }}</p>
-                <p class="text-xs text-gray-500">{{ auth()->user()?->email }}</p>
-                <p class="text-xs text-[#c41e3a] font-semibold mt-1 uppercase">
+             class="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-50">
+            <div class="px-4 py-4 border-b border-gray-100">
+                <p class="text-sm font-bold text-gray-900">{{ auth()->user()?->name }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ auth()->user()?->email }}</p>
+                <p class="text-xs text-[#c41e3a] font-semibold mt-2 uppercase tracking-wide">
                     {{ auth()->user()?->role === 'ADMIN' ? 'Administrator' : 'Event Organizer' }}
                 </p>
             </div>
 
             <a href="{{ route('dashboard') }}" 
-               class="block px-4 py-2 text-sm hover:bg-gray-100 text-gray-700">
+               class="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700 border-b border-gray-100">
                 Profile
             </a>
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-gray-700">
+                <button type="submit" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
                     Logout
                 </button>
             </form>
