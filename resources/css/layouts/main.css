@@ -1,0 +1,88 @@
+/* Main Layout Styles */
+
+.layout-container {
+    display: flex;
+    height: 100vh;
+}
+
+.layout-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+}
+
+.layout-sidebar {
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    width: 16rem;
+    height: calc(100vh - 4rem);
+    border-right: 1px solid #e5e7eb;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    z-index: 40;
+    overflow-y: auto;
+}
+
+.layout-main {
+    width: 100%;
+    margin-left: 16rem;
+    margin-top: 4rem;
+    height: calc(100vh - 4rem);
+    overflow-y: auto;
+    background: #f9fafb;
+    padding: 1.5rem;
+}
+
+.layout-main.full {
+    margin-left: 0;
+}
+
+/* Scrollbar Styling */
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .layout-sidebar {
+        display: none;
+    }
+
+    .layout-main {
+        margin-left: 0;
+        margin-top: 4rem;
+    }
+}

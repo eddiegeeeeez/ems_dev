@@ -77,7 +77,7 @@
             <div class="p-4 md:p-6">
                 <h3 class="text-base sm:text-lg font-semibold text-gray-900">Pending Requests</h3>
                 <p class="text-xs sm:text-sm text-gray-600 mt-1">Review and approve booking requests</p>
-                <a href="#" class="inline-block w-full mt-4 px-4 py-2 bg-[#c41e3a] hover:bg-[#a01830] text-white text-xs sm:text-sm font-medium rounded text-center transition">
+                <a href="{{ route('admin.requests.index') }}" class="inline-block w-full mt-4 px-4 py-2 bg-[#c41e3a] hover:bg-[#a01830] text-white text-xs sm:text-sm font-medium rounded text-center transition">
                     View {{ $pendingBookings ?? 0 }} Requests
                 </a>
             </div>
@@ -88,7 +88,7 @@
             <div class="p-4 md:p-6">
                 <h3 class="text-base sm:text-lg font-semibold text-gray-900">Venue Calendar</h3>
                 <p class="text-xs sm:text-sm text-gray-600 mt-1">View all venue bookings</p>
-                <a href="#" class="inline-block w-full mt-4 px-4 py-2 bg-[#4caf50] hover:bg-[#45a049] text-white text-xs sm:text-sm font-medium rounded text-center transition">
+                <a href="{{ route('admin.calendar.index') }}" class="inline-block w-full mt-4 px-4 py-2 bg-[#4caf50] hover:bg-[#45a049] text-white text-xs sm:text-sm font-medium rounded text-center transition">
                     View Calendar
                 </a>
             </div>
@@ -99,7 +99,7 @@
             <div class="p-4 md:p-6">
                 <h3 class="text-base sm:text-lg font-semibold text-gray-900">Manage Venues</h3>
                 <p class="text-xs sm:text-sm text-gray-600 mt-1">Add, edit, or deactivate venues</p>
-                <a href="#" class="inline-block w-full mt-4 px-4 py-2 bg-[#1a1a2e] hover:bg-[#0f0f1a] text-white text-xs sm:text-sm font-medium rounded text-center transition">
+                <a href="{{ route('admin.venues.index') }}" class="inline-block w-full mt-4 px-4 py-2 bg-[#1a1a2e] hover:bg-[#0f0f1a] text-white text-xs sm:text-sm font-medium rounded text-center transition">
                     Manage Venues
                 </a>
             </div>

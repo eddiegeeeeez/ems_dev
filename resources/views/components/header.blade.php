@@ -2,10 +2,10 @@
     {{-- Mobile Menu Toggle --}}
     <button 
         id="menu-toggle"
-        class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        class="md:hidden p-2 text-gray-600 rounded-lg transition-all duration-300 hover:bg-[#c41e3a] hover:text-white active:scale-95"
         aria-label="Toggle menu"
     >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
     </button>
@@ -25,16 +25,8 @@
 </div>
 <div class="flex items-center gap-2 md:gap-4">
 
-    {{-- ✨ CHANGED: Replaced user icon with a borderless notification bell --}}
-    <button 
-        class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        onclick="console.log('Notifications clicked')"
-    >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-600">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-        </svg>
-    </button>
-    {{-- End of change --}}
+    {{-- Notifications Panel --}}
+    @include('components.notifications-panel')
 
     {{-- User Dropdown --}}
     <div class="relative">

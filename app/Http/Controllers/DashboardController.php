@@ -42,4 +42,24 @@ class DashboardController extends Controller
             ));
         }
     }
+
+    /**
+     * Display admin dashboard.
+     */
+    public function admin(): View
+    {
+        $user = Auth::user();
+        $pendingBookings = 15;
+        $approvedBookings = 42;
+        $totalBookings = 156;
+        $totalVenues = 8;
+
+        return view('admin.dashboard', compact(
+            'user',
+            'pendingBookings',
+            'approvedBookings',
+            'totalBookings',
+            'totalVenues'
+        ));
+    }
 }

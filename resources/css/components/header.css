@@ -1,0 +1,65 @@
+/* Header Component Styles */
+
+.header {
+    @apply fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6;
+}
+
+.header-left {
+    @apply flex items-center gap-3;
+}
+
+.menu-toggle {
+    @apply md:hidden p-2 text-gray-600 rounded-lg transition-all duration-300 hover:bg-[#c41e3a] hover:text-white active:scale-95;
+}
+
+.menu-toggle svg {
+    @apply h-6 w-6 transition-transform duration-300;
+}
+
+.logo-link {
+    @apply flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity;
+}
+
+.logo-icon {
+    @apply h-8 w-8 text-[#c41e3a];
+}
+
+.logo-text {
+    @apply hidden sm:flex flex-col;
+}
+
+.logo-brand {
+    @apply text-xs md:text-sm font-bold text-[#c41e3a];
+}
+
+.logo-subtitle {
+    @apply text-xs text-gray-600;
+}
+
+.header-right {
+    @apply flex items-center gap-2 md:gap-4;
+}
+
+.notification-btn {
+    @apply p-2 hover:bg-gray-100 rounded-lg transition-colors;
+}
+
+.notification-icon {
+    @apply w-5 h-5 text-gray-600;
+}
+
+.user-dropdown-trigger {
+    @apply flex items-center gap-2 hover:opacity-80 transition-opacity;
+}
+
+.user-avatar {
+    @apply h-8 w-8 md:h-9 md:w-9 rounded-full object-cover;
+}
+
+.user-dropdown-menu {
+    @apply absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50;
+}
+
+.dropdown-hidden {
+    @apply hidden;
+}

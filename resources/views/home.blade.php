@@ -20,9 +20,6 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-8">
-                    <a href="#" class="text-sm text-foreground hover:text-primary transition-colors font-medium">Discover</a>
-                    <a href="#" class="text-sm text-foreground hover:text-primary transition-colors font-medium">Calendar</a>
-                    <a href="#" class="text-sm text-foreground hover:text-primary transition-colors font-medium">About</a>
                     <a href="{{ route('login') }}" class="rounded-full px-6 py-2 bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">
                         Sign In
                     </a>
@@ -35,13 +32,7 @@
     <section class="py-24 lg:py-32">
         <div class="mx-auto max-w-7xl px-6 lg:px-12">
             <div class="max-w-4xl mx-auto text-center space-y-12">
-                {{-- Badge --}}
-                <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary/20 border border-secondary/30 animate-on-scroll">
-                    <svg class="h-4 w-4 text-secondary fill-secondary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M12 17.27l5.18 3.73-1.64-6.03L20 10.92l-6.19-.51L12 5l-1.81 5.41L4 10.92l4.46 4.05L6.82 21z" />
-                    </svg>
-                    <span class="text-sm font-medium text-foreground">Trusted by 15,000+ students</span>
-                </div>
+
 
                 {{-- Heading --}}
                 <div class="space-y-6 animate-on-scroll animate-on-scroll-delay-1">
@@ -276,4 +267,28 @@
         </div>
     </footer>
 </main>
+
+<script>
+    (function () {
+        try {
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
+            }
+        } catch (e) {}
+
+        // Ensure we start at the top when the page loads or when the user refreshes
+        window.scrollTo(0, 0);
+
+        // Some browsers restore scroll on reload — reset before unload to avoid that
+        window.addEventListener('beforeunload', function () {
+            window.scrollTo(0, 0);
+        });
+
+        // Also ensure after DOM ready we are at top (extra safety)
+        document.addEventListener('DOMContentLoaded', function () {
+            window.scrollTo(0, 0);
+        });
+    })();
+</script>
+
 @endsection

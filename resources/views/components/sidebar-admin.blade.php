@@ -1,73 +1,409 @@
-<aside id="sidebar" class="flex flex-col h-full overflow-y-auto">
-    <div class="flex-1 px-4 py-6">
+@php
+    $isAdmin = Auth::check() && Auth::user()->role === 'ADMIN';
+    
+    $adminSections = [
+        [
+            'title' => 'Dashboard',
+            'isDirectLink' => true,
+            'href' => 'dashboard',
+            'icon' => 'dashboard'
+        ],
+        [
+            'title' => 'Bookings Management',
+            'links' => [
+                ['href' => 'admin.requests.index', 'label' => 'Pending Requests', 'icon' => 'document'],
+                ['href' => 'admin.calendar.index', 'label' => 'Venue Calendar', 'icon' => 'calendar'],
+            ]
+        ],
+        [
+            'title' => 'Facilities Management',
+            'links' => [
+                ['href' => 'admin.venues.index', 'label' => 'Manage Venues', 'icon' => 'building'],
+                ['href' => 'admin.equipment.index', 'label' => 'Equipment', 'icon' => 'settings'],
+                ['href' => 'admin.maintenance.requests.index', 'label' => 'Maintenance Management', 'icon' => 'wrench'],
+            ]
+        ],
+        [
+            'title' => 'Reports & Analytics',
+            'links' => [
+                ['href' => 'admin.reports.venue', 'label' => 'Venue Utilization', 'icon' => 'chart'],
+                ['href' => 'admin.reports.bookings', 'label' => 'Booking Statistics', 'icon' => 'chart'],
+                ['href' => 'admin.reports.export', 'label' => 'Export Data', 'icon' => 'search'],
+            ]
+        ],
+        [
+            'title' => 'User Management',
+            'links' => [
+                ['href' => 'admin.users.index', 'label' => 'Manage Users', 'icon' => 'users'],
+                ['href' => 'admin.departments.index', 'label' => 'Departments', 'icon' => 'branch'],
+                ['href' => 'admin.audit-logs.index', 'label' => 'Audit Logs', 'icon' => 'search'],
+            ]
+        ],
+        [
+            'title' => 'System Settings',
+            'links' => [
+                ['href' => 'admin.settings.booking-rules', 'label' => 'Booking Rules', 'icon' => 'sliders'],
+                ['href' => 'admin.settings.email-templates', 'label' => 'Email Templates', 'icon' => 'mail'],
+                ['href' => 'admin.settings.general', 'label' => 'General Settings', 'icon' => 'settings'],
+            ]
+        ],
+        [
+            'title' => 'Account',
+            'links' => [
+                ['href' => 'profile.show', 'label' => 'My Profile', 'icon' => 'user'],
+            ]
+        ]
+    ];
+    
+    $organizerSections = [
+        [
+            'title' => 'Dashboard',
+            'isDirectLink' => true,
+            'href' => 'dashboard',
+            'icon' => 'dashboard'
+        ],
+        [
+            'title' => 'Bookings',
+            'links' => [
+                ['href' => 'venues.index', 'label' => 'Browse Venues', 'icon' => 'building'],
+                ['href' => 'bookings.index', 'label' => 'My Bookings', 'icon' => 'calendar'],
+            ]
+        ],
+        [
+            'title' => 'Account',
+            'links' => [
+                ['href' => 'profile.show', 'label' => 'My Profile', 'icon' => 'user'],
+            ]
+        ]
+    ];
+    
+    $sections = $isAdmin ? $adminSections : $organizerSections;
+@endphp
+
+<style>
+    .menu-item-content {
+        display: none;
+        animation: slideDown 0.25s ease-in-out forwards;
+    }
+
+    .menu-item-content.show {
+        display: block !important;
+        animation: slideDown 0.25s ease-in-out forwards;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dropdown-chevron {
+        transition: transform 0.25s ease-in-out;
+        transform: rotate(0deg);
+    }
+
+    .dropdown-chevron.rotated {
+        transform: rotate(180deg) !important;
+    }
+
+    .section-button:hover {
+        background-color: rgba(196, 30, 58, 0.05);
+    }
+
+    .nav-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Mobile Sidebar Animations */
+    #mobile-sidebar {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    }
+
+    #mobile-sidebar:not(.hidden) {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    #mobile-sidebar-overlay {
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    #mobile-sidebar:not(.hidden) #mobile-sidebar-overlay {
+        opacity: 1;
+    }
+
+    #mobile-sidebar.hidden {
+        pointer-events: none;
+    }
+
+    #mobile-sidebar:not(.hidden) aside {
+        animation: slideInFromLeft 0.3s ease-in-out forwards;
+    }
+
+    #mobile-sidebar.hidden aside {
+        animation: slideOutToLeft 0.3s ease-in-out forwards !important;
+    }
+
+    @keyframes slideInFromLeft {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutToLeft {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+    }
+
+    /* Fade out animation for overlay */
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    #mobile-sidebar.hidden #mobile-sidebar-overlay {
+        animation: fadeOut 0.3s ease-in-out forwards !important;
+    }
+</style>
+
+<!-- Desktop Sidebar -->
+<aside class="hidden md:flex fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] flex-col border-r border-slate-200 bg-white">
+    <!-- Navigation Content -->
+    <div class="flex-1 overflow-y-auto px-4 py-6">
         <div class="mb-6">
-            <h3 class="px-2 text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-                Admin Menu
+            <h3 class="px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">
+                {{ $isAdmin ? 'Admin' : 'Organizer' }} Menu
             </h3>
 
             <nav class="space-y-1">
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium bg-[#c41e3a] text-white transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>Pending Requests</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span>Venue Calendar</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <span>Manage Venues</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>Equipment</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    <span>Feedback Reports</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span>Reports & Analytics</span>
-                </a>
-                <a href="{{ route('profile.show') }}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span>My Profile</span>
-                </a>
+                @foreach($sections as $sectionIndex => $section)
+                    @if($section['isDirectLink'] ?? false)
+                        <!-- Direct Link Item -->
+                        <a href="{{ route($section['href']) }}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 @if(Route::is($section['href'])) bg-[#c41e3a] text-white shadow-sm @else text-slate-700 hover:bg-slate-100 @endif">
+                            @include('components.icon', ['icon' => $section['icon'], 'class' => 'h-4 w-4 flex-shrink-0'])
+                            <span>{{ $section['title'] }}</span>
+                        </a>
+                    @else
+                        <!-- Collapsible Section -->
+                        <div class="space-y-0">
+                            <button class="section-button w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all duration-200" onclick="toggleMenu(this, 'menu-{{ $sectionIndex }}')">
+                                <span>{{ $section['title'] }}</span>
+                                <svg class="dropdown-chevron h-4 w-4 text-slate-600 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7 10l5 5 5-5z"/>
+                                </svg>
+                            </button>
+
+                            <!-- Dropdown Content -->
+                            <div id="menu-{{ $sectionIndex }}" class="menu-item-content">
+                                <div class="space-y-1 pl-6">
+                                    @foreach($section['links'] as $link)
+                                        <a href="{{ route($link['href']) }}" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all duration-150 @if(Route::is($link['href'])) bg-[#c41e3a] text-white @endif">
+                                            @include('components.icon', ['icon' => $link['icon'], 'class' => 'h-4 w-4 flex-shrink-0'])
+                                            <span>{{ $link['label'] }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
             </nav>
         </div>
     </div>
-    <div class="border-t border-gray-200 p-4">
-        <form action="{{ route('logout') }}" method="POST">
-            @csrf
-            <button type="submit" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Logout
-            </button>
-        </form>
+
+    <!-- User Info Footer -->
+    <div class="border-t border-slate-200 p-4 bg-slate-50">
+        <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#4caf50] text-white font-semibold text-sm flex-shrink-0">
+                {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-slate-900 truncate">{{ Auth::user()->name ?? 'User' }}</p>
+                <p class="text-xs text-slate-500 truncate">{{ Auth::user()->email ?? '' }}</p>
+                <span class="inline-block text-xs font-semibold text-white bg-[#c41e3a] px-2 py-1 rounded mt-1">
+                    {{ Auth::user()->role ?? 'ORGANIZER' }}
+                </span>
+            </div>
+        </div>
     </div>
 </aside>
 
+<!-- Mobile Sidebar -->
+<div id="mobile-sidebar" class="fixed inset-0 z-40 hidden md:hidden">
+    <div class="absolute inset-0 bg-black/50" id="mobile-sidebar-overlay"></div>
+    <aside class="absolute left-0 top-0 bottom-0 w-64 bg-white border-r border-slate-200 flex flex-col overflow-y-auto">
+        <!-- Mobile Header -->
+        <div class="flex items-center justify-between p-4 border-b border-slate-200">
+            <h2 class="font-semibold text-slate-900">Menu</h2>
+            <button id="mobile-sidebar-close" class="p-1 hover:bg-slate-100 rounded transition-colors" type="button">
+                <svg class="h-5 w-5 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div class="flex-1 overflow-y-auto px-4 py-6">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">
+                {{ $isAdmin ? 'Admin' : 'Organizer' }} Menu
+            </h3>
+            <nav class="space-y-1">
+                @foreach($sections as $sectionIndex => $section)
+                    @if($section['isDirectLink'] ?? false)
+                        <a href="{{ route($section['href']) }}" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 @if(Route::is($section['href'])) bg-[#c41e3a] text-white shadow-sm @else text-slate-700 hover:bg-slate-100 @endif" onclick="closeMobileSidebar()">
+                            @include('components.icon', ['icon' => $section['icon'], 'class' => 'h-4 w-4 flex-shrink-0'])
+                            <span>{{ $section['title'] }}</span>
+                        </a>
+                    @else
+                        <div class="space-y-0">
+                            <button class="section-button w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all duration-200" onclick="toggleMenu(this, 'menu-mobile-{{ $sectionIndex }}')">
+                                <span>{{ $section['title'] }}</span>
+                                <svg class="dropdown-chevron h-4 w-4 text-slate-600 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7 10l5 5 5-5z"/>
+                                </svg>
+                            </button>
+
+                            <div id="menu-mobile-{{ $sectionIndex }}" class="menu-item-content">
+                                <div class="space-y-1 pl-6">
+                                    @foreach($section['links'] as $link)
+                                        <a href="{{ route($link['href']) }}" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all duration-150 @if(Route::is($link['href'])) bg-[#c41e3a] text-white @endif" onclick="closeMobileSidebar()">
+                                            @include('components.icon', ['icon' => $link['icon'], 'class' => 'h-4 w-4 flex-shrink-0'])
+                                            <span>{{ $link['label'] }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
+            </nav>
+        </div>
+
+        <!-- Mobile User Footer -->
+        <div class="border-t border-slate-200 p-4 bg-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#4caf50] text-white font-semibold text-sm flex-shrink-0">
+                    {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-900 truncate">{{ Auth::user()->name ?? 'User' }}</p>
+                    <p class="text-xs text-slate-500 truncate">{{ Auth::user()->email ?? '' }}</p>
+                    <span class="inline-block text-xs font-semibold text-white bg-[#c41e3a] px-2 py-1 rounded mt-1">
+                        {{ Auth::user()->role ?? 'ORGANIZER' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script>
+    // Global function to toggle menus
+    function toggleMenu(button, menuId) {
+        const menu = document.getElementById(menuId);
+        const chevron = button.querySelector('.dropdown-chevron');
+        
+        if (!menu) return;
+        
+        const isVisible = menu.classList.contains('show');
+        
+        if (isVisible) {
+            // Hide menu
+            menu.classList.remove('show');
+            if (chevron) chevron.classList.remove('rotated');
+        } else {
+            // Show menu
+            menu.classList.add('show');
+            if (chevron) chevron.classList.add('rotated');
+        }
+    }
+
+    // Mobile sidebar functions
+    function closeMobileSidebar() {
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const sidebarToggle = document.getElementById('menu-toggle');
+        
+        if (mobileSidebar && !mobileSidebar.classList.contains('hidden')) {
+            mobileSidebar.classList.add('hidden');
+            // Remove hover state from button
+            if (sidebarToggle) {
+                sidebarToggle.blur();
+            }
+            // Wait for animation to complete before setting visibility
+            setTimeout(() => {
+                if (mobileSidebar.classList.contains('hidden')) {
+                    mobileSidebar.style.display = 'none';
+                }
+            }, 300);
+        }
+    }
+
+    function openMobileSidebar() {
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        if (mobileSidebar) {
+            mobileSidebar.style.display = '';
+            // Trigger reflow to ensure animation plays
+            void mobileSidebar.offsetHeight;
+            mobileSidebar.classList.remove('hidden');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile sidebar controls
+        const sidebarToggle = document.getElementById('menu-toggle'); // Use header's menu-toggle button
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const sidebarOverlay = document.getElementById('mobile-sidebar-overlay');
+        const sidebarClose = document.getElementById('mobile-sidebar-close');
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (mobileSidebar.classList.contains('hidden')) {
+                    openMobileSidebar();
+                } else {
+                    closeMobileSidebar();
+                }
+            });
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeMobileSidebar);
+        }
+
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', closeMobileSidebar);
+        }
+
+        // Close sidebar when clicking outside (on body)
+        document.addEventListener('click', function(e) {
+            if (mobileSidebar && !mobileSidebar.classList.contains('hidden')) {
+                if (!mobileSidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                    closeMobileSidebar();
+                }
+            }
+        });
+    });
+</script>

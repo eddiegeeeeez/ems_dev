@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==========================================
+   GLOBAL VARIABLES & THEME
+   ========================================== */
+
+:root {
+  --background: oklch(0.995 0.001 30);
+  --foreground: oklch(0.12 0.008 20);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.12 0.008 20);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.12 0.008 20);
+  /* Deep maroon as primary - University of Mindanao brand color */
+  --primary: oklch(0.32 0.135 15);
+  --primary-foreground: oklch(0.99 0 0);
+  /* Warm red as secondary */
+  --secondary: oklch(0.5 0.22 25);
+  --secondary-foreground: oklch(0.99 0 0);
+  --muted: oklch(0.97 0.008 30);
+  --muted-foreground: oklch(0.48 0.008 20);
+  /* Soft rose accent */
+  --accent: oklch(0.88 0.08 20);
+  --accent-foreground: oklch(0.2 0.1 15);
+  --destructive: oklch(0.55 0.22 20);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.93 0.008 30);
+  --input: oklch(0.98 0.005 30);
+  --ring: oklch(0.32 0.135 15);
+  --chart-1: oklch(0.32 0.135 15);
+  --chart-2: oklch(0.5 0.22 25);
+  --chart-3: oklch(0.62 0.18 20);
+  --chart-4: oklch(0.42 0.2 18);
+  --chart-5: oklch(0.72 0.14 22);
+  --radius: 1rem;
+  --sidebar: oklch(0.995 0.001 30);
+  --sidebar-foreground: oklch(0.12 0.008 20);
+  --sidebar-primary: oklch(0.32 0.135 15);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.98 0.005 30);
+  --sidebar-accent-foreground: oklch(0.12 0.008 20);
+  --sidebar-border: oklch(0.93 0.008 30);
+  --sidebar-ring: oklch(0.42 0.14 15);
+}
+
+.dark {
+  --background: oklch(0.12 0.02 15);
+  --foreground: oklch(0.95 0.01 30);
+  --card: oklch(0.17 0.03 15);
+  --card-foreground: oklch(0.95 0.01 30);
+  --popover: oklch(0.14 0.02 15);
+  --popover-foreground: oklch(0.95 0.01 30);
+  --primary: oklch(0.8 0.1 30);
+  --primary-foreground: oklch(0.12 0.02 15);
+  --secondary: oklch(0.75 0.15 30);
+  --secondary-foreground: oklch(0.12 0.02 15);
+  --muted: oklch(0.23 0.02 15);
+  --muted-foreground: oklch(0.7 0.02 30);
+  --accent: oklch(0.2 0.08 30);
+  --accent-foreground: oklch(0.85 0.1 30);
+  --border: oklch(0.23 0.02 15);
+  --input: oklch(0.17 0.03 15);
+  --ring: oklch(0.8 0.1 30);
+  --sidebar: oklch(0.14 0.02 15);
+  --sidebar-foreground: oklch(0.95 0.01 30);
+  --sidebar-primary: oklch(0.8 0.1 30);
+  --sidebar-primary-foreground: oklch(0.12 0.02 15);
+  --sidebar-accent: oklch(0.17 0.03 15);
+  --sidebar-accent-foreground: oklch(0.95 0.01 30);
+  --sidebar-border: oklch(0.23 0.02 15);
+  --sidebar-ring: oklch(0.8 0.15 30);
+}
+
+/* ==========================================
+   COMPONENT STYLES
+   ========================================== */
+
+@import "components/header.css";
+@import "components/sidebar.css";
+@import "components/buttons.css";
+@import "components/forms.css";
+@import "components/cards.css";
+@import "components/profile-banner.css";
+
+/* ==========================================
+   ANIMATION STYLES
+   ========================================== */
+
+@import "animations/sidebar.css";
+@import "animations/general.css";
+
+/* ==========================================
+   LAYOUT STYLES
+   ========================================== */
+
+@import "layouts/main.css";
+
+/* ==========================================
+   UTILITY STYLES
+   ========================================== */
+
+@import "utilities/helpers.css";
+@import "utilities/typography.css";
+
+/* ==========================================
+   GLOBAL STYLES
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+    line-height: 1.5;
+}
+
+/* ==========================================
+   FOCUS STATES
+   ========================================== */
+
+:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}

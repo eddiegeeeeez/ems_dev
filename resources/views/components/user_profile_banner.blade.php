@@ -100,30 +100,32 @@ $initials = $user->initials ?? 'U';
         </div>
     </div>
 
-    <!-- 2. Profile Avatar & Details Section -->
-    <div class="relative px-4 sm:px-6 pb-6 pt-8">
+    <!-- 2. Profile Avatar & Details Section (Digital Library Portal Layout) -->
+    <div class="px-4 sm:px-6 pb-6 pt-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            
+            <!-- Avatar & Text Container -->
+            <div class="flex items-center gap-4">
+                <!-- Avatar -->
+                @if($user->avatar)
+                <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="h-16 w-16 md:h-20 md:w-20 rounded-full border-4 border-gray-200 shadow-md object-cover flex-shrink-0">
+                @else
+                <div class="h-16 w-16 md:h-20 md:w-20 rounded-full border-4 border-gray-200 flex items-center justify-center text-2xl md:text-3xl font-bold text-white shadow-md flex-shrink-0" style="background-color: {{ $profileBgColor }};">
+                    {{ $initials }}
+                </div>
+                @endif
 
-        <div class="absolute -top-10 left-4 sm:left-6">
-            @if($user->avatar)
-            <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="h-20 w-20 md:h-24 md:w-24 rounded-full border-4 border-white shadow-lg object-cover">
-            @else
-            <div class="h-20 w-20 md:h-24 md:w-24 rounded-full border-4 border-white flex items-center justify-center text-3xl md:text-4xl font-bold text-white shadow-lg"
-                style="background-color: {{ $profileBgColor }}">
-                {{ $initials }}
+                <!-- User Info -->
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-lg md:text-2xl font-bold text-gray-900 leading-tight">{{ strtoupper($user->name) }}</h2>
+                    <p class="text-xs md:text-sm text-gray-600 mt-1">{{ $user->department ?? 'User' }}</p>
+                </div>
             </div>
-            @endif
-        </div>
 
-        <!-- User Details Block -->
-        <div class="ml-0 pt-12 md:ml-[130px] md:pt-0">
-            <div class="flex items-baseline space-x-3 flex-wrap">
-                <h2 class="text-lg md:text-xl font-bold text-gray-800">{{ $user->name }}</h2>
-                <span class="inline-block text-xs font-semibold text-white px-3 py-1 rounded-md uppercase tracking-wide mt-1 sm:mt-0"
-                    style="background-color: {{ $roleBgColor }}">
-                    {{ $user->role }}
-                </span>
-            </div>
-            <p class="text-sm font-medium text-gray-500 mt-1 uppercase">{{ $user->department }}</p>
+            <!-- Role Badge -->
+            <span class="inline-flex items-center text-xs font-bold text-white px-4 py-2 rounded-md uppercase tracking-widest flex-shrink-0" style="background-color: {{ $roleBgColor }};">
+                {{ $user->role }}
+            </span>
         </div>
     </div>
 </div>

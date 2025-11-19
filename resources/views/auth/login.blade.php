@@ -20,6 +20,20 @@
             Sign in with Google
         </a>
 
+        {{-- Temporary quick-login buttons for local development --}}
+        <div class="mt-4 grid grid-cols-2 gap-3">
+            <a href="{{ url('/temp-login/admin') }}" class="w-full inline-flex justify-center items-center py-2 px-3 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors">
+                Admin (dev)
+            </a>
+            <a href="{{ url('/temp-login/organizer') }}" class="w-full inline-flex justify-center items-center py-2 px-3 rounded-md bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors">
+                Organizer (dev)
+            </a>
+        </div>
+
+        <div class="mt-3 text-xs text-gray-500">
+            These quick-login buttons are for development only and are disabled in production.
+        </div>
+
         <div class="mt-6 text-center text-sm text-gray-600">
             <p>By signing in, you agree to our terms and conditions</p>
         </div>

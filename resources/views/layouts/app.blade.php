@@ -17,59 +17,21 @@
 
     {{-- Layout Wrapper --}}
     <div class="flex pt-16"> {{-- Match header height (h-16 = 4rem = 64px) --}}
-        {{-- Sidebar --}}
-        <aside class="hidden md:flex fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 flex-col border-r border-gray-200 bg-white">
-            @auth
-                @if(auth()->user()->role === 'ADMIN')
-                    @include('components.sidebar-admin')
-                @else
-                    @include('components.sidebar-organizer')
-                @endif
-            @else
-                @include('components.sidebar-organizer')
-            @endauth
-        </aside>
-
         {{-- Main Content --}}
-        <main class="flex-1 md:ml-64 h-[calc(100vh-4rem)] overflow-y-auto bg-gray-50 p-6">
+        <main class="w-full md:ml-64 h-[calc(100vh-4rem)] overflow-y-auto bg-gray-50 p-6">
             @yield('content')
         </main>
     </div>
 
-    {{-- Mobile Sidebar --}}
-    <aside id="mobile-sidebar" class="fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 flex-col border-r border-gray-200 bg-white z-40 transform -translate-x-full transition-transform duration-300 md:hidden">
-        @auth
-            @if(auth()->user()->role === 'ADMIN')
-                @include('components.sidebar-admin')
-            @else
-                @include('components.sidebar-organizer')
-            @endif
+    {{-- Sidebar Component (includes both desktop and mobile versions) --}}
+    @auth
+        @if(auth()->user()->role === 'ADMIN')
+            @include('components.sidebar-admin')
         @else
             @include('components.sidebar-organizer')
-        @endauth
-    </aside>
-
-    {{-- Mobile Sidebar Overlay --}}
-    <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden hidden"></div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuToggle = document.getElementById('menu-toggle');
-            const mobileSidebar = document.getElementById('mobile-sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-
-            if (menuToggle && mobileSidebar && overlay) {
-                menuToggle.addEventListener('click', () => {
-                    mobileSidebar.classList.toggle('-translate-x-full');
-                    overlay.classList.toggle('hidden');
-                });
-
-                overlay.addEventListener('click', () => {
-                    mobileSidebar.classList.add('-translate-x-full');
-                    overlay.classList.add('hidden');
-                });
-            }
-        });
-    </script>
+        @endif
+    @else
+        @include('components.sidebar-organizer')
+    @endauth
 </body>
 </html>
