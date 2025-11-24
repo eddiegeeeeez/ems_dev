@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\VenueController as AdminVenueController;
+use App\Http\Controllers\Admin\EquipmentController as AdminEquipmentController;
 use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
@@ -121,11 +123,11 @@ Route::middleware('auth')->group(function () {
         // Bookings Management
         Route::get('/requests', [RequestController::class, 'index'])
             ->name('requests.index');
-        Route::get('/requests/{id}', [RequestController::class, 'show'])
+        Route::get('/requests/{booking}', [RequestController::class, 'show'])
             ->name('requests.show');
-        Route::post('/requests/{id}/approve', [RequestController::class, 'approve'])
+        Route::post('/requests/{booking}/approve', [RequestController::class, 'approve'])
             ->name('requests.approve');
-        Route::post('/requests/{id}/reject', [RequestController::class, 'reject'])
+        Route::patch('/requests/{booking}/reject', [RequestController::class, 'reject'])
             ->name('requests.reject');
 
         Route::get('/calendar', [CalendarController::class, 'index'])
@@ -136,38 +138,44 @@ Route::middleware('auth')->group(function () {
             ->name('calendar.event-details');
 
         // Facilities Management
-        Route::get('/venues', [VenueController::class, 'adminIndex'])
-            ->name('venues.index');
-        Route::get('/venues/create', [VenueController::class, 'create'])
-            ->name('venues.create');
-        Route::post('/venues', [VenueController::class, 'store'])
-            ->name('venues.store');
-        Route::get('/venues/{id}/edit', [VenueController::class, 'edit'])
-            ->name('venues.edit');
-        Route::put('/venues/{id}', [VenueController::class, 'update'])
-            ->name('venues.update');
-        Route::post('/venues/{id}/toggle', [VenueController::class, 'toggle'])
-            ->name('venues.toggle');
+        Route::resource('/venues', AdminVenueController::class, ['as' => 'venues'])->names([
+            'index' => 'venues.index',
+            'create' => 'venues.create',
+            'store' => 'venues.store',
+            'show' => 'venues.show',
+            'edit' => 'venues.edit',
+            'update' => 'venues.update',
+            'destroy' => 'venues.destroy',
+        ]);
+        Route::post('/venues/{venue}/toggle-active', [AdminVenueController::class, 'toggleActive'])
+            ->name('venues.toggle-active');
 
-        Route::get('/equipment', [EquipmentController::class, 'index'])
-            ->name('equipment.index');
-        Route::post('/equipment', [EquipmentController::class, 'store'])
-            ->name('equipment.store');
-        Route::put('/equipment/{id}', [EquipmentController::class, 'update'])
-            ->name('equipment.update');
-        Route::delete('/equipment/{id}', [EquipmentController::class, 'destroy'])
-            ->name('equipment.destroy');
+        Route::resource('/equipment', AdminEquipmentController::class, ['as' => 'equipment'])->names([
+            'index' => 'equipment.index',
+            'create' => 'equipment.create',
+            'store' => 'equipment.store',
+            'show' => 'equipment.show',
+            'edit' => 'equipment.edit',
+            'update' => 'equipment.update',
+            'destroy' => 'equipment.destroy',
+        ]);
 
         Route::prefix('maintenance')->name('maintenance.')->group(function () {
             Route::get('/requests', [MaintenanceController::class, 'requests'])
-                ->name('requests.index');
-            Route::post('/requests/{id}/status', [MaintenanceController::class, 'updateRequestStatus'])
-                ->name('requests.update-status');
+                ->name('requests');
+            Route::get('/requests/create', [MaintenanceController::class, 'create'])
+                ->name('create');
+            Route::post('/requests', [MaintenanceController::class, 'storeScheduled'])
+                ->name('store');
+            Route::post('/requests/{maintenance}/assign', [MaintenanceController::class, 'assign'])
+                ->name('assign');
+            Route::patch('/requests/{maintenance}/status', [MaintenanceController::class, 'updateRequestStatus'])
+                ->name('update-status');
+            Route::delete('/requests/{maintenance}', [MaintenanceController::class, 'destroy'])
+                ->name('destroy');
             
             Route::get('/scheduled', [MaintenanceController::class, 'scheduled'])
-                ->name('scheduled.index');
-            Route::post('/scheduled', [MaintenanceController::class, 'storeScheduled'])
-                ->name('scheduled.store');
+                ->name('scheduled');
         });
 
         // Reports & Analytics
@@ -191,13 +199,13 @@ Route::middleware('auth')->group(function () {
         // User Management
         Route::get('/users', [UserController::class, 'index'])
             ->name('users.index');
-        Route::get('/users/{id}', [UserController::class, 'show'])
+        Route::get('/users/{user}', [UserController::class, 'show'])
             ->name('users.show');
-        Route::post('/users/{id}/role', [UserController::class, 'updateRole'])
+        Route::post('/users/{user}/role', [UserController::class, 'updateRole'])
             ->name('users.update-role');
-        Route::post('/users/{id}/deactivate', [UserController::class, 'deactivate'])
+        Route::post('/users/{user}/deactivate', [UserController::class, 'deactivate'])
             ->name('users.deactivate');
-        Route::post('/users/{id}/activate', [UserController::class, 'activate'])
+        Route::post('/users/{user}/activate', [UserController::class, 'activate'])
             ->name('users.activate');
 
         Route::get('/departments', [DepartmentController::class, 'index'])

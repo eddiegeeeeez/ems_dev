@@ -24,7 +24,7 @@ class User extends Authenticatable
         'google_id',
         'avatar',
         'role',
-        'department',
+        'department_id',
     ];
 
     /**
@@ -48,5 +48,40 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function feedback()
+    {
+        return $this->hasMany(Feedback::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'ADMIN';
+    }
+
+    public function isOrganizer(): bool
+    {
+        return $this->role === 'ORGANIZER';
     }
 }

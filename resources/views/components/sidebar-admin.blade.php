@@ -20,7 +20,7 @@
             'links' => [
                 ['href' => 'admin.venues.index', 'label' => 'Manage Venues', 'icon' => 'building'],
                 ['href' => 'admin.equipment.index', 'label' => 'Equipment', 'icon' => 'settings'],
-                ['href' => 'admin.maintenance.requests.index', 'label' => 'Maintenance Management', 'icon' => 'wrench'],
+                ['href' => 'admin.maintenance.requests', 'label' => 'Maintenance Management', 'icon' => 'wrench'],
             ]
         ],
         [

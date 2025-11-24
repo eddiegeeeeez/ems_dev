@@ -4,58 +4,59 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Services\BookingService;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class RequestController extends Controller
 {
-    /**
-     * Display a listing of pending booking requests.
-     */
-    public function index()
-    {
-        $bookings = Booking::where('status', 'pending')
-            ->with('user', 'venue')
-            ->latest()
-            ->paginate(10);
+    public function __construct(private BookingService $bookingService) {}
 
-        return view('admin.requests', compact('bookings'));
+    /**
+     * Display a listing of booking requests.
+     */
+    public function index(): View
+    {
+        $bookings = Booking::with('user', 'venue')
+            ->latest()
+            ->paginate(15);
+
+        $stats = [
+            'pending' => Booking::where('status', 'pending')->count(),
+            'approved' => Booking::where('status', 'approved')->count(),
+            'rejected' => Booking::where('status', 'rejected')->count(),
+            'completed' => Booking::where('status', 'completed')->count(),
+        ];
+
+        return view('admin.requests.index', compact('bookings', 'stats'));
     }
 
     /**
      * Display the specified booking request.
      */
-    public function show($id)
+    public function show(Booking $booking): View
     {
-        $booking = Booking::with('user', 'venue')->findOrFail($id);
+        $booking->load('user', 'venue', 'equipment.equipment');
         return view('admin.requests.show', compact('booking'));
     }
 
     /**
      * Approve a booking request.
      */
-    public function approve($id)
+    public function approve(Booking $booking): RedirectResponse
     {
-        $booking = Booking::findOrFail($id);
-        $booking->update(['status' => 'approved']);
-
-        return back()->with('success', 'Booking request approved successfully.');
+        $this->bookingService->approveBooking($booking, request('notes'));
+        return redirect()->route('admin.requests.index')->with('success', 'Booking approved successfully');
     }
 
     /**
      * Reject a booking request.
      */
-    public function reject(Request $request, $id)
+    public function reject(Booking $booking): RedirectResponse
     {
-        $request->validate([
-            'reason' => 'required|string|max:500',
-        ]);
-
-        $booking = Booking::findOrFail($id);
-        $booking->update([
-            'status' => 'rejected',
-            'rejection_reason' => $request->reason,
-        ]);
-
-        return back()->with('success', 'Booking request rejected successfully.');
+        request()->validate(['reason' => 'required|string|max:500']);
+        $this->bookingService->rejectBooking($booking, request('reason'));
+        return redirect()->route('admin.requests.index')->with('success', 'Booking rejected successfully');
     }
 }

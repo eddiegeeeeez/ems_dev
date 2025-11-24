@@ -2,64 +2,63 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
+use App\Models\Venue;
+use App\Models\Feedback;
+use App\Services\BookingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    public function __construct(private BookingService $bookingService) {}
+
+    /**
+     * User dashboard
+     */
     public function index(): View
     {
-        // Auth middleware already ensures user is authenticated
         $user = Auth::user();
-        $role = $user->role ?? 'ORGANIZER';
+        $upcomingBookings = $this->bookingService->getUpcomingBookings(5);
+        $bookingStats = [
+            'total' => Booking::where('user_id', $user->id)->count(),
+            'approved' => Booking::where('user_id', $user->id)->where('status', 'approved')->count(),
+            'pending' => Booking::where('user_id', $user->id)->where('status', 'pending')->count(),
+        ];
 
-        // Different data for different roles
-        if ($role === 'ADMIN') {
-            // Admin-specific metrics
-            $pendingBookings = 15;
-            $approvedBookings = 42;
-            $totalBookings = 156;
-            $totalVenues = 8;
+        $recentFeedback = Feedback::where('user_id', $user->id)
+            ->latest()
+            ->limit(5)
+            ->get();
 
-            return view('admin.dashboard', compact(
-                'user',
-                'pendingBookings',
-                'approvedBookings',
-                'totalBookings',
-                'totalVenues'
-            ));
-        } else {
-            // Organizer-specific metrics
-            $totalBookings = 12;
-            $pendingBookings = 3;
-            $approvedBookings = 9;
-
-            return view('user.dashboard', compact(
-                'user',
-                'totalBookings',
-                'pendingBookings',
-                'approvedBookings'
-            ));
-        }
+        return view('user.dashboard', compact('upcomingBookings', 'bookingStats', 'recentFeedback', 'user'));
     }
 
     /**
-     * Display admin dashboard.
+     * Admin dashboard
      */
     public function admin(): View
     {
+        $pendingBookings = Booking::where('status', 'pending')->count();
+        $approvedBookings = Booking::where('status', 'approved')->count();
+        $totalVenues = Venue::where('is_active', true)->count();
+        $totalBookings = Booking::count();
+
+        $recentRequests = Booking::where('status', 'pending')
+            ->with('user', 'venue')
+            ->latest()
+            ->limit(10)
+            ->get();
+
         $user = Auth::user();
-        $pendingBookings = 15;
-        $approvedBookings = 42;
-        $totalBookings = 156;
-        $totalVenues = 8;
 
         return view('admin.dashboard', compact(
             'user',
             'pendingBookings',
             'approvedBookings',
+            'totalVenues',
             'totalBookings',
-            'totalVenues'
+            'recentRequests'
         ));
     }
 }
