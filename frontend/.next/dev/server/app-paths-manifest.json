@@ -1,9 +1,9 @@
 {
-  "/admin/users/page": "app/admin/users/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/my-bookings/page": "app/my-bookings/page.js",
-  "/page": "app/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/venues/[id]/page": "app/venues/[id]/page.js",
-  "/venues/page": "app/venues/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/admin/reports/booking-statistics/page": "app/admin/reports/booking-statistics/page.js",
+  "/admin/reports/venue-utilization/page": "app/admin/reports/venue-utilization/page.js",
+  "/admin/settings/booking-rules/page": "app/admin/settings/booking-rules/page.js",
+  "/admin/settings/email-templates/page": "app/admin/settings/email-templates/page.js",
+  "/admin/settings/general/page": "app/admin/settings/general/page.js",
+  "/admin/users/page": "app/admin/users/page.js"
 }

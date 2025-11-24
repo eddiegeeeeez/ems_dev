@@ -9,18 +9,19 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, Users, Clock, Trash2, Edit, Eye } from 'lucide-react'
+import { Calendar, Users, Clock, Trash2, Edit, Eye, ArrowUpDown, MoreHorizontal } from 'lucide-react'
 import Link from "next/link"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { DataTable } from "@/components/data-table"
 import { BookingDetailsModal } from "@/components/booking-details-modal"
 import type { Booking } from "@/lib/types"
+import type { ColumnDef } from "@tanstack/react-table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function MyBookingsPage() {
   const { isAuthenticated, isLoading, user } = useAuth()
@@ -76,6 +77,142 @@ export default function MyBookingsPage() {
           return true
         })
 
+  const columns: ColumnDef<Booking>[] = [
+    {
+      accessorKey: "eventTitle",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Event Title
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium text-gray-900">{row.original.eventTitle}</div>
+          <div className="text-xs text-gray-500 mt-1 line-clamp-1">{row.original.eventDescription}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "venueId",
+      header: "Venue",
+      cell: ({ row }) => {
+        const venue = getVenueById(row.original.venueId)
+        return <span className="text-sm text-gray-600">{venue?.name}</span>
+      },
+    },
+    {
+      accessorKey: "startDate",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Date & Time
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="text-sm text-gray-600">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            {new Date(row.original.startDate).toLocaleDateString()}
+          </div>
+          <div className="flex items-center gap-1 mt-1">
+            <Clock className="h-3 w-3" />
+            {row.original.startTime} - {row.original.endTime}
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "expectedAttendees",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Attendees
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1 text-sm text-gray-600">
+          <Users className="h-4 w-4" />
+          {row.original.expectedAttendees}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge
+          className={`${
+            row.original.status === "approved"
+              ? "bg-[#4caf50] text-white"
+              : row.original.status === "pending"
+                ? "bg-yellow-500 text-white"
+                : row.original.status === "rejected"
+                  ? "bg-red-500 text-white"
+                  : "bg-gray-400 text-white"
+          }`}
+        >
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">Actions</div>,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              {(row.original.status === "approved" || row.original.status === "completed") && (
+                <DropdownMenuItem onClick={() => setSelectedBooking(row.original)}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  View QR
+                </DropdownMenuItem>
+              )}
+              {row.original.status === "pending" && (
+                <>
+                  <DropdownMenuItem onClick={() => handleEditBooking(row.original.venueId, row.original.eventTitle)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => handleCancelBooking(row.original.id, row.original.eventTitle)}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Cancel
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ]
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
@@ -114,108 +251,12 @@ export default function MyBookingsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <Card>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="font-semibold text-gray-900">Event Title</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Venue</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Date & Time</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Attendees</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                        <TableHead className="font-semibold text-gray-900 text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredBookings.map((booking) => {
-                        const venue = getVenueById(booking.venueId)
-                        return (
-                          <TableRow key={booking.id} className="hover:bg-gray-50">
-                            <TableCell>
-                              <div className="font-medium text-gray-900">{booking.eventTitle}</div>
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-1">
-                                {booking.eventDescription}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-600">{venue?.name}</TableCell>
-                            <TableCell>
-                              <div className="text-sm text-gray-600">
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  {new Date(booking.startDate).toLocaleDateString()}
-                                </div>
-                                <div className="flex items-center gap-1 mt-1">
-                                  <Clock className="h-3 w-3" />
-                                  {booking.startTime} - {booking.endTime}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1 text-sm text-gray-600">
-                                <Users className="h-4 w-4" />
-                                {booking.expectedAttendees}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={`${
-                                  booking.status === "approved"
-                                    ? "bg-[#4caf50] text-white"
-                                    : booking.status === "pending"
-                                      ? "bg-yellow-500 text-white"
-                                      : booking.status === "rejected"
-                                        ? "bg-red-500 text-white"
-                                        : "bg-gray-400 text-white"
-                                }`}
-                              >
-                                {booking.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center justify-end gap-2">
-                                {(booking.status === "approved" || booking.status === "completed") && (
-                                  <Button
-                                    onClick={() => setSelectedBooking(booking)}
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-xs"
-                                  >
-                                    <Eye className="h-3 w-3 mr-1" />
-                                    View QR
-                                  </Button>
-                                )}
-                                {booking.status === "pending" && (
-                                  <>
-                                    <Button
-                                      onClick={() => handleEditBooking(booking.venueId, booking.eventTitle)}
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-xs"
-                                    >
-                                      <Edit className="h-3 w-3 mr-1" />
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      onClick={() => handleCancelBooking(booking.id, booking.eventTitle)}
-                                      variant="destructive"
-                                      size="sm"
-                                      className="text-xs"
-                                    >
-                                      <Trash2 className="h-3 w-3 mr-1" />
-                                      Cancel
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </Card>
+              <DataTable 
+                columns={columns} 
+                data={filteredBookings} 
+                searchKey="eventTitle"
+                searchPlaceholder="Search bookings..."
+              />
             )}
           </TabsContent>
         </Tabs>

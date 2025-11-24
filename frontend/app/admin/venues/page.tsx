@@ -2,24 +2,24 @@
 
 import { useData } from "@/lib/data-context"
 import { AdminGuard } from "@/components/admin-guard"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DeactivationDialog } from "@/components/deactivation-dialog"
 import { AddVenueModal } from "@/components/add-venue-modal"
 import { EditVenueModal } from "@/components/edit-venue-modal"
-import { Users, MapPin, Edit, Trash2 } from 'lucide-react'
+import { Users, MapPin, Edit, Trash2, ArrowUpDown, MoreHorizontal } from 'lucide-react'
 import { useState } from "react"
+import { DataTable } from "@/components/data-table"
 import type { Venue } from "@/lib/types"
 import type { VenueFormData } from "@/components/add-venue-modal"
 import type { EditVenueData } from "@/components/edit-venue-modal"
+import type { ColumnDef } from "@tanstack/react-table"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function AdminVenuesPage() {
   const { venues, updateVenue, addVenue } = useData()
@@ -112,6 +112,112 @@ export default function AdminVenuesPage() {
   const selectedVenueData = venues.find((v) => v.id === selectedVenue)
   const editingVenue = selectedVenue && editVenueOpen ? selectedVenueData : null
 
+  const columns: ColumnDef<Venue>[] = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Venue Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium text-gray-900">{row.original.name}</div>
+          <div className="text-xs text-gray-500 mt-1 line-clamp-1">{row.original.description}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "location",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Location
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1 text-sm text-gray-600">
+          <MapPin className="h-4 w-4 flex-shrink-0" />
+          <span className="line-clamp-1">{row.original.location}</span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "capacity",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Capacity
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1 text-sm text-gray-600">
+          <Users className="h-4 w-4 flex-shrink-0" />
+          <span>{row.original.capacity}</span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <span
+          className={`${
+            row.original.status === "available" ? "bg-[#4caf50] text-white" : "bg-gray-400 text-white"
+          } inline-flex px-2 py-1 text-xs font-medium rounded`}
+        >
+          {row.original.status}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">Actions</div>,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => handleEditVenue(row.original.id)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handleDeactivateClick(row.original.id)}
+                className="text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Deactivate
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ]
+
   return (
     <AdminGuard>
       <main className="min-h-screen bg-gray-50">
@@ -130,84 +236,12 @@ export default function AdminVenuesPage() {
             </Button>
           </div>
 
-          {/* Venues Table - Responsive */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="font-semibold text-gray-900">Venue Name</TableHead>
-                    <TableHead className="font-semibold text-gray-900">Location</TableHead>
-                    <TableHead className="font-semibold text-gray-900">Capacity</TableHead>
-                    <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                    <TableHead className="font-semibold text-gray-900 text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {venues.map((venue) => (
-                    <TableRow key={venue.id} className="hover:bg-gray-50">
-                      <TableCell>
-                        <div className="font-medium text-gray-900">{venue.name}</div>
-                        <div className="text-xs text-gray-500 mt-1 line-clamp-1">{venue.description}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <MapPin className="h-4 w-4 flex-shrink-0" />
-                          <span className="line-clamp-1">{venue.location}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <Users className="h-4 w-4 flex-shrink-0" />
-                          <span>{venue.capacity}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`${
-                            venue.status === "available" ? "bg-[#4caf50] text-white" : "bg-gray-400 text-white"
-                          } inline-flex px-2 py-1 text-xs font-medium rounded`}
-                        >
-                          {venue.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            onClick={() => handleEditVenue(venue.id)}
-                            variant="outline"
-                            size="sm"
-                            className="text-xs"
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() => handleDeactivateClick(venue.id)}
-                            variant="destructive"
-                            size="sm"
-                            className="text-xs"
-                          >
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            Deactivate
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-
-          {venues.length === 0 && (
-            <div className="text-center py-12 md:py-16">
-              <p className="text-gray-600 mb-4 text-sm md:text-base">No venues found</p>
-              <Button onClick={handleAddVenue} className="bg-[#c41e3a] hover:bg-[#a01830] text-white">
-                Create First Venue
-              </Button>
-            </div>
-          )}
+          <DataTable 
+            columns={columns} 
+            data={venues} 
+            searchKey="name"
+            searchPlaceholder="Search venues..."
+          />
         </div>
       </main>
 

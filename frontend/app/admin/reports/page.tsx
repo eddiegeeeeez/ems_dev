@@ -181,17 +181,46 @@ export default function AdminReportsPage() {
                 <CardDescription>Monthly booking activity</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={bookingTrends}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="bookings" stroke="#c41e3a" name="Total Bookings" />
-                    <Line type="monotone" dataKey="approved" stroke="#4caf50" name="Approved" />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={bookingTrends}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke="#6b7280"
+                        style={{ fontSize: '12px' }}
+                      />
+                      <YAxis 
+                        stroke="#6b7280"
+                        style={{ fontSize: '12px' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'white', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '6px'
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="bookings" 
+                        stroke="#c41e3a" 
+                        strokeWidth={2}
+                        name="Total Bookings" 
+                        dot={{ fill: '#c41e3a', r: 4 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="approved" 
+                        stroke="#4caf50" 
+                        strokeWidth={2}
+                        name="Approved" 
+                        dot={{ fill: '#4caf50', r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
 
@@ -202,25 +231,35 @@ export default function AdminReportsPage() {
                 <CardDescription>Current booking statuses</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={statusDistribution}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {statusDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, value }) => `${name}: ${value}`}
+                        outerRadius={90}
+                        innerRadius={50}
+                        fill="#8884d8"
+                        dataKey="value"
+                        paddingAngle={2}
+                      >
+                        {statusDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'white', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '6px'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -232,16 +271,39 @@ export default function AdminReportsPage() {
               <CardDescription>Booking activity by venue</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={venueUtilization}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="bookings" fill="#c41e3a" name="Approved Bookings" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="h-[350px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={venueUtilization} margin={{ top: 20, right: 30, bottom: 80, left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45} 
+                      textAnchor="end" 
+                      height={100}
+                      stroke="#6b7280"
+                      style={{ fontSize: '11px' }}
+                    />
+                    <YAxis 
+                      stroke="#6b7280"
+                      style={{ fontSize: '12px' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px'
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                    <Bar 
+                      dataKey="bookings" 
+                      fill="#c41e3a" 
+                      name="Approved Bookings"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 

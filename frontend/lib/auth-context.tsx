@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (foundUser) {
         setUser(foundUser)
         localStorage.setItem("currentUser", JSON.stringify(foundUser))
+        return foundUser
       } else {
         throw new Error("User not found")
       }

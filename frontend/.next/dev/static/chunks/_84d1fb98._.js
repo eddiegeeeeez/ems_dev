@@ -585,19 +585,34 @@ function BookingStatisticsPage() {
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "h-80 flex items-end justify-between gap-4",
-                            children: monthlyData.map((data, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "h-80 flex items-end justify-between gap-4 px-4",
+                            children: monthlyData.map((data, index)=>{
+                                const maxBookings = Math.max(...monthlyData.map((d)=>d.bookings));
+                                const heightPercent = data.bookings / maxBookings * 90;
+                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "flex-1 flex flex-col items-center gap-2",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "w-full bg-[#8B1538] rounded-t-lg transition-all hover:bg-[#6B1028]",
+                                            className: "w-full bg-[#c41e3a] rounded-t-lg transition-all hover:bg-[#a01830] hover:shadow-lg cursor-pointer relative group",
                                             style: {
-                                                height: `${data.bookings / 80 * 100}%`
-                                            }
+                                                height: `${heightPercent}%`,
+                                                minHeight: '40px'
+                                            },
+                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap",
+                                                children: [
+                                                    data.bookings,
+                                                    " bookings"
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
+                                                lineNumber: 128,
+                                                columnNumber: 21
+                                            }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                            lineNumber: 121,
-                                            columnNumber: 17
+                                            lineNumber: 124,
+                                            columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "text-center",
@@ -607,29 +622,30 @@ function BookingStatisticsPage() {
                                                     children: data.bookings
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                    lineNumber: 125,
-                                                    columnNumber: 19
+                                                    lineNumber: 133,
+                                                    columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     className: "text-xs text-gray-600",
                                                     children: data.month
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                    lineNumber: 126,
-                                                    columnNumber: 19
+                                                    lineNumber: 134,
+                                                    columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                            lineNumber: 124,
-                                            columnNumber: 17
+                                            lineNumber: 132,
+                                            columnNumber: 19
                                         }, this)
                                     ]
                                 }, index, true, {
                                     fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                    lineNumber: 120,
-                                    columnNumber: 15
-                                }, this))
+                                    lineNumber: 123,
+                                    columnNumber: 17
+                                }, this);
+                            })
                         }, void 0, false, {
                             fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
                             lineNumber: 118,
@@ -657,20 +673,20 @@ function BookingStatisticsPage() {
                                         children: "Most Popular Venues"
                                     }, void 0, false, {
                                         fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                        lineNumber: 138,
+                                        lineNumber: 147,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                                         children: "Top 5 venues by booking count"
                                     }, void 0, false, {
                                         fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                        lineNumber: 139,
+                                        lineNumber: 148,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                lineNumber: 137,
+                                lineNumber: 146,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -687,7 +703,7 @@ function BookingStatisticsPage() {
                                                             children: index + 1
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                            lineNumber: 146,
+                                                            lineNumber: 155,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -695,13 +711,13 @@ function BookingStatisticsPage() {
                                                             children: venue.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                            lineNumber: 149,
+                                                            lineNumber: 158,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                    lineNumber: 145,
+                                                    lineNumber: 154,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -709,29 +725,29 @@ function BookingStatisticsPage() {
                                                     children: venue.bookings
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                    lineNumber: 151,
+                                                    lineNumber: 160,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, index, true, {
                                             fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                            lineNumber: 144,
+                                            lineNumber: 153,
                                             columnNumber: 17
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                    lineNumber: 142,
+                                    lineNumber: 151,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                lineNumber: 141,
+                                lineNumber: 150,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                        lineNumber: 136,
+                        lineNumber: 145,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -742,20 +758,20 @@ function BookingStatisticsPage() {
                                         children: "Status Distribution"
                                     }, void 0, false, {
                                         fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                        lineNumber: 161,
+                                        lineNumber: 170,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                                         children: "Breakdown of all booking statuses"
                                     }, void 0, false, {
                                         fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                        lineNumber: 162,
+                                        lineNumber: 171,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                lineNumber: 160,
+                                lineNumber: 169,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -770,7 +786,7 @@ function BookingStatisticsPage() {
                                                     children: "Approved"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                    lineNumber: 167,
+                                                    lineNumber: 176,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -785,57 +801,6 @@ function BookingStatisticsPage() {
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                                lineNumber: 170,
-                                                                columnNumber: 21
-                                                            }, this)
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                            lineNumber: 169,
-                                                            columnNumber: 19
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                            className: "font-bold text-green-600 w-12 text-right",
-                                                            children: approvedBookings
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                            lineNumber: 172,
-                                                            columnNumber: 19
-                                                        }, this)
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                    lineNumber: 168,
-                                                    columnNumber: 17
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                            lineNumber: 166,
-                                            columnNumber: 15
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "flex items-center justify-between",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "text-gray-600",
-                                                    children: "Pending"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                                    lineNumber: 176,
-                                                    columnNumber: 17
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "flex items-center gap-3",
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: "w-48 h-3 bg-gray-200 rounded-full overflow-hidden",
-                                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                className: "h-full bg-amber-500",
-                                                                style: {
-                                                                    width: `${pendingBookings / totalBookings * 100}%`
-                                                                }
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
                                                                 lineNumber: 179,
                                                                 columnNumber: 21
                                                             }, this)
@@ -845,8 +810,8 @@ function BookingStatisticsPage() {
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                            className: "font-bold text-amber-600 w-12 text-right",
-                                                            children: pendingBookings
+                                                            className: "font-bold text-green-600 w-12 text-right",
+                                                            children: approvedBookings
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
                                                             lineNumber: 181,
@@ -869,7 +834,7 @@ function BookingStatisticsPage() {
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     className: "text-gray-600",
-                                                    children: "Completed"
+                                                    children: "Pending"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
                                                     lineNumber: 185,
@@ -881,9 +846,9 @@ function BookingStatisticsPage() {
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                             className: "w-48 h-3 bg-gray-200 rounded-full overflow-hidden",
                                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                className: "h-full bg-blue-500",
+                                                                className: "h-full bg-amber-500",
                                                                 style: {
-                                                                    width: `${completedBookings / totalBookings * 100}%`
+                                                                    width: `${pendingBookings / totalBookings * 100}%`
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
@@ -896,8 +861,8 @@ function BookingStatisticsPage() {
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                            className: "font-bold text-blue-600 w-12 text-right",
-                                                            children: completedBookings
+                                                            className: "font-bold text-amber-600 w-12 text-right",
+                                                            children: pendingBookings
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
                                                             lineNumber: 190,
@@ -914,28 +879,79 @@ function BookingStatisticsPage() {
                                             fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
                                             lineNumber: 184,
                                             columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "flex items-center justify-between",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    className: "text-gray-600",
+                                                    children: "Completed"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
+                                                    lineNumber: 194,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "flex items-center gap-3",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "w-48 h-3 bg-gray-200 rounded-full overflow-hidden",
+                                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                className: "h-full bg-blue-500",
+                                                                style: {
+                                                                    width: `${completedBookings / totalBookings * 100}%`
+                                                                }
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
+                                                                lineNumber: 197,
+                                                                columnNumber: 21
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
+                                                            lineNumber: 196,
+                                                            columnNumber: 19
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: "font-bold text-blue-600 w-12 text-right",
+                                                            children: completedBookings
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
+                                                            lineNumber: 199,
+                                                            columnNumber: 19
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
+                                                    lineNumber: 195,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
+                                            lineNumber: 193,
+                                            columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                    lineNumber: 165,
+                                    lineNumber: 174,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                                lineNumber: 164,
+                                lineNumber: 173,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                        lineNumber: 159,
+                        lineNumber: 168,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/admin/reports/booking-statistics/page.tsx",
-                lineNumber: 134,
+                lineNumber: 143,
                 columnNumber: 7
             }, this)
         ]

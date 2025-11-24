@@ -366,6 +366,7 @@ function AuthProvider({ children }) {
             if (foundUser) {
                 setUser(foundUser);
                 localStorage.setItem("currentUser", JSON.stringify(foundUser));
+                return foundUser;
             } else {
                 throw new Error("User not found");
             }
@@ -400,7 +401,7 @@ function AuthProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/lib/auth-context.tsx",
-        lineNumber: 67,
+        lineNumber: 68,
         columnNumber: 5
     }, this);
 }

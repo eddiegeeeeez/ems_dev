@@ -115,18 +115,27 @@ export default function BookingStatisticsPage() {
           <CardDescription>Monthly booking volume over the past 6 months</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-80 flex items-end justify-between gap-4">
-            {monthlyData.map((data, index) => (
-              <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                <div className="w-full bg-[#8B1538] rounded-t-lg transition-all hover:bg-[#6B1028]" 
-                     style={{ height: `${(data.bookings / 80) * 100}%` }}>
+          <div className="h-80 flex items-end justify-between gap-4 px-4">
+            {monthlyData.map((data, index) => {
+              const maxBookings = Math.max(...monthlyData.map(d => d.bookings))
+              const heightPercent = (data.bookings / maxBookings) * 90
+              return (
+                <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                  <div 
+                    className="w-full bg-[#c41e3a] rounded-t-lg transition-all hover:bg-[#a01830] hover:shadow-lg cursor-pointer relative group" 
+                    style={{ height: `${heightPercent}%`, minHeight: '40px' }}
+                  >
+                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {data.bookings} bookings
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-900">{data.bookings}</p>
+                    <p className="text-xs text-gray-600">{data.month}</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-900">{data.bookings}</p>
-                  <p className="text-xs text-gray-600">{data.month}</p>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </CardContent>
       </Card>

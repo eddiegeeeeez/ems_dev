@@ -14,7 +14,7 @@ export function LoginForm() {
   const [email, setEmail] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, user } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,9 +25,11 @@ export function LoginForm() {
     console.log("[v0] Login attempt with email:", email)
 
     try {
-      await login(email, "")
+      const user = await login(email, "")
       console.log("[v0] Login successful, redirecting to dashboard")
-      router.push("/dashboard")
+      // Redirect based on user role
+      const dashboardUrl = user?.role === "admin" ? "/admin/dashboard" : "/dashboard"
+      router.push(dashboardUrl)
     } catch (err) {
       console.log("[v0] Login failed:", err)
       setError("Invalid email. Please use a valid UM account.")

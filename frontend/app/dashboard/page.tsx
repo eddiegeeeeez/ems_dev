@@ -18,8 +18,11 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/")
+    } else if (!isLoading && isAuthenticated && user?.role === "admin") {
+      // Redirect admins to admin dashboard
+      router.push("/admin/dashboard")
     }
-  }, [isAuthenticated, isLoading, router])
+  }, [isAuthenticated, isLoading, user?.role, router])
 
   if (isLoading) {
     return (

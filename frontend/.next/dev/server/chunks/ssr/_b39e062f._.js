@@ -220,7 +220,7 @@ function LoginForm() {
     const [email, setEmail] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
     const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
-    const { login } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2d$context$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
+    const { login, user } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2d$context$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     const handleSubmit = async (e)=>{
         e.preventDefault();
@@ -228,9 +228,11 @@ function LoginForm() {
         setIsLoading(true);
         console.log("[v0] Login attempt with email:", email);
         try {
-            await login(email, "");
+            const user = await login(email, "");
             console.log("[v0] Login successful, redirecting to dashboard");
-            router.push("/dashboard");
+            // Redirect based on user role
+            const dashboardUrl = user?.role === "admin" ? "/admin/dashboard" : "/dashboard";
+            router.push(dashboardUrl);
         } catch (err) {
             console.log("[v0] Login failed:", err);
             setError("Invalid email. Please use a valid UM account.");
@@ -257,12 +259,12 @@ function LoginForm() {
                                 children: "UM"
                             }, void 0, false, {
                                 fileName: "[project]/components/login-form.tsx",
-                                lineNumber: 49,
+                                lineNumber: 51,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/login-form.tsx",
-                            lineNumber: 48,
+                            lineNumber: 50,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -270,20 +272,20 @@ function LoginForm() {
                             children: "UM Events Management"
                         }, void 0, false, {
                             fileName: "[project]/components/login-form.tsx",
-                            lineNumber: 53,
+                            lineNumber: 55,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                             children: "Sign in with your University of Mindanao account"
                         }, void 0, false, {
                             fileName: "[project]/components/login-form.tsx",
-                            lineNumber: 54,
+                            lineNumber: 56,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/login-form.tsx",
-                    lineNumber: 47,
+                    lineNumber: 49,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -297,12 +299,12 @@ function LoginForm() {
                                     children: error
                                 }, void 0, false, {
                                     fileName: "[project]/components/login-form.tsx",
-                                    lineNumber: 60,
+                                    lineNumber: 62,
                                     columnNumber: 17
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/login-form.tsx",
-                                lineNumber: 59,
+                                lineNumber: 61,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -313,7 +315,7 @@ function LoginForm() {
                                         children: "Email Address"
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 65,
+                                        lineNumber: 67,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -325,7 +327,7 @@ function LoginForm() {
                                         className: "border-gray-300"
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 66,
+                                        lineNumber: 68,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -333,13 +335,13 @@ function LoginForm() {
                                         children: "Use your official UM email account"
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 74,
+                                        lineNumber: 76,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/login-form.tsx",
-                                lineNumber: 64,
+                                lineNumber: 66,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -349,7 +351,7 @@ function LoginForm() {
                                 children: isLoading ? "Signing in..." : "Sign in with Google"
                             }, void 0, false, {
                                 fileName: "[project]/components/login-form.tsx",
-                                lineNumber: 77,
+                                lineNumber: 79,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -361,12 +363,12 @@ function LoginForm() {
                                             className: "w-full border-t border-gray-300"
                                         }, void 0, false, {
                                             fileName: "[project]/components/login-form.tsx",
-                                            lineNumber: 83,
+                                            lineNumber: 85,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 82,
+                                        lineNumber: 84,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -376,18 +378,18 @@ function LoginForm() {
                                             children: "Demo Accounts"
                                         }, void 0, false, {
                                             fileName: "[project]/components/login-form.tsx",
-                                            lineNumber: 86,
+                                            lineNumber: 88,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 85,
+                                        lineNumber: 87,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/login-form.tsx",
-                                lineNumber: 81,
+                                lineNumber: 83,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -402,19 +404,19 @@ function LoginForm() {
                                                     children: "Organizer (Existing):"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/login-form.tsx",
-                                                    lineNumber: 93,
+                                                    lineNumber: 95,
                                                     columnNumber: 19
                                                 }, this),
                                                 " edgar.garan@umindanao.edu.ph"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/login-form.tsx",
-                                            lineNumber: 92,
+                                            lineNumber: 94,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 91,
+                                        lineNumber: 93,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -425,7 +427,7 @@ function LoginForm() {
                                         children: "Login as Organizer"
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 96,
+                                        lineNumber: 98,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -437,19 +439,19 @@ function LoginForm() {
                                                     children: "New User (Needs Onboarding):"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/login-form.tsx",
-                                                    lineNumber: 107,
+                                                    lineNumber: 109,
                                                     columnNumber: 19
                                                 }, this),
                                                 " newuser@umindanao.edu.ph"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/login-form.tsx",
-                                            lineNumber: 106,
+                                            lineNumber: 108,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 105,
+                                        lineNumber: 107,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -460,7 +462,7 @@ function LoginForm() {
                                         children: "Login as New User"
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 110,
+                                        lineNumber: 112,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -472,19 +474,19 @@ function LoginForm() {
                                                     children: "Admin:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/login-form.tsx",
-                                                    lineNumber: 121,
+                                                    lineNumber: 123,
                                                     columnNumber: 19
                                                 }, this),
                                                 " admin@umindanao.edu.ph"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/login-form.tsx",
-                                            lineNumber: 120,
+                                            lineNumber: 122,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 119,
+                                        lineNumber: 121,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -495,35 +497,35 @@ function LoginForm() {
                                         children: "Login as Admin"
                                     }, void 0, false, {
                                         fileName: "[project]/components/login-form.tsx",
-                                        lineNumber: 124,
+                                        lineNumber: 126,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/login-form.tsx",
-                                lineNumber: 90,
+                                lineNumber: 92,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/login-form.tsx",
-                        lineNumber: 57,
+                        lineNumber: 59,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/components/login-form.tsx",
-                    lineNumber: 56,
+                    lineNumber: 58,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/login-form.tsx",
-            lineNumber: 46,
+            lineNumber: 48,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/login-form.tsx",
-        lineNumber: 45,
+        lineNumber: 47,
         columnNumber: 5
     }, this);
 }
@@ -576,15 +578,18 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$spinner$
 ;
 ;
 function Home() {
-    const { isAuthenticated, isLoading } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2d$context$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
+    const { isAuthenticated, isLoading, user } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2d$context$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (!isLoading && isAuthenticated) {
-            router.push("/dashboard");
+            // Redirect based on user role
+            const dashboardUrl = user?.role === "admin" ? "/admin/dashboard" : "/dashboard";
+            router.push(dashboardUrl);
         }
     }, [
         isAuthenticated,
         isLoading,
+        user?.role,
         router
     ]);
     if (isLoading) {
@@ -597,7 +602,7 @@ function Home() {
                         className: "h-12 w-12 text-[#c41e3a] mx-auto mb-4"
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 23,
+                        lineNumber: 25,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -605,25 +610,25 @@ function Home() {
                         children: "Loading..."
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 24,
+                        lineNumber: 26,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 22,
+                lineNumber: 24,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/app/page.tsx",
-            lineNumber: 21,
+            lineNumber: 23,
             columnNumber: 7
         }, this);
     }
     if (!isAuthenticated) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$login$2d$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["LoginForm"], {}, void 0, false, {
             fileName: "[project]/app/page.tsx",
-            lineNumber: 31,
+            lineNumber: 33,
             columnNumber: 12
         }, this);
     }
@@ -633,12 +638,12 @@ function Home() {
             className: "flex-1"
         }, void 0, false, {
             fileName: "[project]/app/page.tsx",
-            lineNumber: 36,
+            lineNumber: 38,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/page.tsx",
-        lineNumber: 35,
+        lineNumber: 37,
         columnNumber: 5
     }, this);
 }
