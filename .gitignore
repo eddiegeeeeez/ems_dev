@@ -3,6 +3,7 @@
 .env
 .env.backup
 .env.production
+.env.local
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -12,15 +13,35 @@
 /.vscode
 /.zed
 /auth.json
+
+# Dependencies - Backend (Laravel)
 /node_modules
+/vendor
+composer.lock
+
+# Dependencies - Frontend (Next.js)
 frontend/node_modules
 frontend/.next
+frontend/.turbo
+frontend/out
+frontend/dist
+frontend/build
+frontend/package-lock.json
+frontend/yarn.lock
+frontend/pnpm-lock.yaml
+
+# Build outputs
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
-/vendor
+
+# Config files
 Homestead.json
 Homestead.yaml
+auth.json
+
+# OS files
 Thumbs.db
+.DS_Store
