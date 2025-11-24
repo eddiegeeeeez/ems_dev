@@ -2,82 +2,80 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Venue;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class VenueController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of venues - Returns JSON
      */
-    public function index(): View
+    public function index(): JsonResponse
     {
-        // Here you would fetch all venues from your database
-        // $venues = Venue::all();
+        try {
+            $venues = Venue::with('department')
+                ->where('is_active', true)
+                ->get()
+                ->map(function ($venue) {
+                    return [
+                        'id' => (string) $venue->id,
+                        'name' => $venue->name,
+                        'capacity' => $venue->capacity,
+                        'location' => $venue->location,
+                        'image' => $venue->image_url ?? '/modern-collaboration-room-with-tables-and-chairs.jpg',
+                        'description' => $venue->description ?? '',
+                        'status' => $venue->is_active ? 'available' : 'inactive',
+                        'amenities' => $venue->amenities ?? [],
+                        'hourlyRate' => $venue->hourly_rate,
+                        'department' => $venue->department ? $venue->department->name : null,
+                    ];
+                });
 
-        // Return the view, passing in the venues
-        return view('venues.index'); // You will need to create 'resources/views/venues/index.blade.php'
+            return response()->json([
+                'success' => true,
+                'data' => $venues
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch venues',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Display admin venues management page.
+     * Get single venue details - Returns JSON
      */
-    public function adminIndex(): View
+    public function show($id): JsonResponse
     {
-        return view('admin.venues');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): View
-    {
-        return view('admin.venues.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'capacity' => 'required|integer|min:1',
-            'location' => 'required|string|max:255',
-        ]);
-
-        return back()->with('success', 'Venue created successfully.');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id): View
-    {
-        return view('admin.venues.edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'capacity' => 'required|integer|min:1',
-            'location' => 'required|string|max:255',
-        ]);
-
-        return back()->with('success', 'Venue updated successfully.');
-    }
-
-    /**
-     * Toggle venue active/inactive status.
-     */
-    public function toggle($id)
-    {
-        return back()->with('success', 'Venue status updated successfully.');
+        try {
+            $venue = Venue::with(['department', 'equipment'])->findOrFail($id);
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => (string) $venue->id,
+                    'name' => $venue->name,
+                    'capacity' => $venue->capacity,
+                    'location' => $venue->location,
+                    'image' => $venue->image_url ?? '/modern-collaboration-room-with-tables-and-chairs.jpg',
+                    'description' => $venue->description ?? '',
+                    'status' => $venue->is_active ? 'available' : 'inactive',
+                    'amenities' => $venue->amenities ?? [],
+                    'hourlyRate' => $venue->hourly_rate,
+                    'openingHours' => $venue->opening_hours ?? [],
+                    'department' => $venue->department ? $venue->department->name : null,
+                    'equipment' => $venue->equipment ?? [],
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Venue not found',
+                'error' => $e->getMessage()
+            ], 404);
+        }
     }
 }

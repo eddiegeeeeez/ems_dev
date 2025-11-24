@@ -8,95 +8,87 @@ use App\Models\Venue;
 use App\Models\Equipment;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
-    /**
-     * Display venue utilization report.
-     */
-    public function venueUtilization(): View
-    {
-        $venues = Venue::with('bookings')->get();
-        $data = $venues->map(function ($venue) {
-            $total_bookings = $venue->bookings->count();
-            $completed_bookings = $venue->bookings->where('status', 'completed')->count();
-            $utilization = $total_bookings > 0 ? ($completed_bookings / $total_bookings) * 100 : 0;
-            return [
-                'name' => $venue->name,
-                'capacity' => $venue->capacity,
-                'total_bookings' => $total_bookings,
-                'utilization' => round($utilization, 2),
-                'revenue' => $venue->bookings->where('status', 'completed')->sum('total_cost'),
-            ];
-        });
-
-        return view('admin.reports.venue-utilization', compact('data'));
-    }
 
     /**
      * Get venue utilization data (for charts).
      */
-    public function venueUtilizationData()
+    public function venueUtilizationData(): JsonResponse
     {
-        $venues = Venue::with('bookings')->get();
-        $labels = $venues->pluck('name')->toArray();
-        $data = $venues->map(function ($venue) {
-            $completed = $venue->bookings->where('status', 'completed')->count();
-            $total = $venue->bookings->count();
-            return $total > 0 ? ($completed / $total) * 100 : 0;
-        })->toArray();
+        try {
+            $venues = Venue::with('bookings')->get();
+            $data = $venues->map(function ($venue) {
+                $total_bookings = $venue->bookings->count();
+                $completed_bookings = $venue->bookings->where('status', 'completed')->count();
+                $utilization = $total_bookings > 0 ? ($completed_bookings / $total_bookings) * 100 : 0;
+                return [
+                    'name' => $venue->name,
+                    'capacity' => $venue->capacity,
+                    'total_bookings' => $total_bookings,
+                    'completed_bookings' => $completed_bookings,
+                    'utilization' => round($utilization, 2),
+                    'revenue' => $venue->bookings->where('status', 'completed')->sum('total_cost'),
+                ];
+            });
 
-        return response()->json([
-            'labels' => $labels,
-            'data' => $data,
-        ]);
-    }
+            $labels = $venues->pluck('name')->toArray();
+            $chartData = $venues->map(function ($venue) {
+                $completed = $venue->bookings->where('status', 'completed')->count();
+                $total = $venue->bookings->count();
+                return $total > 0 ? ($completed / $total) * 100 : 0;
+            })->toArray();
 
-    /**
-     * Display booking statistics report.
-     */
-    public function bookingStatistics(): View
-    {
-        $stats = [
-            'total_bookings' => Booking::count(),
-            'pending' => Booking::where('status', 'pending')->count(),
-            'approved' => Booking::where('status', 'approved')->count(),
-            'rejected' => Booking::where('status', 'rejected')->count(),
-            'completed' => Booking::where('status', 'completed')->count(),
-            'total_revenue' => Booking::where('status', 'completed')->sum('total_cost'),
-            'average_booking_value' => Booking::where('status', 'completed')->avg('total_cost'),
-        ];
-
-        return view('admin.reports.booking-statistics', compact('stats'));
+            return response()->json([
+                'data' => $data,
+                'chart' => [
+                    'labels' => $labels,
+                    'data' => $chartData,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch venue utilization data'], 500);
+        }
     }
 
     /**
      * Get booking statistics data.
      */
-    public function bookingStatisticsData()
+    public function bookingStatisticsData(): JsonResponse
     {
-        $bookings = Booking::whereDate('created_at', '>=', now()->subDays(30))
-            ->groupBy('status')
-            ->selectRaw('status, count(*) as count')
-            ->get();
+        try {
+            $stats = [
+                'total_bookings' => Booking::count(),
+                'pending' => Booking::where('status', 'pending')->count(),
+                'approved' => Booking::where('status', 'approved')->count(),
+                'rejected' => Booking::where('status', 'rejected')->count(),
+                'completed' => Booking::where('status', 'completed')->count(),
+                'cancelled' => Booking::where('status', 'cancelled')->count(),
+                'total_revenue' => Booking::where('status', 'completed')->sum('total_cost'),
+                'average_booking_value' => Booking::where('status', 'completed')->avg('total_cost'),
+            ];
 
-        $labels = $bookings->pluck('status')->toArray();
-        $data = $bookings->pluck('count')->toArray();
+            $bookings = Booking::whereDate('created_at', '>=', now()->subDays(30))
+                ->groupBy('status')
+                ->selectRaw('status, count(*) as count')
+                ->get();
 
-        return response()->json([
-            'labels' => $labels,
-            'data' => $data,
-        ]);
-    }
+            $labels = $bookings->pluck('status')->toArray();
+            $chartData = $bookings->pluck('count')->toArray();
 
-    /**
-     * Display export page.
-     */
-    public function export(): View
-    {
-        return view('admin.reports.export');
+            return response()->json([
+                'stats' => $stats,
+                'chart' => [
+                    'labels' => $labels,
+                    'data' => $chartData,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch booking statistics'], 500);
+        }
     }
 
     /**

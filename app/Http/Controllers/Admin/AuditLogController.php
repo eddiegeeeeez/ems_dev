@@ -3,29 +3,55 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class AuditLogController extends Controller
 {
     /**
      * Display a listing of audit logs.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        return view('admin.audit-logs');
+        try {
+            $logs = AuditLog::with('user')
+                ->latest()
+                ->paginate(50);
+
+            return response()->json(['logs' => $logs]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch audit logs'], 500);
+        }
     }
 
     /**
      * Search audit logs.
      */
-    public function search(Request $request)
+    public function search(Request $request): JsonResponse
     {
-        $query = $request->query('q');
-        $action = $request->query('action');
-        $user_id = $request->query('user_id');
+        try {
+            $query = AuditLog::with('user');
 
-        $logs = [];
+            if ($request->has('q')) {
+                $searchTerm = $request->query('q');
+                $query->where('action', 'like', "%{$searchTerm}%")
+                    ->orWhere('model', 'like', "%{$searchTerm}%");
+            }
 
-        return response()->json($logs);
+            if ($request->has('action')) {
+                $query->where('action', $request->query('action'));
+            }
+
+            if ($request->has('user_id')) {
+                $query->where('user_id', $request->query('user_id'));
+            }
+
+            $logs = $query->latest()->paginate(50);
+
+            return response()->json(['logs' => $logs]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to search audit logs'], 500);
+        }
     }
 }

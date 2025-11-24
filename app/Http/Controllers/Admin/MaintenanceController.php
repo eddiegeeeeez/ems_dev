@@ -7,8 +7,7 @@ use App\Models\MaintenanceRequest;
 use App\Models\Venue;
 use App\Services\MaintenanceService;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class MaintenanceController extends Controller
 {
@@ -17,94 +16,115 @@ class MaintenanceController extends Controller
     /**
      * Display maintenance requests.
      */
-    public function requests(): View
+    public function requests(): JsonResponse
     {
-        $requests = MaintenanceRequest::with('venue', 'assignedTo')
-            ->latest()
-            ->paginate(15);
+        try {
+            $requests = MaintenanceRequest::with('venue', 'assignedTo')
+                ->latest()
+                ->paginate(15);
 
-        $stats = [
-            'total' => MaintenanceRequest::count(),
-            'pending' => MaintenanceRequest::where('status', 'pending')->count(),
-            'in_progress' => MaintenanceRequest::where('status', 'in-progress')->count(),
-            'completed' => MaintenanceRequest::where('status', 'completed')->count(),
-        ];
+            $stats = [
+                'total' => MaintenanceRequest::count(),
+                'pending' => MaintenanceRequest::where('status', 'pending')->count(),
+                'in_progress' => MaintenanceRequest::where('status', 'in-progress')->count(),
+                'completed' => MaintenanceRequest::where('status', 'completed')->count(),
+            ];
 
-        return view('admin.maintenance.requests', compact('requests', 'stats'));
+            return response()->json([
+                'requests' => $requests,
+                'stats' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch maintenance requests'], 500);
+        }
     }
 
     /**
      * Display scheduled maintenance.
      */
-    public function scheduled(): View
+    public function scheduled(): JsonResponse
     {
-        $maintenance = MaintenanceRequest::where('type', 'preventive')
-            ->with('venue', 'assignedTo')
-            ->latest()
-            ->paginate(15);
+        try {
+            $maintenance = MaintenanceRequest::where('type', 'preventive')
+                ->with('venue', 'assignedTo')
+                ->latest()
+                ->paginate(15);
 
-        return view('admin.maintenance.scheduled', compact('maintenance'));
-    }
-
-    /**
-     * Show form for creating maintenance request.
-     */
-    public function create(): View
-    {
-        $venues = Venue::all();
-        return view('admin.maintenance.create', compact('venues'));
+            return response()->json(['maintenance' => $maintenance]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch scheduled maintenance'], 500);
+        }
     }
 
     /**
      * Store scheduled maintenance.
      */
-    public function storeScheduled(Request $request): RedirectResponse
+    public function storeScheduled(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'venue_id' => 'required|exists:venues,id',
-            'date' => 'required|date|after:today',
-            'description' => 'required|string',
-            'type' => 'required|in:routine,preventive,emergency',
-            'priority' => 'required|in:low,medium,high',
-        ]);
+        try {
+            $validated = $request->validate([
+                'venue_id' => 'required|exists:venues,id',
+                'date' => 'required|date|after:today',
+                'description' => 'required|string',
+                'type' => 'required|in:routine,preventive,emergency',
+                'priority' => 'required|in:low,medium,high',
+            ]);
 
-        $this->maintenanceService->createRequest($validated);
-        return redirect()->route('admin.maintenance.requests')->with('success', 'Maintenance scheduled successfully.');
+            $maintenance = $this->maintenanceService->createRequest($validated);
+            return response()->json([
+                'message' => 'Maintenance scheduled successfully',
+                'maintenance' => $maintenance
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to schedule maintenance'], 500);
+        }
     }
 
     /**
      * Assign maintenance request to technician.
      */
-    public function assign(Request $request, MaintenanceRequest $maintenance): RedirectResponse
+    public function assign(Request $request, MaintenanceRequest $maintenance): JsonResponse
     {
-        $validated = $request->validate([
-            'assigned_to_user_id' => 'required|exists:users,id',
-        ]);
+        try {
+            $validated = $request->validate([
+                'assigned_to_user_id' => 'required|exists:users,id',
+            ]);
 
-        $this->maintenanceService->assignRequest($maintenance, $validated['assigned_to_user_id']);
-        return back()->with('success', 'Maintenance request assigned successfully.');
+            $this->maintenanceService->assignRequest($maintenance, $validated['assigned_to_user_id']);
+            return response()->json(['message' => 'Maintenance request assigned successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to assign maintenance request'], 500);
+        }
     }
 
     /**
      * Update maintenance request status.
      */
-    public function updateRequestStatus(Request $request, MaintenanceRequest $maintenance): RedirectResponse
+    public function updateRequestStatus(Request $request, MaintenanceRequest $maintenance): JsonResponse
     {
-        $validated = $request->validate([
-            'status' => 'required|in:pending,in-progress,completed',
-            'notes' => 'nullable|string|max:500',
-        ]);
+        try {
+            $validated = $request->validate([
+                'status' => 'required|in:pending,in-progress,completed',
+                'notes' => 'nullable|string|max:500',
+            ]);
 
-        $this->maintenanceService->updateStatus($maintenance, $validated['status'], $validated['notes'] ?? null);
-        return back()->with('success', 'Maintenance request status updated.');
+            $this->maintenanceService->updateStatus($maintenance, $validated['status'], $validated['notes'] ?? null);
+            return response()->json(['message' => 'Maintenance request status updated']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update maintenance status'], 500);
+        }
     }
 
     /**
      * Delete maintenance request.
      */
-    public function destroy(MaintenanceRequest $maintenance): RedirectResponse
+    public function destroy(MaintenanceRequest $maintenance): JsonResponse
     {
-        $maintenance->delete();
-        return redirect()->route('admin.maintenance.requests')->with('success', 'Maintenance request deleted.');
+        try {
+            $maintenance->delete();
+            return response()->json(['message' => 'Maintenance request deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete maintenance request'], 500);
+        }
     }
 }

@@ -21,21 +21,14 @@ use App\Http\Controllers\Admin\VenueController as AdminVenueController;
 use App\Http\Controllers\Admin\EquipmentController as AdminEquipmentController;
 use App\Http\Controllers\NotificationController;
 
+// Redirect root to React frontend
 Route::get('/', function () {
-    // If user is already authenticated, redirect to dashboard
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
-    }
-    return view('home'); 
-})->name('home.hero');
+    return redirect(env('FRONTEND_URL', 'http://localhost:3000'));
+})->name('home');
 
-
+// Redirect login to React frontend
 Route::get('/login', function () {
-    // If user is already authenticated, redirect to dashboard
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
-    }
-    return view('auth.login');
+    return redirect(env('FRONTEND_URL', 'http://localhost:3000'));
 })->name('login');
 
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle']);
@@ -79,169 +72,10 @@ Route::get('/temp-login/{role}', function ($role) {
 })->name('temp.login');
 
 
+// All routes are now in api.php for React frontend
+// Only keep auth callback for Google OAuth
 Route::middleware('auth')->group(function () {
-
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
-
-    Route::get('/venues', [VenueController::class, 'index'])
-        ->name('venues.index');
-
-    Route::get('/bookings', [BookingController::class, 'index'])
-        ->name('bookings.index');
-
-    Route::get('/feedback', [FeedbackController::class, 'index'])
-        ->name('feedback.index');
-
-    Route::get('/profile', [ProfileController::class, 'show'])
-        ->name('profile.show');
-
+    // Logout can stay here for web middleware support
     Route::post('/logout', [ProfileController::class, 'logout'])
         ->name('logout');
-
-    // Notification Routes
-    Route::prefix('notifications')->name('notifications.')->group(function () {
-        Route::get('/', [NotificationController::class, 'index'])
-            ->name('index');
-        Route::post('/{notificationId}/mark-read', [NotificationController::class, 'markAsRead'])
-            ->name('mark-read');
-        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])
-            ->name('mark-all-read');
-        Route::delete('/{notificationId}', [NotificationController::class, 'delete'])
-            ->name('delete');
-        Route::delete('/clear-all', [NotificationController::class, 'clearAll'])
-            ->name('clear-all');
-    });
-
-    // Admin Routes
-    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-        
-        // Dashboard
-        Route::get('/dashboard', [DashboardController::class, 'admin'])
-            ->name('dashboard');
-
-        // Bookings Management
-        Route::get('/requests', [RequestController::class, 'index'])
-            ->name('requests.index');
-        Route::get('/requests/{booking}', [RequestController::class, 'show'])
-            ->name('requests.show');
-        Route::post('/requests/{booking}/approve', [RequestController::class, 'approve'])
-            ->name('requests.approve');
-        Route::patch('/requests/{booking}/reject', [RequestController::class, 'reject'])
-            ->name('requests.reject');
-
-        Route::get('/calendar', [CalendarController::class, 'index'])
-            ->name('calendar.index');
-        Route::get('/calendar/events', [CalendarController::class, 'getEvents'])
-            ->name('calendar.events');
-        Route::post('/calendar/event-details/{id}', [CalendarController::class, 'eventDetails'])
-            ->name('calendar.event-details');
-
-        // Facilities Management
-        Route::resource('/venues', AdminVenueController::class, ['as' => 'venues'])->names([
-            'index' => 'venues.index',
-            'create' => 'venues.create',
-            'store' => 'venues.store',
-            'show' => 'venues.show',
-            'edit' => 'venues.edit',
-            'update' => 'venues.update',
-            'destroy' => 'venues.destroy',
-        ]);
-        Route::post('/venues/{venue}/toggle-active', [AdminVenueController::class, 'toggleActive'])
-            ->name('venues.toggle-active');
-
-        Route::resource('/equipment', AdminEquipmentController::class, ['as' => 'equipment'])->names([
-            'index' => 'equipment.index',
-            'create' => 'equipment.create',
-            'store' => 'equipment.store',
-            'show' => 'equipment.show',
-            'edit' => 'equipment.edit',
-            'update' => 'equipment.update',
-            'destroy' => 'equipment.destroy',
-        ]);
-
-        Route::prefix('maintenance')->name('maintenance.')->group(function () {
-            Route::get('/requests', [MaintenanceController::class, 'requests'])
-                ->name('requests');
-            Route::get('/requests/create', [MaintenanceController::class, 'create'])
-                ->name('create');
-            Route::post('/requests', [MaintenanceController::class, 'storeScheduled'])
-                ->name('store');
-            Route::post('/requests/{maintenance}/assign', [MaintenanceController::class, 'assign'])
-                ->name('assign');
-            Route::patch('/requests/{maintenance}/status', [MaintenanceController::class, 'updateRequestStatus'])
-                ->name('update-status');
-            Route::delete('/requests/{maintenance}', [MaintenanceController::class, 'destroy'])
-                ->name('destroy');
-            
-            Route::get('/scheduled', [MaintenanceController::class, 'scheduled'])
-                ->name('scheduled');
-        });
-
-        // Reports & Analytics
-        Route::prefix('reports')->name('reports.')->group(function () {
-            Route::get('/venue-utilization', [ReportController::class, 'venueUtilization'])
-                ->name('venue');
-            Route::get('/venue-utilization/data', [ReportController::class, 'venueUtilizationData'])
-                ->name('venue.data');
-
-            Route::get('/booking-statistics', [ReportController::class, 'bookingStatistics'])
-                ->name('bookings');
-            Route::get('/booking-statistics/data', [ReportController::class, 'bookingStatisticsData'])
-                ->name('bookings.data');
-
-            Route::get('/export', [ReportController::class, 'export'])
-                ->name('export');
-            Route::post('/export', [ReportController::class, 'doExport'])
-                ->name('export.do');
-        });
-
-        // User Management
-        Route::get('/users', [UserController::class, 'index'])
-            ->name('users.index');
-        Route::get('/users/{user}', [UserController::class, 'show'])
-            ->name('users.show');
-        Route::post('/users/{user}/role', [UserController::class, 'updateRole'])
-            ->name('users.update-role');
-        Route::post('/users/{user}/deactivate', [UserController::class, 'deactivate'])
-            ->name('users.deactivate');
-        Route::post('/users/{user}/activate', [UserController::class, 'activate'])
-            ->name('users.activate');
-
-        Route::get('/departments', [DepartmentController::class, 'index'])
-            ->name('departments.index');
-        Route::get('/departments/create', [DepartmentController::class, 'create'])
-            ->name('departments.create');
-        Route::post('/departments', [DepartmentController::class, 'store'])
-            ->name('departments.store');
-        Route::get('/departments/{id}/edit', [DepartmentController::class, 'edit'])
-            ->name('departments.edit');
-        Route::put('/departments/{id}', [DepartmentController::class, 'update'])
-            ->name('departments.update');
-        Route::delete('/departments/{id}', [DepartmentController::class, 'destroy'])
-            ->name('departments.destroy');
-
-        Route::get('/audit-logs', [AuditLogController::class, 'index'])
-            ->name('audit-logs.index');
-        Route::get('/audit-logs/search', [AuditLogController::class, 'search'])
-            ->name('audit-logs.search');
-
-        // System Settings
-        Route::prefix('settings')->name('settings.')->group(function () {
-            Route::get('/booking-rules', [SettingsController::class, 'bookingRules'])
-                ->name('booking-rules');
-            Route::post('/booking-rules', [SettingsController::class, 'updateBookingRules'])
-                ->name('booking-rules.update');
-
-            Route::get('/email-templates', [SettingsController::class, 'emailTemplates'])
-                ->name('email-templates');
-            Route::post('/email-templates', [SettingsController::class, 'updateEmailTemplate'])
-                ->name('email-templates.update');
-
-            Route::get('/general', [SettingsController::class, 'general'])
-                ->name('general');
-            Route::post('/general', [SettingsController::class, 'updateGeneral'])
-                ->name('general.update');
-        });
-    });
 });

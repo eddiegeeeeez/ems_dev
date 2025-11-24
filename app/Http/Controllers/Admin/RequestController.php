@@ -6,8 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Services\BookingService;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class RequestController extends Controller
 {
@@ -16,47 +15,66 @@ class RequestController extends Controller
     /**
      * Display a listing of booking requests.
      */
-    public function index(): View
+    public function index(): JsonResponse
     {
-        $bookings = Booking::with('user', 'venue')
-            ->latest()
-            ->paginate(15);
+        try {
+            $bookings = Booking::with('user', 'venue')
+                ->latest()
+                ->paginate(15);
 
-        $stats = [
-            'pending' => Booking::where('status', 'pending')->count(),
-            'approved' => Booking::where('status', 'approved')->count(),
-            'rejected' => Booking::where('status', 'rejected')->count(),
-            'completed' => Booking::where('status', 'completed')->count(),
-        ];
+            $stats = [
+                'pending' => Booking::where('status', 'pending')->count(),
+                'approved' => Booking::where('status', 'approved')->count(),
+                'rejected' => Booking::where('status', 'rejected')->count(),
+                'completed' => Booking::where('status', 'completed')->count(),
+            ];
 
-        return view('admin.requests.index', compact('bookings', 'stats'));
+            return response()->json([
+                'bookings' => $bookings,
+                'stats' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch booking requests'], 500);
+        }
     }
 
     /**
      * Display the specified booking request.
      */
-    public function show(Booking $booking): View
+    public function show(Booking $booking): JsonResponse
     {
-        $booking->load('user', 'venue', 'equipment.equipment');
-        return view('admin.requests.show', compact('booking'));
+        try {
+            $booking->load('user', 'venue', 'equipment.equipment');
+            return response()->json(['booking' => $booking]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch booking details'], 500);
+        }
     }
 
     /**
      * Approve a booking request.
      */
-    public function approve(Booking $booking): RedirectResponse
+    public function approve(Booking $booking): JsonResponse
     {
-        $this->bookingService->approveBooking($booking, request('notes'));
-        return redirect()->route('admin.requests.index')->with('success', 'Booking approved successfully');
+        try {
+            $this->bookingService->approveBooking($booking, request('notes'));
+            return response()->json(['message' => 'Booking approved successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to approve booking'], 500);
+        }
     }
 
     /**
      * Reject a booking request.
      */
-    public function reject(Booking $booking): RedirectResponse
+    public function reject(Booking $booking): JsonResponse
     {
-        request()->validate(['reason' => 'required|string|max:500']);
-        $this->bookingService->rejectBooking($booking, request('reason'));
-        return redirect()->route('admin.requests.index')->with('success', 'Booking rejected successfully');
+        try {
+            request()->validate(['reason' => 'required|string|max:500']);
+            $this->bookingService->rejectBooking($booking, request('reason'));
+            return response()->json(['message' => 'Booking rejected successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to reject booking'], 500);
+        }
     }
 }

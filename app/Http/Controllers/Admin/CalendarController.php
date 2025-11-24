@@ -5,16 +5,25 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 
 class CalendarController extends Controller
 {
     /**
-     * Display the calendar view.
+     * Display calendar data.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        return view('admin.calendar');
+        try {
+            $bookings = Booking::where('status', 'approved')
+                ->with('venue', 'user')
+                ->get();
+
+            return response()->json(['bookings' => $bookings]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch calendar data'], 500);
+        }
     }
 
     /**
