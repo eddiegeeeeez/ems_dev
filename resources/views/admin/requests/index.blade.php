@@ -1,4 +1,4 @@
-@extends('admin.layout')
+@extends('layouts.app')
 
 @section('title', 'Booking Requests')
 
@@ -54,7 +54,7 @@
                         <td class="px-6 py-4 text-sm text-gray-900">{{ $booking->user->name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-900">{{ $booking->venue->name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-900">
-                            {{ $booking->start_date->format('M d, Y') }}
+                            {{ $booking->start_datetime->format('M d, Y') }}
                         </td>
                         <td class="px-6 py-4 text-sm">
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium

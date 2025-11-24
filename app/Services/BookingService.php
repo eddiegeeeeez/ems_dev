@@ -90,7 +90,7 @@ class BookingService
     {
         return Booking::where('user_id', $userId)
             ->with('venue')
-            ->orderBy('start_date', 'desc')
+            ->orderBy('start_datetime', 'desc')
             ->paginate($perPage);
     }
 
@@ -102,7 +102,7 @@ class BookingService
         return Booking::approved()
             ->upcoming()
             ->with('user', 'venue')
-            ->orderBy('start_date', 'asc')
+            ->orderBy('start_datetime', 'asc')
             ->limit($limit)
             ->get();
     }
@@ -117,11 +117,13 @@ class BookingService
 
         foreach ($admins as $admin) {
             Notification::create([
-                'user_id' => $admin->id,
-                'title' => 'New Booking Request',
-                'message' => "New booking request for {$booking->event_name} at {$booking->venue->name}",
                 'type' => $type,
-                'related_booking_id' => $booking->id,
+                'notifiable_type' => User::class,
+                'notifiable_id' => $admin->id,
+                'data' => [
+                    'message' => "New booking request for {$booking->event_name} at {$booking->venue->name}",
+                    'booking_id' => $booking->id,
+                ],
             ]);
         }
     }
@@ -138,11 +140,13 @@ class BookingService
         ];
 
         Notification::create([
-            'user_id' => $user->id,
-            'title' => $titles[$type] ?? 'Booking Update',
-            'message' => "Your booking for {$booking->event_name} has been " . str_replace('booking_', '', $type),
             'type' => $type,
-            'related_booking_id' => $booking->id,
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'data' => [
+                'message' => "Your booking for {$booking->event_name} has been " . str_replace('booking_', '', $type),
+                'booking_id' => $booking->id,
+            ],
         ]);
     }
 }

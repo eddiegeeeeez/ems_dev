@@ -24,7 +24,6 @@ class UserController extends Controller
             'total' => User::count(),
             'admins' => User::where('role', 'ADMIN')->count(),
             'organizers' => User::where('role', 'ORGANIZER')->count(),
-            'inactive' => User::whereNull('deleted_at')->count(),
         ];
 
         return view('admin.users.index', compact('users', 'stats'));

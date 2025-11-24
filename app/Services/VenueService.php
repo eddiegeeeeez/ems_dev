@@ -16,11 +16,11 @@ class VenueService
             ->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
                 $q->where('status', 'approved')
                     ->where(function ($query) use ($startDate, $endDate) {
-                        $query->whereBetween('start_date', [$startDate, $endDate])
-                            ->orWhereBetween('end_date', [$startDate, $endDate])
+                        $query->whereBetween('start_datetime', [$startDate, $endDate])
+                            ->orWhereBetween('end_datetime', [$startDate, $endDate])
                             ->orWhere([
-                                ['start_date', '<=', $startDate],
-                                ['end_date', '>=', $endDate],
+                                ['start_datetime', '<=', $startDate],
+                                ['end_datetime', '>=', $endDate],
                             ]);
                     });
             });
@@ -62,13 +62,13 @@ class VenueService
     {
         return $venue->bookings()
             ->where('status', 'approved')
-            ->whereBetween('start_date', [
+            ->whereBetween('start_datetime', [
                 $month->copy()->startOfMonth(),
                 $month->copy()->endOfMonth(),
             ])
             ->get()
             ->groupBy(function ($booking) {
-                return $booking->start_date->format('Y-m-d');
+                return $booking->start_datetime->format('Y-m-d');
             });
     }
 
@@ -80,11 +80,11 @@ class VenueService
         return !$venue->bookings()
             ->where('status', 'approved')
             ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('start_date', [$startDate, $endDate])
-                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                $query->whereBetween('start_datetime', [$startDate, $endDate])
+                    ->orWhereBetween('end_datetime', [$startDate, $endDate])
                     ->orWhere([
-                        ['start_date', '<=', $startDate],
-                        ['end_date', '>=', $endDate],
+                        ['start_datetime', '<=', $startDate],
+                        ['end_datetime', '>=', $endDate],
                     ]);
             })
             ->exists();

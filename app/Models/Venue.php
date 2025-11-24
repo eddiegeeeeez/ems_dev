@@ -51,8 +51,8 @@ class Venue extends Model
         $totalCapacity = $this->capacity;
         $bookedDates = $this->bookings()
             ->where('status', 'approved')
-            ->whereBetween('start_date', [now(), now()->addMonth()])
-            ->pluck('start_date', 'end_date')
+            ->whereBetween('start_datetime', [now(), now()->addMonth()])
+            ->pluck('start_datetime', 'end_datetime')
             ->toArray();
 
         return [

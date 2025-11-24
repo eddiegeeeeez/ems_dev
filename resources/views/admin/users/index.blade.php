@@ -1,4 +1,4 @@
-@extends('admin.layout')
+@extends('layouts.app')
 
 @section('title', 'Users')
 
@@ -11,7 +11,7 @@
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-white rounded-lg border border-gray-200 p-6">
             <p class="text-sm text-gray-600">Total Users</p>
             <p class="text-3xl font-bold text-blue-600 mt-2">{{ $stats['total'] }}</p>
@@ -23,10 +23,6 @@
         <div class="bg-white rounded-lg border border-gray-200 p-6">
             <p class="text-sm text-gray-600">Organizers</p>
             <p class="text-3xl font-bold text-blue-600 mt-2">{{ $stats['organizers'] }}</p>
-        </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <p class="text-sm text-gray-600">Inactive</p>
-            <p class="text-3xl font-bold text-gray-600 mt-2">{{ $stats['inactive'] }}</p>
         </div>
     </div>
 

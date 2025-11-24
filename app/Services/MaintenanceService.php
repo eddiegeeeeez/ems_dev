@@ -95,10 +95,13 @@ class MaintenanceService
         if (!$technician) return;
 
         Notification::create([
-            'user_id' => $technician->id,
-            'title' => 'Maintenance Request Assigned',
-            'message' => "New maintenance request: {$request->title}",
             'type' => 'maintenance_assigned',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $technician->id,
+            'data' => [
+                'message' => "New maintenance request: {$request->title}",
+                'request_id' => $request->id,
+            ],
         ]);
     }
 
@@ -111,10 +114,13 @@ class MaintenanceService
 
         foreach ($admins as $admin) {
             Notification::create([
-                'user_id' => $admin->id,
-                'title' => 'Maintenance Update',
-                'message' => $message,
                 'type' => 'maintenance_updated',
+                'notifiable_type' => User::class,
+                'notifiable_id' => $admin->id,
+                'data' => [
+                    'message' => $message,
+                    'request_id' => $request->id,
+                ],
             ]);
         }
     }

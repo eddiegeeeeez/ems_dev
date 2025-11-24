@@ -17,8 +17,8 @@ class Booking extends Model
         'venue_id',
         'event_name',
         'event_description',
-        'start_date',
-        'end_date',
+        'start_datetime',
+        'end_datetime',
         'expected_attendees',
         'status',
         'rejection_reason',
@@ -28,8 +28,8 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
+        'start_datetime' => 'datetime',
+        'end_datetime' => 'datetime',
         'total_cost' => 'decimal:2',
     ];
 
@@ -60,7 +60,7 @@ class Booking extends Model
 
     public function getDurationInHoursAttribute(): float
     {
-        return $this->start_date->diffInHours($this->end_date);
+        return $this->start_datetime->diffInHours($this->end_datetime);
     }
 
     public function scopePending($query)
@@ -75,6 +75,6 @@ class Booking extends Model
 
     public function scopeUpcoming($query)
     {
-        return $query->where('start_date', '>', now());
+        return $query->where('start_datetime', '>', now());
     }
 }

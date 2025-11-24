@@ -103,7 +103,7 @@
                     <div class="flex-1 min-w-0">
                         <h3 class="font-medium text-gray-900 text-sm md:text-base truncate">{{ $booking->event_title ?? 'Event Title' }}</h3>
                         <p class="text-xs md:text-sm text-gray-600">
-                            {{ \Carbon\Carbon::parse($booking->start_date ?? now())->toFormattedDateString() }} at {{ $booking->start_time ?? '00:00' }}
+                            {{ \Carbon\Carbon::parse($booking->start_datetime ?? now())->toFormattedDateString() }} at {{ $booking->start_time ?? '00:00' }}
                         </p>
                     </div>
                     <span class="whitespace-nowrap text-xs md:text-sm font-medium px-3 py-1 rounded-full

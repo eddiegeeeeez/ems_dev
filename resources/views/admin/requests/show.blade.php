@@ -1,4 +1,4 @@
-@extends('admin.layout')
+@extends('layouts.app')
 
 @section('title', 'Request Details')
 
@@ -58,11 +58,11 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-600">Start Date</p>
-                        <p class="font-medium text-gray-900">{{ $booking->start_date->format('M d, Y H:i') }}</p>
+                        <p class="font-medium text-gray-900">{{ $booking->start_datetime->format('M d, Y H:i') }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-600">End Date</p>
-                        <p class="font-medium text-gray-900">{{ $booking->end_date->format('M d, Y H:i') }}</p>
+                        <p class="font-medium text-gray-900">{{ $booking->end_datetime->format('M d, Y H:i') }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-600">Duration</p>

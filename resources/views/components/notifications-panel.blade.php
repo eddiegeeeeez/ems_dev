@@ -1,31 +1,7 @@
 @php
-    // Get current user's notifications (you can adjust this based on your actual database queries)
-    $notifications = auth()->user()?->notifications()->latest()->get() ?? collect();
-    $unreadCount = $notifications->where('read_at', null)->count();
-    
-    // Helper function to get notification icon and color
-    function getNotificationIcon($type) {
-        $icons = [
-            'approval' => [
-                'svg' => '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#4caf50]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
-                'label' => 'Approval'
-            ],
-            'rejection' => [
-                'svg' => '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>',
-                'label' => 'Rejection'
-            ],
-            'booking' => [
-                'svg' => '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 5V1h-1v4H8.01V1H7v4H3.99C2.89 5 2 5.9 2 7v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3V1h-1v4h-3zm11 14H2V7h16v12z"/></svg>',
-                'label' => 'Booking'
-            ],
-            'default' => [
-                'svg' => '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V2c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.96 3.36 6.4 5.92 6.4 9v5l-2 2v1h15.6v-1l-2-2z"/></svg>',
-                'label' => 'Notification'
-            ]
-        ];
-        
-        return $icons[$type] ?? $icons['default'];
-    }
+    // Get current user's notifications
+    $notifications = auth()->user()?->notifications()->orderBy('created_at', 'desc')->get() ?? collect();
+    $unreadCount = $notifications->whereNull('read_at')->count();
 @endphp
 
 <!-- Notification Bell Button with Popover -->
@@ -93,16 +69,20 @@
                             <div class="flex items-start gap-3">
                                 <!-- Icon -->
                                 <div class="flex-shrink-0 mt-1">
-                                    {!! $icon['svg'] !!}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V2c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.96 3.36 6.4 5.92 6.4 9v5l-2 2v1h15.6v-1l-2-2z"/></svg>
                                 </div>
 
                                 <!-- Content -->
                                 <div class="flex-1 min-w-0">
                                     <h4 class="font-medium text-gray-900 text-sm">
-                                        {{ $notification->data['title'] ?? 'Notification' }}
+                                        {{ $notification->type ?? 'Notification' }}
                                     </h4>
                                     <p class="text-xs text-gray-600 mt-1 line-clamp-2">
-                                        {{ $notification->data['message'] ?? 'You have a new notification' }}
+                                        @if(isset($notification->data) && is_array($notification->data))
+                                            {{ $notification->data['message'] ?? 'You have a new notification' }}
+                                        @else
+                                            You have a new notification
+                                        @endif
                                     </p>
                                     <p class="text-xs text-gray-500 mt-2">
                                         {{ $notification->created_at->format('M d, Y \a\t g:i A') }}
