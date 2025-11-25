@@ -6,6 +6,7 @@ import { AdminGuard } from "@/components/admin-guard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import { Calendar, CheckCircle, Clock, AlertCircle, TrendingUp, AlertTriangle, Building2, FileText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -267,19 +268,10 @@ export default function AdminDashboardPage() {
                         {new Date(booking.startDate).toLocaleDateString()} at {booking.startTime}
                       </p>
                     </div>
-                    <Badge
-                      className={`whitespace-nowrap text-xs md:text-sm ${
-                        booking.status === "approved"
-                          ? "bg-[#4caf50] text-white"
-                          : booking.status === "pending"
-                            ? "bg-yellow-500 text-white"
-                            : booking.status === "rejected"
-                              ? "bg-red-500 text-white"
-                              : "bg-gray-400 text-white"
-                      }`}
-                    >
-                      {booking.status}
-                    </Badge>
+                    <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}>
+                      <StatusIndicator />
+                      <StatusLabel />
+                    </Status>
                   </div>
                 ))}
               </div>

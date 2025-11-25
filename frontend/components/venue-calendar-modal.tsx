@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import type { Venue, Booking } from "@/lib/types"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -64,7 +65,7 @@ export function VenueCalendarModal({ open, onOpenChange, venue, bookings }: Venu
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{venue.name} - Schedule</DialogTitle>
           <DialogDescription>View all bookings for this venue</DialogDescription>
@@ -149,17 +150,10 @@ export function VenueCalendarModal({ open, onOpenChange, venue, bookings }: Venu
                             {booking.startTime} - {booking.endTime}
                           </p>
                         </div>
-                        <Badge
-                          className={
-                            booking.status === "approved"
-                              ? "bg-[#4caf50] text-white"
-                              : booking.status === "pending"
-                                ? "bg-yellow-500 text-white"
-                                : "bg-gray-400 text-white"
-                          }
-                        >
-                          {booking.status}
-                        </Badge>
+                        <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}>
+                          <StatusIndicator />
+                          <StatusLabel />
+                        </Status>
                       </div>
                     ))}
                   </div>

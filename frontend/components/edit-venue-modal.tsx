@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -62,7 +63,7 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-[#c41e3a]">Edit Venue</DialogTitle>
           <DialogDescription>Update the venue details below.</DialogDescription>
@@ -136,10 +137,12 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
 
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-            Cancel
-          </Button>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline" disabled={isLoading}>
+              Cancel
+            </Button>
+          </DialogClose>
           <Button
             onClick={handleConfirm}
             disabled={!formData.name || !formData.location || !formData.capacity || isLoading}

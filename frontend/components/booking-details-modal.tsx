@@ -1,11 +1,13 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import type { Booking } from "@/lib/types"
 import { useData } from "@/lib/data-context"
-import { Calendar, Clock, Users, MapPin, Package } from 'lucide-react'
+import { Calendar, Clock, Users, MapPin, Package, User, Mail } from 'lucide-react'
 import { useEffect, useRef } from "react"
 import QRCode from "qrcode"
 
@@ -55,166 +57,156 @@ export function BookingDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">Event Request Details</DialogTitle>
+          <DialogTitle className="text-2xl">Booking Request Details</DialogTitle>
+          <DialogDescription>Review the complete booking information</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              {/* QR Code */}
-              <div className="flex-shrink-0">
-                <canvas ref={qrCodeRef} className="rounded-lg border-2 border-gray-100" />
-              </div>
-              
-              {/* Digital Pass Info */}
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Your Digital Pass</h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Use this QR code to check in and out of events. Event organizers can scan it to verify your attendance.
-                </p>
-              </div>
-            </div>
-            
-            {/* Security Notice */}
-            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-sm text-yellow-800">
-                This QR code updates periodically for security reasons. Always use the latest version shown in your account.
-              </p>
-            </div>
-          </div>
-
-          {/* Event Information */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Event Information</h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Event Title</p>
+          {/* Event Information - Full Width */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Event Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">Event Title</Label>
                 <p className="text-base text-gray-900">{booking.eventTitle}</p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700">Description</p>
-                <p className="text-base text-gray-600">{booking.eventDescription}</p>
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}>
+                  <StatusIndicator />
+                  <StatusLabel />
+                </Status>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700">Status</p>
-                <Badge
-                  className={`${
-                    booking.status === "approved"
-                      ? "bg-[#4caf50] text-white"
-                      : booking.status === "pending"
-                        ? "bg-yellow-500 text-white"
-                        : "bg-red-500 text-white"
-                  }`}
-                >
-                  {booking.status}
-                </Badge>
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">Expected Attendees</Label>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-400" />
+                  <span className="text-base text-gray-900">{booking.expectedAttendees} people</span>
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Venue & Schedule */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Venue & Schedule</h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-2">
-                <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Venue</p>
+              <div className="grid gap-2 md:col-span-2 lg:col-span-1">
+                <Label className="text-sm font-medium text-gray-700">Venue</Label>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <p className="text-base text-gray-900">{venue?.name}</p>
-                  <p className="text-sm text-gray-500">{venue?.location}</p>
                 </div>
               </div>
-              <div className="flex items-start gap-2">
-                <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Date</p>
-                  <p className="text-base text-gray-900">
-                    {new Date(booking.startDate).toLocaleDateString()} -{" "}
+            </div>
+            <div className="grid gap-2">
+              <Label className="text-sm font-medium text-gray-700">Description</Label>
+              <p className="text-base text-gray-900 leading-relaxed">{booking.eventDescription}</p>
+            </div>
+          </div>
+
+          {/* Schedule & Location - Grid Layout */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Venue & Schedule</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">Location</Label>
+                <p className="text-sm text-gray-600">{venue?.location}</p>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">Date</Label>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-base text-gray-900">
+                    {new Date(booking.startDate).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">End Date</Label>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-base text-gray-900">
                     {new Date(booking.endDate).toLocaleDateString()}
-                  </p>
+                  </span>
                 </div>
               </div>
-              <div className="flex items-start gap-2">
-                <Clock className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Time</p>
-                  <p className="text-base text-gray-900">
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">Time</Label>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                  <span className="text-base text-gray-900">
                     {booking.startTime} - {booking.endTime}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <Users className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Expected Attendees</p>
-                  <p className="text-base text-gray-900">{booking.expectedAttendees} people</p>
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Organizer Information */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Organizer Information</h3>
-            <div className="space-y-2">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Name</p>
-                <p className="text-base text-gray-900">{organizer?.name}</p>
+          {/* Organizer Information - Grid Layout */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Organizer Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">Name</Label>
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <span className="text-base text-gray-900">{organizer?.name}</span>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700">Email</p>
-                <p className="text-base text-gray-900">{organizer?.email}</p>
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">Email</Label>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-gray-400" />
+                  <span className="text-base text-gray-900 truncate">{organizer?.email}</span>
+                </div>
               </div>
               {organizer?.college && (
-                <div>
-                  <p className="text-sm font-medium text-gray-700">College</p>
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium text-gray-700">College</Label>
                   <p className="text-base text-gray-900">{organizer.college}</p>
                 </div>
               )}
               {organizer?.department && (
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Department</p>
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium text-gray-700">Department</Label>
                   <p className="text-base text-gray-900">{organizer.department}</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Equipment Required */}
+          {/* Equipment Required - Grid Layout */}
           {requestedEquipment.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Package className="h-5 w-5" />
                 Equipment Required
               </h3>
-              <ul className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {requestedEquipment.map((eq, index) => (
-                  <li key={index} className="text-base text-gray-700 flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-                    {eq}
-                  </li>
+                  <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg p-3">
+                    <span className="h-2 w-2 rounded-full bg-gray-400 flex-shrink-0" />
+                    <span className="text-base text-gray-700">{eq}</span>
+                  </div>
                 ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          {showActions && onApprove && onReject && (
-            <div className="flex gap-3 pt-4 border-t">
-              <Button
-                onClick={() => onApprove(booking.id)}
-                className="flex-1 bg-[#4caf50] hover:bg-[#45a049] text-white"
-              >
-                Approve Request
-              </Button>
-              <Button onClick={() => onReject(booking.id)} variant="destructive" className="flex-1">
-                Reject Request
-              </Button>
+              </div>
             </div>
           )}
         </div>
+
+        {/* Action Buttons */}
+        {showActions && onApprove && onReject && (
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Close</Button>
+            </DialogClose>
+            <Button onClick={() => onReject(booking.id)} variant="destructive">
+              Reject
+            </Button>
+            <Button
+              onClick={() => onApprove(booking.id)}
+              className="bg-[#4caf50] hover:bg-[#45a049] text-white"
+            >
+              Approve
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )

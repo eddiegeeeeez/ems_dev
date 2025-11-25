@@ -9,6 +9,7 @@ import { EditVenueModal } from "@/components/edit-venue-modal"
 import { Users, MapPin, Edit, Trash2, ArrowUpDown, MoreHorizontal } from 'lucide-react'
 import { useState } from "react"
 import { DataTable } from "@/components/data-table"
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import type { Venue } from "@/lib/types"
 import type { VenueFormData } from "@/components/add-venue-modal"
 import type { EditVenueData } from "@/components/edit-venue-modal"
@@ -127,10 +128,7 @@ export default function AdminVenuesPage() {
         )
       },
       cell: ({ row }) => (
-        <div>
-          <div className="font-medium text-gray-900">{row.original.name}</div>
-          <div className="text-xs text-gray-500 mt-1 line-clamp-1">{row.original.description}</div>
-        </div>
+        <div className="font-medium text-gray-900">{row.original.name}</div>
       ),
     },
     {
@@ -176,21 +174,21 @@ export default function AdminVenuesPage() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <span
-          className={`${
-            row.original.status === "available" ? "bg-[#4caf50] text-white" : "bg-gray-400 text-white"
-          } inline-flex px-2 py-1 text-xs font-medium rounded`}
-        >
-          {row.original.status}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const statusVariant = row.original.status === "available" ? "online" : "offline"
+        return (
+          <Status status={statusVariant}>
+            <StatusIndicator />
+            <StatusLabel />
+          </Status>
+        )
+      },
     },
     {
       id: "actions",
-      header: () => <div className="text-right">Actions</div>,
+      header: "Actions",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

@@ -13,6 +13,7 @@ import { Calendar, Users, Clock, Trash2, Edit, Eye, ArrowUpDown, MoreHorizontal 
 import Link from "next/link"
 import { DataTable } from "@/components/data-table"
 import { BookingDetailsModal } from "@/components/booking-details-modal"
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import type { Booking } from "@/lib/types"
 import type { ColumnDef } from "@tanstack/react-table"
 import {
@@ -155,27 +156,27 @@ export default function MyBookingsPage() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge
-          className={`${
-            row.original.status === "approved"
-              ? "bg-[#4caf50] text-white"
-              : row.original.status === "pending"
-                ? "bg-yellow-500 text-white"
-                : row.original.status === "rejected"
-                  ? "bg-red-500 text-white"
-                  : "bg-gray-400 text-white"
-          }`}
-        >
-          {row.original.status}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const statusMap: Record<string, string> = {
+          approved: "approved",
+          pending: "pending",
+          rejected: "rejected",
+          completed: "completed"
+        }
+        const statusVariant = statusMap[row.original.status] || "pending"
+        return (
+          <Status status={statusVariant}>
+            <StatusIndicator />
+            <StatusLabel />
+          </Status>
+        )
+      },
     },
     {
       id: "actions",
-      header: () => <div className="text-right">Actions</div>,
+      header: "Actions",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

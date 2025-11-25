@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin } from 'lucide-react'
+import { Calendar, Clock, MapPin, Eye } from 'lucide-react'
 
 export default function ScheduledMaintenancePage() {
   const { scheduledMaintenance, venues } = useData()
@@ -27,52 +27,53 @@ export default function ScheduledMaintenancePage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Scheduled Maintenance</h1>
-          <p className="text-gray-600 mt-1">Plan and track upcoming maintenance activities</p>
+    <main className="min-h-screen bg-gray-50">
+      <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
+        {/* Header Section */}
+        <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Scheduled Maintenance</h1>
+            <p className="text-sm md:text-base text-gray-600 mt-2">Plan and track upcoming maintenance activities</p>
+          </div>
+          <Button className="w-full sm:w-auto bg-[#8B1538] hover:bg-[#6B1028] text-white text-sm">
+            Schedule New Maintenance
+          </Button>
         </div>
-        <Button className="bg-[#8B1538] hover:bg-[#6B1028]">Schedule New Maintenance</Button>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Scheduled</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{scheduledMaintenance.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Upcoming</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              {scheduledMaintenance.filter((m) => m.status === "scheduled").length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">In Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {scheduledMaintenance.filter((m) => m.status === "in-progress").length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Scheduled</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{scheduledMaintenance.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">Upcoming</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">
+                {scheduledMaintenance.filter((m) => m.status === "scheduled").length}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">In Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {scheduledMaintenance.filter((m) => m.status === "in-progress").length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Maintenance Schedule</CardTitle>
-          <CardDescription>View and manage all scheduled maintenance activities</CardDescription>
-        </CardHeader>
-        <CardContent>
+        {/* Table */}
+        <div className="bg-white rounded-lg border shadow-sm">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -84,7 +85,7 @@ export default function ScheduledMaintenancePage() {
                   <TableHead>Duration</TableHead>
                   <TableHead>Assigned To</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="font-semibold text-gray-900">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -115,7 +116,8 @@ export default function ScheduledMaintenancePage() {
                       <Badge className={getStatusColor(maintenance.status)}>{maintenance.status}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm">
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        <Eye className="h-3 w-3 mr-1" />
                         View Details
                       </Button>
                     </TableCell>
@@ -124,8 +126,8 @@ export default function ScheduledMaintenancePage() {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </main>
   )
 }

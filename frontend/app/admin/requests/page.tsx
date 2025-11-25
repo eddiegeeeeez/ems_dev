@@ -4,6 +4,7 @@ import { useData } from "@/lib/data-context"
 import { AdminGuard } from "@/components/admin-guard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Table,
@@ -15,14 +16,13 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import { Eye } from 'lucide-react'
-import { BookingDetailsModal } from "@/components/booking-details-modal"
-import type { Booking } from "@/lib/types"
 
 export default function AdminRequestsPage() {
+  const router = useRouter()
   const { bookings, updateBooking, addNotification, venues, users, equipment } = useData()
   const [filter, setFilter] = useState<"pending" | "approved" | "rejected">("pending")
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
 
   const filteredBookings = bookings.filter((b) => b.status === filter)
 
@@ -88,13 +88,13 @@ export default function AdminRequestsPage() {
 
             <TabsContent value={filter} className="mt-0">
               {filteredBookings.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-12 md:py-16">
+                <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="text-center py-12 md:py-16">
                     <p className="text-gray-600 text-sm md:text-base">No {filter} requests</p>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ) : (
-                <Card>
+                <div className="bg-white rounded-lg border shadow-sm">
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
@@ -105,7 +105,7 @@ export default function AdminRequestsPage() {
                           <TableHead className="font-semibold text-gray-900">Organizer</TableHead>
                           <TableHead className="font-semibold text-gray-900">Date</TableHead>
                           <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                          <TableHead className="font-semibold text-gray-900 text-right">Actions</TableHead>
+                          <TableHead className="font-semibold text-gray-900">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -119,9 +119,6 @@ export default function AdminRequestsPage() {
                               </TableCell>
                               <TableCell>
                                 <div className="font-medium text-gray-900">{booking.eventTitle}</div>
-                                <div className="text-xs text-gray-500 mt-1 line-clamp-1">
-                                  {booking.eventDescription}
-                                </div>
                               </TableCell>
                               <TableCell className="text-sm text-gray-600">{venue?.name}</TableCell>
                               <TableCell className="text-sm text-gray-600">{organizer?.name}</TableCell>
@@ -129,23 +126,16 @@ export default function AdminRequestsPage() {
                                 {new Date(booking.startDate).toLocaleDateString()}
                               </TableCell>
                               <TableCell>
-                                <Badge
-                                  className={`${
-                                    booking.status === "approved"
-                                      ? "bg-[#4caf50] text-white"
-                                      : booking.status === "pending"
-                                        ? "bg-yellow-500 text-white"
-                                        : "bg-red-500 text-white"
-                                  }`}
-                                >
-                                  {booking.status}
-                                </Badge>
+                                <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : "rejected"}>
+                                  <StatusIndicator />
+                                  <StatusLabel />
+                                </Status>
                               </TableCell>
                               <TableCell>
-                                <div className="flex items-center justify-end">
+                                <div className="flex items-center gap-2">
                                   <Button
-                                    onClick={() => setSelectedBooking(booking)}
-                                    variant="outline"
+                                    onClick={() => router.push(`/admin/requests/${booking.id}`)}
+                                    variant="ghost"
                                     size="sm"
                                     className="text-xs"
                                   >
@@ -160,23 +150,12 @@ export default function AdminRequestsPage() {
                       </TableBody>
                     </Table>
                   </div>
-                </Card>
+                </div>
               )}
             </TabsContent>
           </Tabs>
         </div>
       </main>
-
-      {selectedBooking && (
-        <BookingDetailsModal
-          booking={selectedBooking}
-          open={!!selectedBooking}
-          onClose={() => setSelectedBooking(null)}
-          onApprove={handleApprove}
-          onReject={handleReject}
-          showActions={selectedBooking.status === "pending"}
-        />
-      )}
     </AdminGuard>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Equipment } from "@/lib/types"
@@ -70,7 +70,7 @@ export function EquipmentModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Select Equipment</DialogTitle>
           <DialogDescription>Choose equipment for your event</DialogDescription>
@@ -112,11 +112,13 @@ export function EquipmentModal({
           ))}
         </div>
 
-        <div className="border-t pt-4">
-          <Button onClick={handleClose} className="w-full bg-gray-200 text-gray-900 hover:bg-gray-300">
-            Done
-          </Button>
-        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button className="w-full bg-gray-200 text-gray-900 hover:bg-gray-300">
+              Done
+            </Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

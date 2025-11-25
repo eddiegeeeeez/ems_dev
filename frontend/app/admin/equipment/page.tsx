@@ -4,8 +4,27 @@ import { useData } from "@/lib/data-context"
 import { AdminGuard } from "@/components/admin-guard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash2 } from 'lucide-react'
+import { Edit, Trash2, ArrowUpDown, MoreHorizontal } from 'lucide-react'
 import { useState } from "react"
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -14,10 +33,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import type { Equipment } from "@/lib/types"
+
+const getCategoryBadgeColor = (category: string) => {
+  switch (category.toLowerCase()) {
+    case "audio-visual":
+      return "bg-purple-100 text-purple-800"
+    case "supplies":
+      return "bg-blue-100 text-blue-800"
+    case "furniture":
+      return "bg-green-100 text-green-800"
+    default:
+      return "bg-gray-100 text-gray-800"
+  }
+}
 
 export default function AdminEquipmentPage() {
   const { equipment, venues } = useData()
   const [isLoading, setIsLoading] = useState(false)
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
   const getVenueName = (venueId: string) => {
     return venues.find((v) => v.id === venueId)?.name || "Unknown Venue"
@@ -44,17 +80,136 @@ export default function AdminEquipmentPage() {
     }
   }
 
-  // Group equipment by category
-  const equipmentByCategory = equipment.reduce(
-    (acc, eq) => {
-      if (!acc[eq.category]) {
-        acc[eq.category] = []
-      }
-      acc[eq.category].push(eq)
-      return acc
+  const columns: ColumnDef<Equipment>[] = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Equipment Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
     },
-    {} as Record<string, typeof equipment>,
-  )
+    {
+      accessorKey: "category",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Category
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const category = row.getValue("category") as string
+        return (
+          <Badge className={getCategoryBadgeColor(category)}>
+            {category}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: "venueId",
+      header: "Venue",
+      cell: ({ row }) => {
+        return <div className="text-sm">{getVenueName(row.getValue("venueId"))}</div>
+      },
+    },
+    {
+      accessorKey: "quantity",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Total Qty
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="font-medium">{row.getValue("quantity")}</div>,
+    },
+    {
+      accessorKey: "available",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Available
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const available = row.getValue("available") as number
+        return (
+          <Badge className={available > 0 ? "bg-[#4caf50] text-white" : "bg-red-500 text-white"}>
+            {available}
+          </Badge>
+        )
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const eq = row.original
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleEditEquipment(eq.id, eq.name)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handleDeleteEquipment(eq.id, eq.name)}
+                className="text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    },
+  ]
+
+  const table = useReactTable({
+    data: equipment,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+    },
+  })
 
   return (
     <AdminGuard>
@@ -73,83 +228,96 @@ export default function AdminEquipmentPage() {
             </Button>
           </div>
 
-          {/* Equipment by Category */}
-          <div className="space-y-6 md:space-y-8">
-            {Object.entries(equipmentByCategory).map(([category, items]) => (
-              <div key={category}>
-                <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">{category}</h2>
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="font-semibold text-gray-900">Equipment Name</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Venue</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Description</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Total Qty</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Available</TableHead>
-                          <TableHead className="font-semibold text-gray-900 text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {items.map((eq) => (
-                          <TableRow key={eq.id} className="hover:bg-gray-50">
-                            <TableCell className="font-medium text-gray-900">{eq.name}</TableCell>
-                            <TableCell className="text-sm text-gray-600">{getVenueName(eq.venueId)}</TableCell>
-                            <TableCell className="text-sm text-gray-600 max-w-xs">
-                              <div className="line-clamp-2">{eq.description}</div>
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-900 font-medium">{eq.quantity}</TableCell>
-                            <TableCell>
-                              <Badge
-                                className={`${
-                                  eq.available > 0 ? "bg-[#4caf50] text-white" : "bg-red-500 text-white"
-                                }`}
-                              >
-                                {eq.available}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center justify-end gap-2">
-                                <Button
-                                  onClick={() => handleEditEquipment(eq.id, eq.name)}
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-xs"
-                                >
-                                  <Edit className="h-3 w-3 mr-1" />
-                                  Edit
-                                </Button>
-                                <Button
-                                  onClick={() => handleDeleteEquipment(eq.id, eq.name)}
-                                  variant="destructive"
-                                  size="sm"
-                                  className="text-xs"
-                                  disabled={isLoading}
-                                >
-                                  <Trash2 className="h-3 w-3 mr-1" />
-                                  Delete
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              </div>
-            ))}
+          {/* Search/Filter */}
+          <div className="mb-4">
+            <Input
+              placeholder="Filter equipment..."
+              value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn("name")?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
           </div>
 
-          {equipment.length === 0 && (
-            <div className="text-center py-12 md:py-16">
-              <p className="text-gray-600 mb-4 text-sm md:text-base">No equipment found</p>
-              <Button onClick={handleAddEquipment} className="bg-[#c41e3a] hover:bg-[#a01830] text-white">
-                Add First Equipment
+          {/* Equipment Table */}
+          <div className="bg-white rounded-lg border shadow-sm">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableHead>
+                        )
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        No equipment found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-gray-600">
+              {table.getFilteredRowModel().rows.length} equipment item(s) total
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
               </Button>
             </div>
-          )}
+          </div>
         </div>
       </main>
     </AdminGuard>

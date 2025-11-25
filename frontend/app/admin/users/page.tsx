@@ -14,9 +14,29 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Shield, UserCircle, Search } from "lucide-react"
+import { Shield, UserCircle, Search, ArrowUpDown } from "lucide-react"
 import { AdminGuard } from "@/components/admin-guard"
 import { UserDetailsModal } from "@/components/user-details-modal"
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 interface UserData {
   id: string
@@ -84,118 +104,238 @@ export default function UserManagementPage() {
     setIsDetailsOpen(true)
   }
 
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+
+  const columns: ColumnDef<UserData>[] = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            User
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4caf50] text-white font-bold text-xs flex-shrink-0">
+              {user.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+            </div>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "college",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            College
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="text-sm">{row.getValue("college") || "N/A"}</div>,
+    },
+    {
+      accessorKey: "department",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Department
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="text-sm">{row.getValue("department") || "N/A"}</div>,
+    },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => {
+        const role = row.getValue("role") as string
+        return (
+          <span className="inline-flex items-center gap-2 text-sm">
+            {role === "admin" ? (
+              <>
+                <Shield className="h-4 w-4 text-[#c41e3a]" />
+                <span className="font-medium text-[#c41e3a]">Admin</span>
+              </>
+            ) : (
+              <>
+                <UserCircle className="h-4 w-4 text-[#4caf50]" />
+                <span className="font-medium text-[#4caf50]">Organizer</span>
+              </>
+            )}
+          </span>
+        )
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <Button variant="ghost" size="sm" onClick={() => handleViewDetails(user)}>
+            View Details
+          </Button>
+        )
+      },
+    },
+  ]
+
+  const table = useReactTable({
+    data: users,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+    },
+  })
+
   return (
     <AdminGuard>
-      <main className="flex-1 p-4 md:p-8 bg-gray-50">
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">User Management</h1>
-          <p className="text-sm md:text-base text-gray-600">Manage user roles and positions</p>
-        </div>
+      <main className="min-h-screen bg-gray-50">
+        <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
+          {/* Header Section */}
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">User Management</h1>
+            <p className="text-sm md:text-base text-gray-600 mt-2">Manage user roles and positions</p>
+          </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          {/* Search Bar */}
-          <div className="p-4 border-b border-gray-200">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search users by name or email..."
-                value={searchQuery}
-                onChange={(e) => {
-                  console.log("[v0] Search query:", e.target.value)
-                  setSearchQuery(e.target.value)
-                }}
-                className="pl-10"
-              />
-            </div>
+          {/* Search/Filter */}
+          <div className="mb-4">
+            <Input
+              placeholder="Filter users..."
+              value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn("name")?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
           </div>
 
           {/* Users Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    College
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Department
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredUsers.map((userData) => (
-                  <tr key={userData.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4caf50] text-white font-bold text-xs flex-shrink-0">
-                          {userData.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .slice(0, 2)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{userData.name}</p>
-                          <p className="text-xs text-gray-500 truncate">{userData.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-700">{userData.college || "N/A"}</td>
-                    <td className="px-4 py-4 text-sm text-gray-700">{userData.department || "N/A"}</td>
-                    <td className="px-4 py-4">
-                      <span className="inline-flex items-center gap-2 text-sm text-gray-700">
-                        {userData.role === "admin" ? (
-                          <>
-                            <Shield className="h-4 w-4 text-[#c41e3a]" />
-                            <span className="font-medium text-[#c41e3a]">Admin</span>
-                          </>
-                        ) : (
-                          <>
-                            <UserCircle className="h-4 w-4 text-[#4caf50]" />
-                            <span className="font-medium text-[#4caf50]">Organizer</span>
-                          </>
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <Button variant="ghost" size="sm" onClick={() => handleViewDetails(userData)}>
-                        View Details
-                      </Button>
-                    </td>
-                  </tr>
+          <div className="bg-white rounded-lg border shadow-sm">
+            <div className="overflow-x-auto">
+              <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No users found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
-
-          {filteredUsers.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No users found matching your search.</p>
-            </div>
-          )}
         </div>
 
-        {/* UserDetailsModal */}
+        {/* Pagination */}
+        <div className="flex items-center justify-between mt-4">
+          <div className="text-sm text-gray-600">
+            {table.getFilteredRowModel().rows.length} user(s) total
+          </div>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+
         {selectedUser && (
-          <UserDetailsModal 
+          <UserDetailsModal
             key={refreshKey}
-            user={selectedUser} 
-            open={isDetailsOpen} 
-            onOpenChange={setIsDetailsOpen}
-            onRoleChange={handleRoleChange}
-            onPositionChange={handlePositionChange}
+            user={selectedUser}
+            open={isDetailsOpen}
+            onClose={() => setIsDetailsOpen(false)}
+            onRoleChange={(newRole) => handleRoleChange(selectedUser.id, newRole)}
+            onPositionChange={(newPosition) => handlePositionChange(selectedUser.id, newPosition)}
           />
         )}
+        </div>
       </main>
     </AdminGuard>
   )

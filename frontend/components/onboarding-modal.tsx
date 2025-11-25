@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -74,7 +74,7 @@ export function OnboardingModal({ isOpen, userName, onComplete }: OnboardingModa
 
   return (
     <Dialog open={isOpen}>
-      <DialogContent className="sm:max-w-[500px]" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent className="max-w-7xl" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-xl text-[#c41e3a]">Welcome to UM Events Management!</DialogTitle>
           <DialogDescription className="text-gray-600">
@@ -126,13 +126,15 @@ export function OnboardingModal({ isOpen, userName, onComplete }: OnboardingModa
             </Select>
           </div>
 
-          <Button
-            type="submit"
-            disabled={!college || !department}
-            className="w-full bg-[#c41e3a] hover:bg-[#a01729] text-white"
-          >
-            Complete Setup
-          </Button>
+          <DialogFooter>
+            <Button
+              type="submit"
+              disabled={!college || !department}
+              className="w-full bg-[#c41e3a] hover:bg-[#a01729] text-white"
+            >
+              Complete Setup
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

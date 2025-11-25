@@ -1,5 +1,5 @@
 "use client"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -77,7 +77,7 @@ export function UserDetailsModal({ user, open, onOpenChange, onRoleChange, onPos
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">User Details</DialogTitle>
           <DialogDescription>Complete information and activity history</DialogDescription>
@@ -288,9 +288,11 @@ export function UserDetailsModal({ user, open, onOpenChange, onRoleChange, onPos
                 ))}
               </div>
 
-              <Button variant="outline" className="w-full bg-transparent">
-                View All Bookings
-              </Button>
+              <DialogFooter>
+                <Button variant="outline" className="w-full bg-transparent">
+                  View All Bookings
+                </Button>
+              </DialogFooter>
             </TabsContent>
           </Tabs>
         </div>

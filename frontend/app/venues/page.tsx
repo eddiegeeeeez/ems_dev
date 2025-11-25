@@ -8,6 +8,7 @@ import { Users, MapPin, Eye, ArrowUpDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { DataTable } from "@/components/data-table"
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Venue } from "@/lib/types"
 
@@ -86,21 +87,21 @@ export default function VenuesPage() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <span
-          className={`${
-            row.original.status === "available" ? "bg-[#4caf50] text-white" : "bg-gray-400 text-white"
-          } inline-flex px-2 py-1 text-xs font-medium rounded`}
-        >
-          {row.original.status}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const statusVariant = row.original.status === "available" ? "online" : "offline"
+        return (
+          <Status status={statusVariant}>
+            <StatusIndicator />
+            <StatusLabel />
+          </Status>
+        )
+      },
     },
     {
       id: "actions",
-      header: () => <div className="text-right">Actions</div>,
+      header: "Actions",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center gap-2">
           <Button
             onClick={() => {
               console.log("[v0] Viewing venue details for:", row.original.id, row.original.name)

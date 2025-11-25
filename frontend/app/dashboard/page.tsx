@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import { Calendar, FileText, CheckCircle, Clock } from 'lucide-react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading, user } = useAuth()
@@ -132,33 +134,34 @@ export default function DashboardPage() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
-                {userBookings.slice(0, 5).map((booking) => (
-                  <div
-                    key={booking.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-4 border-b pb-4 last:border-b-0"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 truncate text-sm md:text-base">{booking.eventTitle}</h3>
-                      <p className="text-xs md:text-sm text-gray-600">
-                        {new Date(booking.startDate).toLocaleDateString()} at {booking.startTime}
-                      </p>
-                    </div>
-                    <Badge
-                      className={`whitespace-nowrap text-xs md:text-sm ${
-                        booking.status === "approved"
-                          ? "bg-[#4caf50] text-white"
-                          : booking.status === "pending"
-                            ? "bg-yellow-500 text-white"
-                            : booking.status === "rejected"
-                              ? "bg-red-500 text-white"
-                              : "bg-gray-400 text-white"
-                      }`}
-                    >
-                      {booking.status}
-                    </Badge>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold text-gray-900">Event Title</TableHead>
+                      <TableHead className="font-semibold text-gray-900">Date & Time</TableHead>
+                      <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userBookings.slice(0, 5).map((booking) => (
+                      <TableRow key={booking.id} className="hover:bg-gray-50">
+                        <TableCell>
+                          <div className="font-medium text-gray-900">{booking.eventTitle}</div>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600">
+                          {new Date(booking.startDate).toLocaleDateString()} at {booking.startTime}
+                        </TableCell>
+                        <TableCell>
+                          <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}>
+                            <StatusIndicator />
+                            <StatusLabel />
+                          </Status>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Search, Building2, Users, Calendar } from 'lucide-react'
+import { Search, Building2, Users, Calendar, Eye } from 'lucide-react'
 
 export default function DepartmentsPage() {
   const { departments } = useData()
@@ -23,47 +23,50 @@ export default function DepartmentsPage() {
   const totalEvents = departments.reduce((sum, dept) => sum + dept.activeEvents, 0)
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Departments</h1>
-          <p className="text-gray-600 mt-1">Manage university departments and their activities</p>
+    <main className="min-h-screen bg-gray-50">
+      <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
+        {/* Header Section */}
+        <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Departments</h1>
+            <p className="text-sm md:text-base text-gray-600 mt-2">Manage university departments and their activities</p>
+          </div>
+          <Button className="w-full sm:w-auto bg-[#8B1538] hover:bg-[#6B1028] text-white text-sm">
+            Add Department
+          </Button>
         </div>
-        <Button className="bg-[#8B1538] hover:bg-[#6B1028]">Add Department</Button>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Departments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{departments.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Members</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{totalMembers}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Active Events</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{totalEvents}</div>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Departments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{departments.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Members</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{totalMembers}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">Active Events</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{totalEvents}</div>
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Department List</CardTitle>
-          <CardDescription>View and manage all university departments</CardDescription>
-          <div className="relative mt-4">
+        {/* Search Section */}
+        <div className="mb-4">
+          <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search departments..."
@@ -72,8 +75,10 @@ export default function DepartmentsPage() {
               className="pl-10"
             />
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-lg border shadow-sm">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -84,7 +89,7 @@ export default function DepartmentsPage() {
                   <TableHead>Email</TableHead>
                   <TableHead>Members</TableHead>
                   <TableHead>Active Events</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="font-semibold text-gray-900">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -114,7 +119,8 @@ export default function DepartmentsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm">
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        <Eye className="h-3 w-3 mr-1" />
                         View Details
                       </Button>
                     </TableCell>
@@ -123,8 +129,8 @@ export default function DepartmentsPage() {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </main>
   )
 }

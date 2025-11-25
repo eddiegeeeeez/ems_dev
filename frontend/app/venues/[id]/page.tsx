@@ -8,6 +8,7 @@ import { BookingForm } from "@/components/booking-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import { Users, MapPin } from 'lucide-react'
 import Link from "next/link"
 import Image from "next/image"
@@ -81,11 +82,10 @@ export default function VenueDetailPage() {
                           {venue.location}
                         </CardDescription>
                       </div>
-                      <Badge
-                        className={venue.status === "available" ? "bg-[#4caf50] text-white" : "bg-gray-400 text-white"}
-                      >
-                        {venue.status}
-                      </Badge>
+                      <Status status={venue.status === "available" ? "online" : "offline"}>
+                        <StatusIndicator />
+                        <StatusLabel />
+                      </Status>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">

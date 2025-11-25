@@ -145,7 +145,7 @@ export default function AdminCalendarPage() {
           </div>
 
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold text-gray-900">Event Details</DialogTitle>
                 <DialogDescription className="text-sm text-gray-600">
