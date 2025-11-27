@@ -2,13 +2,16 @@
 
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from 'next/navigation'
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { LoginForm } from "@/components/login-form"
 import { Spinner } from "@/components/ui/spinner"
+import { LandingPage } from "@/components/landing-page"
+import { Button } from "@/components/ui/button"
 
 export default function Home() {
   const { isAuthenticated, isLoading, user } = useAuth()
   const router = useRouter()
+  const [showLogin, setShowLogin] = useState(false)
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -30,7 +33,23 @@ export default function Home() {
   }
 
   if (!isAuthenticated) {
-    return <LoginForm />
+    if (showLogin) {
+      return (
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="w-full max-w-md">
+            <Button
+              variant="outline"
+              onClick={() => setShowLogin(false)}
+              className="mb-6 text-[#c41e3a] border-[#c41e3a] hover:bg-[#c41e3a] hover:text-white"
+            >
+              ← Back to Home
+            </Button>
+            <LoginForm />
+          </div>
+        </div>
+      )
+    }
+    return <LandingPage onSignIn={() => setShowLogin(true)} />
   }
 
   return (

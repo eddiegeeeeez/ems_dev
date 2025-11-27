@@ -165,7 +165,7 @@ export default function AdminVenuesPage() {
         )
       },
       cell: ({ row }) => (
-        <div className="flex items-center gap-1 text-sm text-gray-600">
+        <div className="flex items-center justify-center gap-1 text-sm text-gray-600">
           <Users className="h-4 w-4 flex-shrink-0" />
           <span>{row.original.capacity}</span>
         </div>
@@ -188,7 +188,7 @@ export default function AdminVenuesPage() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

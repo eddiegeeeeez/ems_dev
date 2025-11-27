@@ -22,6 +22,12 @@ const organizerSections = [
     ]
   },
   {
+    title: "Maintenance",
+    links: [
+      { href: "/maintenance", label: "Report Issues", icon: Wrench },
+    ]
+  },
+  {
     title: "Account",
     links: [
       { href: "/profile", label: "My Profile", icon: User },

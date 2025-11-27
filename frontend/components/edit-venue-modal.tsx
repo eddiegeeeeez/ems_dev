@@ -39,6 +39,10 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
     capacity: 0,
   })
 
+  const handleClose = () => {
+    onOpenChange(false)
+  }
+
   useEffect(() => {
     if (venue) {
       console.log("[v0] Loading venue data for edit:", venue.id)

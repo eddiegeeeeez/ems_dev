@@ -10,6 +10,7 @@ interface OnboardingModalProps {
   isOpen: boolean
   userName: string
   onComplete: (college: string, department: string) => void
+  onClose?: () => void
 }
 
 const UM_COLLEGES = [
@@ -60,7 +61,7 @@ const DEPARTMENTS_BY_COLLEGE: Record<string, string[]> = {
   "College of Nursing": ["Bachelor of Science in Nursing"],
 }
 
-export function OnboardingModal({ isOpen, userName, onComplete }: OnboardingModalProps) {
+export function OnboardingModal({ isOpen, userName, onComplete, onClose }: OnboardingModalProps) {
   const [college, setCollege] = useState("")
   const [department, setDepartment] = useState("")
 
@@ -70,10 +71,16 @@ export function OnboardingModal({ isOpen, userName, onComplete }: OnboardingModa
     onComplete(college, department)
   }
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose()
+    }
+  }
+
   const availableDepartments = college ? DEPARTMENTS_BY_COLLEGE[college] || [] : []
 
   return (
-    <Dialog open={isOpen}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-7xl" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-xl text-[#c41e3a]">Welcome to UM Events Management!</DialogTitle>

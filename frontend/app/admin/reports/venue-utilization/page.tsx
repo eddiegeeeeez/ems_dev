@@ -1,14 +1,39 @@
 "use client"
 
+import { useState } from "react"
 import { useData } from "@/lib/data-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Calendar, TrendingUp } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { MapPin, Calendar, TrendingUp, ChevronDown } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+type ColumnVisibility = {
+  name: boolean
+  location: boolean
+  events: boolean
+  attendees: boolean
+  utilization: boolean
+  status: boolean
+}
 
 export default function VenueUtilizationPage() {
   const { venues, bookings } = useData()
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
+    name: true,
+    location: true,
+    events: true,
+    attendees: true,
+    utilization: true,
+    status: true,
+  })
 
   const getVenueStats = (venueId: string) => {
     const venueBookings = bookings.filter((b) => b.venueId === venueId && b.status === "approved")
@@ -71,62 +96,133 @@ export default function VenueUtilizationPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Venue Statistics</CardTitle>
-          <CardDescription>Detailed breakdown of each venue's usage</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Venue Statistics</CardTitle>
+            <CardDescription>Detailed breakdown of each venue's usage</CardDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Columns <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.name}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, name: checked }))
+                }
+              >
+                Venue Name
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.location}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, location: checked }))
+                }
+              >
+                Location
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.events}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, events: checked }))
+                }
+              >
+                Total Events
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.attendees}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, attendees: checked }))
+                }
+              >
+                Total Attendees
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.utilization}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, utilization: checked }))
+                }
+              >
+                Utilization
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.status}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, status: checked }))
+                }
+              >
+                Status
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Venue Name</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Total Events</TableHead>
-                  <TableHead>Total Attendees</TableHead>
-                  <TableHead>Utilization</TableHead>
-                  <TableHead>Status</TableHead>
+                  {columnVisibility.name && <TableHead>Venue Name</TableHead>}
+                  {columnVisibility.location && <TableHead>Location</TableHead>}
+                  {columnVisibility.events && <TableHead>Total Events</TableHead>}
+                  {columnVisibility.attendees && <TableHead>Total Attendees</TableHead>}
+                  {columnVisibility.utilization && <TableHead>Utilization</TableHead>}
+                  {columnVisibility.status && <TableHead>Status</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {venueStats.map((venue) => (
                   <TableRow key={venue.id}>
-                    <TableCell className="font-medium">{venue.name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-gray-400" />
-                        {venue.location}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        {venue.stats.totalEvents}
-                      </div>
-                    </TableCell>
-                    <TableCell>{venue.stats.totalAttendees}</TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
+                    {columnVisibility.name && (
+                      <TableCell className="font-medium">{venue.name}</TableCell>
+                    )}
+                    {columnVisibility.location && (
+                      <TableCell>
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-gray-400" />
-                          <span className="font-medium">{venue.stats.utilization.toFixed(1)}%</span>
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          {venue.location}
                         </div>
-                        <Progress value={venue.stats.utilization} className="w-24" />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          venue.status === "available"
-                            ? "bg-green-100 text-green-800"
-                            : venue.status === "maintenance"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-gray-100 text-gray-800"
-                        }
-                      >
-                        {venue.status}
-                      </Badge>
-                    </TableCell>
+                      </TableCell>
+                    )}
+                    {columnVisibility.events && (
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          {venue.stats.totalEvents}
+                        </div>
+                      </TableCell>
+                    )}
+                    {columnVisibility.attendees && (
+                      <TableCell className="text-center">{venue.stats.totalAttendees}</TableCell>
+                    )}
+                    {columnVisibility.utilization && (
+                      <TableCell>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                            <span className="font-medium">{venue.stats.utilization.toFixed(1)}%</span>
+                          </div>
+                          <Progress value={venue.stats.utilization} className="w-32" />
+                        </div>
+                      </TableCell>
+                    )}
+                    {columnVisibility.status && (
+                      <TableCell>
+                        <Badge
+                          className={
+                            venue.status === "available"
+                              ? "bg-green-100 text-green-800"
+                              : venue.status === "maintenance"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-gray-100 text-gray-800"
+                          }
+                        >
+                          {venue.status}
+                        </Badge>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

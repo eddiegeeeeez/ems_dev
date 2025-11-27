@@ -31,6 +31,10 @@ export function BookingDetailsModal({
   const { venues, users, equipment } = useData()
   const qrCodeRef = useRef<HTMLCanvasElement>(null)
 
+  const handleClose = () => {
+    onClose()
+  }
+
   const venue = venues?.find((v) => v.id === booking.venueId)
   const organizer = users?.find((u) => u.id === booking.organizerId)
 

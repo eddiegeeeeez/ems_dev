@@ -18,6 +18,10 @@ interface VenueCalendarModalProps {
 export function VenueCalendarModal({ open, onOpenChange, venue, bookings }: VenueCalendarModalProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
 
+  const handleClose = () => {
+    onOpenChange(false)
+  }
+
   if (!venue) return null
 
   // Group bookings by date

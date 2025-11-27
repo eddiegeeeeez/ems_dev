@@ -11,6 +11,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import { Calendar, FileText, CheckCircle, Clock } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DashboardHeader } from "@/components/dashboard-header"
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading, user } = useAuth()
@@ -58,47 +59,43 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <DashboardHeader
+        user={user}
+      />
+      
       <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Welcome, {user?.name.split(" ")[0]}</h1>
-          <p className="text-sm md:text-base text-gray-600 mt-2">Manage your event bookings and venue reservations</p>
-        </div>
-
         {/* Stats Cards - Responsive Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Total Bookings</CardTitle>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 md:mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Bookings</CardTitle>
+              <Calendar className="w-4 h-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl md:text-3xl font-bold text-[#c41e3a]">{totalCount}</div>
-                <Calendar className="h-6 md:h-8 w-6 md:w-8 text-gray-300" />
-              </div>
+              <div className="text-3xl font-bold text-gray-900">{totalCount}</div>
+              <p className="text-sm text-gray-600 mt-1">All your bookings</p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Pending Approval</CardTitle>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Pending Approval</CardTitle>
+              <Clock className="w-4 h-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl md:text-3xl font-bold text-yellow-600">{pendingCount}</div>
-                <Clock className="h-6 md:h-8 w-6 md:w-8 text-gray-300" />
-              </div>
+              <div className="text-3xl font-bold text-amber-600">{pendingCount}</div>
+              <p className="text-sm text-gray-600 mt-1">Awaiting review</p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Approved Events</CardTitle>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Approved Events</CardTitle>
+              <CheckCircle className="w-4 h-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl md:text-3xl font-bold text-[#4caf50]">{approvedCount}</div>
-                <CheckCircle className="h-6 md:h-8 w-6 md:w-8 text-gray-300" />
-              </div>
+              <div className="text-3xl font-bold text-green-600">{approvedCount}</div>
+              <p className="text-sm text-gray-600 mt-1">Successfully approved</p>
             </CardContent>
           </Card>
         </div>

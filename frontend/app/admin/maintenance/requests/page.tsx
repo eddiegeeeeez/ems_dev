@@ -9,13 +9,38 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
-import { Search, AlertCircle, Clock, CheckCircle2, XCircle, Eye } from 'lucide-react'
+import { Search, AlertCircle, Clock, CheckCircle2, XCircle, Eye, ChevronDown } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+type ColumnVisibility = {
+  venue: boolean
+  title: boolean
+  description: boolean
+  priority: boolean
+  status: boolean
+  createdDate: boolean
+  actions: boolean
+}
 
 export default function MaintenanceRequestsPage() {
   const { maintenanceRequests, venues } = useData()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [priorityFilter, setPriorityFilter] = useState("all")
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
+    venue: true,
+    title: true,
+    description: true,
+    priority: true,
+    status: true,
+    createdDate: true,
+    actions: true,
+  })
 
   const filteredRequests = maintenanceRequests.filter((request) => {
     const matchesSearch =
@@ -123,7 +148,7 @@ export default function MaintenanceRequestsPage() {
         </div>
 
         {/* Filters Section */}
-        <div className="mb-4 flex gap-4">
+        <div className="mb-4 flex gap-4 items-start">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -156,6 +181,55 @@ export default function MaintenanceRequestsPage() {
               <SelectItem value="low">Low</SelectItem>
             </SelectContent>
           </Select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Columns <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.title}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, title: checked }))
+                }
+              >
+                Title
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.venue}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, venue: checked }))
+                }
+              >
+                Venue
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.priority}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, priority: checked }))
+                }
+              >
+                Priority
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.status}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, status: checked }))
+                }
+              >
+                Status
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={columnVisibility.createdDate}
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, createdDate: checked }))
+                }
+              >
+                Reported Date
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Table */}
@@ -165,36 +239,48 @@ export default function MaintenanceRequestsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Request ID</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Venue</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Reported Date</TableHead>
-                  <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                  {columnVisibility.title && <TableHead>Title</TableHead>}
+                  {columnVisibility.venue && <TableHead>Venue</TableHead>}
+                  {columnVisibility.priority && <TableHead>Priority</TableHead>}
+                  {columnVisibility.status && <TableHead>Status</TableHead>}
+                  {columnVisibility.createdDate && <TableHead>Reported Date</TableHead>}
+                  {columnVisibility.actions && <TableHead className="font-semibold text-gray-900">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRequests.map((request) => (
                   <TableRow key={request.id}>
                     <TableCell className="font-mono text-sm">{request.id}</TableCell>
-                    <TableCell className="font-medium">{request.title}</TableCell>
-                    <TableCell>{venues.find((v) => v.id === request.venueId)?.name || "Unknown"}</TableCell>
-                    <TableCell>
-                      <Badge className={getPriorityColor(request.priority)}>{request.priority}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Status status={request.status === "completed" ? "completed" : request.status === "in-progress" ? "maintenance" : request.status === "pending" ? "pending" : "offline"}>
-                        <StatusIndicator />
-                        <StatusLabel />
-                      </Status>
-                    </TableCell>
-                    <TableCell>{new Date(request.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        <Eye className="h-3 w-3 mr-1" />
-                        View Details
-                      </Button>
-                    </TableCell>
+                    {columnVisibility.title && (
+                      <TableCell className="font-medium">{request.title}</TableCell>
+                    )}
+                    {columnVisibility.venue && (
+                      <TableCell>{venues.find((v) => v.id === request.venueId)?.name || "Unknown"}</TableCell>
+                    )}
+                    {columnVisibility.priority && (
+                      <TableCell>
+                        <Badge className={getPriorityColor(request.priority)}>{request.priority}</Badge>
+                      </TableCell>
+                    )}
+                    {columnVisibility.status && (
+                      <TableCell>
+                        <Status status={request.status === "completed" ? "completed" : request.status === "in-progress" ? "maintenance" : request.status === "pending" ? "pending" : "offline"}>
+                          <StatusIndicator />
+                          <StatusLabel />
+                        </Status>
+                      </TableCell>
+                    )}
+                    {columnVisibility.createdDate && (
+                      <TableCell>{new Date(request.createdAt).toLocaleDateString()}</TableCell>
+                    )}
+                    {columnVisibility.actions && (
+                      <TableCell>
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Details
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

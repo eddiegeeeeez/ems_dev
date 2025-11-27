@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
-import { Calendar, CheckCircle, Clock, AlertCircle, TrendingUp, AlertTriangle, Building2, FileText } from 'lucide-react'
+import { Calendar, CheckCircle, Clock, AlertCircle, TrendingUp, AlertTriangle, Building2, FileText, BarChart3, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { DashboardHeader } from "@/components/dashboard-header"
 
 export default function AdminDashboardPage() {
   const { user } = useAuth()
@@ -18,7 +19,10 @@ export default function AdminDashboardPage() {
   const pendingBookings = bookings.filter((b) => b.status === "pending")
   const approvedBookings = bookings.filter((b) => b.status === "approved")
   const rejectedBookings = bookings.filter((b) => b.status === "rejected")
+  const completedBookings = bookings.filter((b) => b.status === "completed")
   const maintenanceVenues = venues.filter((v) => v.status === "maintenance")
+
+  const approvalRate = bookings.length > 0 ? ((approvedBookings.length / bookings.length) * 100).toFixed(1) : "0"
 
   const handleCardClick = (route: string, label: string) => {
     console.log(`[v0] Dashboard card clicked: ${label}, navigating to: ${route}`)
@@ -44,12 +48,11 @@ export default function AdminDashboardPage() {
   return (
     <AdminGuard>
       <main className="min-h-screen bg-gray-50">
-        <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-sm md:text-base text-gray-600 mt-2">Manage bookings, venues, and facility operations</p>
-          </div>
+        <DashboardHeader
+          user={user}
+        />
 
+        <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
           {(pendingBookings.length > 5 || maintenanceVenues.length > 0) && (
             <Card className="mb-6 border-l-4 border-l-yellow-500 bg-yellow-50">
               <CardHeader className="pb-3">
@@ -89,68 +92,63 @@ export default function AdminDashboardPage() {
             </Card>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 md:mb-8">
             <Card 
-              className="hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-yellow-500"
-              onClick={() => handleCardClick("/admin/requests", "Pending Requests")}
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Pending Requests</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-2xl md:text-3xl font-bold text-yellow-600">{pendingBookings.length}</div>
-                  <Clock className="h-6 md:h-8 w-6 md:w-8 text-yellow-300" />
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Click to review</p>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className="hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-green-500"
-              onClick={() => handleCardClick("/admin/calendar", "Approved Events")}
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Approved Events</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-2xl md:text-3xl font-bold text-[#4caf50]">{approvedBookings.length}</div>
-                  <CheckCircle className="h-6 md:h-8 w-6 md:w-8 text-green-300" />
-                </div>
-                <p className="text-xs text-gray-500 mt-2">View calendar</p>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className="hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-[#c41e3a]"
+              className="hover:shadow-lg transition-all cursor-pointer"
               onClick={() => handleCardClick("/admin/reports/booking-statistics", "Total Bookings")}
             >
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Total Bookings</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Bookings</CardTitle>
+                <Calendar className="w-4 h-4 text-gray-600" />
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-2xl md:text-3xl font-bold text-[#c41e3a]">{bookings.length}</div>
-                  <Calendar className="h-6 md:h-8 w-6 md:w-8 text-[#c41e3a]/30" />
-                </div>
-                <p className="text-xs text-gray-500 mt-2">View analytics</p>
+                <div className="text-3xl font-bold text-gray-900">{bookings.length}</div>
+                <p className="text-sm text-green-600 mt-1">
+                  <TrendingUp className="w-3 h-3 inline mr-1" />
+                  +12% from last month
+                </p>
               </CardContent>
             </Card>
 
             <Card 
-              className="hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-[#1a1a2e]"
-              onClick={() => handleCardClick("/admin/venues", "Total Venues")}
+              className="hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => handleCardClick("/admin/reports/booking-statistics", "Approval Rate")}
             >
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Total Venues</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Approval Rate</CardTitle>
+                <BarChart3 className="w-4 h-4 text-gray-600" />
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-2xl md:text-3xl font-bold text-[#1a1a2e]">{venues.length}</div>
-                  <Building2 className="h-6 md:h-8 w-6 md:w-8 text-[#1a1a2e]/30" />
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Manage facilities</p>
+                <div className="text-3xl font-bold text-gray-900">{approvalRate}%</div>
+                <p className="text-sm text-gray-600 mt-1">{approvedBookings.length} approved bookings</p>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => handleCardClick("/admin/requests", "Pending Requests")}
+            >
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Pending Requests</CardTitle>
+                <Clock className="w-4 h-4 text-gray-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-amber-600">{pendingBookings.length}</div>
+                <p className="text-sm text-gray-600 mt-1">Awaiting review</p>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => handleCardClick("/admin/calendar", "Completed Events")}
+            >
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Completed Events</CardTitle>
+                <Users className="w-4 h-4 text-gray-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">{completedBookings.length}</div>
+                <p className="text-sm text-gray-600 mt-1">Successfully held</p>
               </CardContent>
             </Card>
           </div>

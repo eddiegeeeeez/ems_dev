@@ -36,6 +36,7 @@ export function OnboardingWrapper({ children }: { children: React.ReactNode }) {
           isOpen={showOnboarding}
           userName={user.name}
           onComplete={handleOnboardingComplete}
+          onClose={() => setShowOnboarding(false)}
         />
       )}
       {children}

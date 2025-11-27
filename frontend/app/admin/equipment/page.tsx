@@ -4,7 +4,7 @@ import { useData } from "@/lib/data-context"
 import { AdminGuard } from "@/components/admin-guard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash2, ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import { Edit, Trash2, ArrowUpDown, MoreHorizontal, ChevronDown } from 'lucide-react'
 import { useState } from "react"
 import {
   ColumnDef,
@@ -23,6 +23,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
@@ -129,52 +130,60 @@ export default function AdminEquipmentPage() {
       accessorKey: "quantity",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Total Qty
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Total Qty
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         )
       },
-      cell: ({ row }) => <div className="font-medium">{row.getValue("quantity")}</div>,
+      cell: ({ row }) => <div className="text-right font-medium">{row.getValue("quantity")}</div>,
     },
     {
       accessorKey: "available",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Available
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Available
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         )
       },
       cell: ({ row }) => {
         const available = row.getValue("available") as number
         return (
-          <Badge className={available > 0 ? "bg-[#4caf50] text-white" : "bg-red-500 text-white"}>
-            {available}
-          </Badge>
+          <div className="flex justify-end">
+            <Badge className={available > 0 ? "bg-[#4caf50] text-white" : "bg-red-500 text-white"}>
+              {available}
+            </Badge>
+          </div>
         )
       },
     },
     {
       id: "actions",
       enableHiding: false,
+      header: "Actions",
       cell: ({ row }) => {
         const eq = row.original
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleEditEquipment(eq.id, eq.name)}>
                 <Edit className="mr-2 h-4 w-4" />
@@ -188,7 +197,8 @@ export default function AdminEquipmentPage() {
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          </div>
         )
       },
     },
@@ -229,7 +239,7 @@ export default function AdminEquipmentPage() {
           </div>
 
           {/* Search/Filter */}
-          <div className="mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <Input
               placeholder="Filter equipment..."
               value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -238,6 +248,36 @@ export default function AdminEquipmentPage() {
               }
               className="max-w-sm"
             />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id === "quantity" && "Total Qty"}
+                        {column.id === "available" && "Available"}
+                        {column.id === "category" && "Category"}
+                        {column.id === "venueId" && "Venue"}
+                        {column.id === "name" && "Equipment Name"}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Equipment Table */}

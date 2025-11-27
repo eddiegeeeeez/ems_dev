@@ -4,7 +4,6 @@ import { useData } from "@/lib/data-context"
 import { AdminGuard } from "@/components/admin-guard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Table,
@@ -17,12 +16,39 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
-import { Eye } from 'lucide-react'
+import { BookingDetailsModal } from "@/components/booking-details-modal"
+import { Eye, ChevronDown } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+type ColumnVisibility = {
+  id: boolean
+  eventTitle: boolean
+  venue: boolean
+  organizer: boolean
+  date: boolean
+  status: boolean
+  actions: boolean
+}
 
 export default function AdminRequestsPage() {
-  const router = useRouter()
   const { bookings, updateBooking, addNotification, venues, users, equipment } = useData()
   const [filter, setFilter] = useState<"pending" | "approved" | "rejected">("pending")
+  const [selectedBooking, setSelectedBooking] = useState<typeof bookings[0] | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
+    id: true,
+    eventTitle: true,
+    venue: true,
+    organizer: true,
+    date: true,
+    status: true,
+    actions: true,
+  })
 
   const filteredBookings = bookings.filter((b) => b.status === filter)
 
@@ -40,6 +66,7 @@ export default function AdminRequestsPage() {
         createdAt: new Date().toISOString(),
       })
     }
+    setIsModalOpen(false)
     setSelectedBooking(null)
   }
 
@@ -57,11 +84,22 @@ export default function AdminRequestsPage() {
         createdAt: new Date().toISOString(),
       })
     }
+    setIsModalOpen(false)
     setSelectedBooking(null)
   }
 
   const handleFilterChange = (value: string) => {
     setFilter(value as "pending" | "approved" | "rejected")
+  }
+
+  const handleOpenDetails = (booking: typeof bookings[0]) => {
+    setSelectedBooking(booking)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedBooking(null)
   }
 
   return (
@@ -95,17 +133,77 @@ export default function AdminRequestsPage() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="p-4 border-b flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900">Booking Requests</h3>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          Columns <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuCheckboxItem
+                          checked={columnVisibility.id}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({ ...prev, id: checked }))
+                          }
+                        >
+                          Request ID
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={columnVisibility.eventTitle}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({ ...prev, eventTitle: checked }))
+                          }
+                        >
+                          Event Title
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={columnVisibility.venue}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({ ...prev, venue: checked }))
+                          }
+                        >
+                          Venue
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={columnVisibility.organizer}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({ ...prev, organizer: checked }))
+                          }
+                        >
+                          Organizer
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={columnVisibility.date}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({ ...prev, date: checked }))
+                          }
+                        >
+                          Date
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={columnVisibility.status}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({ ...prev, status: checked }))
+                          }
+                        >
+                          Status
+                        </DropdownMenuCheckboxItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50">
-                          <TableHead className="font-semibold text-gray-900">Request ID</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Event Title</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Venue</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Organizer</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Date</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                          {columnVisibility.id && <TableHead className="font-semibold text-gray-900">Request ID</TableHead>}
+                          {columnVisibility.eventTitle && <TableHead className="font-semibold text-gray-900">Event Title</TableHead>}
+                          {columnVisibility.venue && <TableHead className="font-semibold text-gray-900">Venue</TableHead>}
+                          {columnVisibility.organizer && <TableHead className="font-semibold text-gray-900">Organizer</TableHead>}
+                          {columnVisibility.date && <TableHead className="font-semibold text-gray-900">Date</TableHead>}
+                          {columnVisibility.status && <TableHead className="font-semibold text-gray-900">Status</TableHead>}
+                          {columnVisibility.actions && <TableHead className="font-semibold text-gray-900">Actions</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -114,36 +212,50 @@ export default function AdminRequestsPage() {
                           const organizer = users?.find((u) => u.id === booking.organizerId)
                           return (
                             <TableRow key={booking.id} className="hover:bg-gray-50">
-                              <TableCell className="font-mono text-xs text-gray-600">
-                                {booking.id.toUpperCase()}
-                              </TableCell>
-                              <TableCell>
-                                <div className="font-medium text-gray-900">{booking.eventTitle}</div>
-                              </TableCell>
-                              <TableCell className="text-sm text-gray-600">{venue?.name}</TableCell>
-                              <TableCell className="text-sm text-gray-600">{organizer?.name}</TableCell>
-                              <TableCell className="text-sm text-gray-600">
-                                {new Date(booking.startDate).toLocaleDateString()}
-                              </TableCell>
-                              <TableCell>
-                                <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : "rejected"}>
-                                  <StatusIndicator />
-                                  <StatusLabel />
-                                </Status>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    onClick={() => router.push(`/admin/requests/${booking.id}`)}
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-xs"
-                                  >
-                                    <Eye className="h-3 w-3 mr-1" />
-                                    View
-                                  </Button>
-                                </div>
-                              </TableCell>
+                              {columnVisibility.id && (
+                                <TableCell className="font-mono text-xs text-gray-600">
+                                  {booking.id.toUpperCase()}
+                                </TableCell>
+                              )}
+                              {columnVisibility.eventTitle && (
+                                <TableCell>
+                                  <div className="font-medium text-gray-900">{booking.eventTitle}</div>
+                                </TableCell>
+                              )}
+                              {columnVisibility.venue && (
+                                <TableCell className="text-sm text-gray-600">{venue?.name}</TableCell>
+                              )}
+                              {columnVisibility.organizer && (
+                                <TableCell className="text-sm text-gray-600">{organizer?.name}</TableCell>
+                              )}
+                              {columnVisibility.date && (
+                                <TableCell className="text-sm text-gray-600">
+                                  {new Date(booking.startDate).toLocaleDateString()}
+                                </TableCell>
+                              )}
+                              {columnVisibility.status && (
+                                <TableCell>
+                                  <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : "rejected"}>
+                                    <StatusIndicator />
+                                    <StatusLabel />
+                                  </Status>
+                                </TableCell>
+                              )}
+                              {columnVisibility.actions && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      onClick={() => handleOpenDetails(booking)}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-xs"
+                                    >
+                                      <Eye className="h-3 w-3 mr-1" />
+                                      View
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              )}
                             </TableRow>
                           )
                         })}
@@ -154,6 +266,17 @@ export default function AdminRequestsPage() {
               )}
             </TabsContent>
           </Tabs>
+
+          {selectedBooking && (
+            <BookingDetailsModal
+              booking={selectedBooking}
+              open={isModalOpen}
+              onClose={handleCloseModal}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              showActions={selectedBooking.status === "pending"}
+            />
+          )}
         </div>
       </main>
     </AdminGuard>

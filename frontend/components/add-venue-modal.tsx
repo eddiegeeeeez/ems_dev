@@ -37,6 +37,10 @@ export function AddVenueModal({ open, onOpenChange, onConfirm, isLoading = false
     capacity: 0,
   })
 
+  const handleClose = () => {
+    onOpenChange(false)
+  }
+
   const handleConfirm = () => {
     if (!formData.name || !formData.location || !formData.capacity) {
       console.log("[v0] Form validation failed - missing required fields")

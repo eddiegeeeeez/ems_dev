@@ -1,0 +1,118 @@
+import org.apache.commons.lang3.StringUtils;
+
+public class MaintenanceModeGuide {
+    /*
+    ========================
+    MAINTENANCE MODE FOR ORGANIZERS
+    ========================
+    
+    LOCATION: /maintenance
+    
+    FEATURES AVAILABLE:
+    
+    1. REPORT NEW MAINTENANCE ISSUE
+       - Click "Report Issue" button (red button in top right)
+       - Select Venue from dropdown
+       - Enter Issue Title (e.g., "Air conditioner not working")
+       - Enter detailed Description
+       - Select Priority level (Low, Medium, High, Critical)
+       - Click "Create Request"
+    
+    2. VIEW ALL MAINTENANCE REQUESTS
+       - Table displays all reported maintenance issues
+       - Shows: Venue, Issue Title, Priority, Status, Reported Date, Actions
+    
+    3. FILTER REQUESTS
+       - Search by title or description
+       - Filter by Priority (Critical, High, Medium, Low)
+       - Filter by Status (Pending, In Progress, Completed, Cancelled)
+    
+    4. CUSTOMIZE COLUMNS
+       - Click "Columns" dropdown button
+       - Toggle visibility of columns:
+         * Venue
+         * Title
+         * Priority
+         * Status
+         * Reported Date
+       - Changes persist during session
+    
+    5. VIEW REQUEST DETAILS
+       - Click Eye icon in Actions column
+       - Shows complete request information in modal:
+         * Venue name
+         * Issue title
+         * Full description
+         * Priority badge
+         * Current status
+         * Reported date
+    
+    6. EDIT MAINTENANCE REQUEST
+       - Click Pencil/Edit icon in Actions column
+       - Modify Venue, Title, Description, Priority
+       - Click "Update Request" to save changes
+    
+    7. DELETE MAINTENANCE REQUEST
+       - Click Trash/Delete icon in Actions column
+       - Confirm deletion when prompted
+       - Request will be removed from system
+    
+    DASHBOARD STATISTICS:
+    - Total Issues: Count of all reported issues
+    - Pending: Issues waiting for admin action
+    - In Progress: Issues currently being worked on
+    - Completed: Issues that have been resolved
+    - Critical: Count of critical priority issues
+    
+    PRIORITY LEVELS & COLORS:
+    - Critical: Red badge (requires immediate attention)
+    - High: Orange badge (urgent)
+    - Medium: Yellow badge (normal)
+    - Low: Blue badge (can wait)
+    
+    STATUS INDICATORS:
+    - Pending: Yellow alert icon (⚠)
+    - In Progress: Blue clock icon (⏱)
+    - Completed: Green checkmark (✓)
+    - Cancelled: Gray X icon (✕)
+    
+    KEYBOARD SHORTCUTS:
+    - None configured yet (can be added in future updates)
+    
+    HOTSPOTS TO TEST:
+    
+    1. Create a new maintenance request:
+       - Venue: Select "Main Auditorium"
+       - Title: "Projector not turning on"
+       - Description: "Projector in room 101 is not responding to remote"
+       - Priority: High
+    
+    2. Filter by critical priority to see critical issues
+    
+    3. Toggle column visibility to customize table view
+    
+    4. View details of an existing request
+    
+    5. Edit request details and verify changes
+    
+    6. Delete a request and confirm removal
+    
+    7. Search for specific keywords (e.g., "projector", "audio")
+    
+    NOTES FOR TESTING:
+    - Mock data includes several pre-populated maintenance requests
+    - All CRUD operations (Create, Read, Update, Delete) are fully functional
+    - Filters are real-time and work together
+    - Column visibility persists within the session
+    - Console logs available for debugging
+    
+    FUTURE ENHANCEMENTS (Can be added):
+    - Assign maintenance requests to specific technicians
+    - Add comments/notes to requests
+    - Track estimated time to resolution
+    - Notification alerts for critical issues
+    - Email notifications to administrators
+    - Photo/image uploads for documentation
+    - Maintenance history and reports
+    */
+}

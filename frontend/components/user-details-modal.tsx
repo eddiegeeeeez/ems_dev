@@ -27,6 +27,11 @@ interface UserDetailsModalProps {
 
 export function UserDetailsModal({ user, open, onOpenChange, onRoleChange, onPositionChange }: UserDetailsModalProps) {
   const [position, setPosition] = useState(user.position || "")
+
+  const handleClose = () => {
+    onOpenChange(false)
+  }
+
   // Mock booking statistics - in real app, fetch from API
   const bookingStats = {
     total: 24,

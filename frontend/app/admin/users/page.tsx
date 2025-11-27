@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Shield, UserCircle, Search, ArrowUpDown } from "lucide-react"
+import { Shield, UserCircle, Search, ArrowUpDown, ChevronDown } from "lucide-react"
 import { AdminGuard } from "@/components/admin-guard"
 import { UserDetailsModal } from "@/components/user-details-modal"
 import {
@@ -37,6 +37,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface UserData {
   id: string
@@ -196,12 +202,15 @@ export default function UserManagementPage() {
     {
       id: "actions",
       enableHiding: false,
+      header: "Actions",
       cell: ({ row }) => {
         const user = row.original
         return (
-          <Button variant="ghost" size="sm" onClick={() => handleViewDetails(user)}>
-            View Details
-          </Button>
+          <div className="flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => handleViewDetails(user)}>
+              View Details
+            </Button>
+          </div>
         )
       },
     },
@@ -235,7 +244,7 @@ export default function UserManagementPage() {
           </div>
 
           {/* Search/Filter */}
-          <div className="mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <Input
               placeholder="Filter users..."
               value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -244,6 +253,35 @@ export default function UserManagementPage() {
               }
               className="max-w-sm"
             />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id === "name" && "User"}
+                        {column.id === "college" && "College"}
+                        {column.id === "department" && "Department"}
+                        {column.id === "role" && "Role"}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Users Table */}
@@ -330,9 +368,9 @@ export default function UserManagementPage() {
             key={refreshKey}
             user={selectedUser}
             open={isDetailsOpen}
-            onClose={() => setIsDetailsOpen(false)}
-            onRoleChange={(newRole) => handleRoleChange(selectedUser.id, newRole)}
-            onPositionChange={(newPosition) => handlePositionChange(selectedUser.id, newPosition)}
+            onOpenChange={setIsDetailsOpen}
+            onRoleChange={(userId, newRole) => handleRoleChange(userId, newRole)}
+            onPositionChange={(userId, newPosition) => handlePositionChange(userId, newPosition)}
           />
         )}
         </div>
