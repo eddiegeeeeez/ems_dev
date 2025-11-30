@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, Building2, Calendar, FileText, Settings, X, Menu, User, BarChart3, Users, ChevronDown, Wrench, GitBranch, FileSearch, Mail, Sliders } from 'lucide-react'
 import { useAuth } from "@/lib/auth-context"
+import { UserAvatar } from "@/components/user-avatar"
 import { useState } from "react"
 
 const organizerSections = [
@@ -204,9 +205,11 @@ export function Sidebar() {
         {/* User Info Footer */}
         <div className="border-t border-gray-200 p-4 bg-gray-50">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4caf50] text-white font-bold text-sm flex-shrink-0">
-              {user?.avatar || "U"}
-            </div>
+            <UserAvatar
+              name={user?.name}
+              avatar={user?.avatar}
+              size="lg"
+            />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>

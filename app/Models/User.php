@@ -25,7 +25,11 @@ class User extends Authenticatable
         'google_id',
         'avatar',
         'role',
-        'department_id',
+        'department',
+        'college',
+        'position',
+        'bio',
+        'settings',
     ];
 
     /**
@@ -48,6 +52,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'settings' => 'array',
         ];
     }
 

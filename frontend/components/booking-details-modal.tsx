@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
+import { QrCodeDisplay } from "@/components/qr-code-display"
+import { formatTo12Hour } from "@/lib/utils"
 import type { Booking } from "@/lib/types"
 import { useData } from "@/lib/data-context"
 import { Calendar, Clock, Users, MapPin, Package, User, Mail } from 'lucide-react'
@@ -68,125 +70,133 @@ export function BookingDetailsModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Event Information - Full Width */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Event Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-700">Event Title</Label>
-                <p className="text-base text-gray-900">{booking.eventTitle}</p>
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-700">Status</Label>
-                <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}>
-                  <StatusIndicator />
-                  <StatusLabel />
-                </Status>
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-700">Expected Attendees</Label>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-gray-400" />
-                  <span className="text-base text-gray-900">{booking.expectedAttendees} people</span>
-                </div>
-              </div>
-              <div className="grid gap-2 md:col-span-2 lg:col-span-1">
-                <Label className="text-sm font-medium text-gray-700">Venue</Label>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                  <p className="text-base text-gray-900">{venue?.name}</p>
-                </div>
-              </div>
+          {/* QR Code at Top Left with Event Info */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* QR Code Section - Left Side */}
+            <div className="lg:col-span-1">
+              <QrCodeDisplay
+                bookingId={booking.id}
+                eventTitle={booking.eventTitle}
+              />
             </div>
-            <div className="grid gap-2">
-              <Label className="text-sm font-medium text-gray-700">Description</Label>
-              <p className="text-base text-gray-900 leading-relaxed">{booking.eventDescription}</p>
-            </div>
-          </div>
 
-          {/* Schedule & Location - Grid Layout */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Venue & Schedule</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-700">Location</Label>
-                <p className="text-sm text-gray-600">{venue?.location}</p>
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-700">Date</Label>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-base text-gray-900">
-                    {new Date(booking.startDate).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-700">End Date</Label>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-base text-gray-900">
-                    {new Date(booking.endDate).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-700">Time</Label>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-400" />
-                  <span className="text-base text-gray-900">
-                    {booking.startTime} - {booking.endTime}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Organizer Information - Grid Layout */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Organizer Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-700">Name</Label>
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-gray-400" />
-                  <span className="text-base text-gray-900">{organizer?.name}</span>
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-sm font-medium text-gray-700">Email</Label>
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-gray-400" />
-                  <span className="text-base text-gray-900 truncate">{organizer?.email}</span>
-                </div>
-              </div>
-              {organizer?.college && (
+            {/* Event Information & Organizer - Right Side */}
+            <div className="lg:col-span-3 space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Event Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-700">College</Label>
-                  <p className="text-base text-gray-900">{organizer.college}</p>
+                  <Label className="text-sm font-medium text-gray-700">Event Title</Label>
+                  <p className="text-base text-gray-900">{booking.eventTitle}</p>
                 </div>
-              )}
-              {organizer?.department && (
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-gray-700">Department</Label>
-                  <p className="text-base text-gray-900">{organizer.department}</p>
+                  <Label className="text-sm font-medium text-gray-700">Status</Label>
+                  <div className="w-fit">
+                    <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}>
+                      <StatusIndicator />
+                      <StatusLabel />
+                    </Status>
+                  </div>
                 </div>
-              )}
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium text-gray-700">Expected Attendees</Label>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-gray-400" />
+                    <span className="text-base text-gray-900">{booking.expectedAttendees} people</span>
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium text-gray-700">Venue</Label>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <p className="text-base text-gray-900">{venue?.name}</p>
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium text-gray-700">Location</Label>
+                  <p className="text-sm text-gray-600">{venue?.location}</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium text-gray-700">Date</Label>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <span className="text-base text-gray-900">
+                      {new Date(booking.startDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium text-gray-700">End Date</Label>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <span className="text-base text-gray-900">
+                      {new Date(booking.endDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium text-gray-700">Time</Label>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <span className="text-base text-gray-900">
+                      {formatTo12Hour(booking.startTime)} - {formatTo12Hour(booking.endTime)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description Section */}
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-700">Description</Label>
+                <p className="text-base text-gray-900 leading-relaxed">{booking.eventDescription}</p>
+              </div>
+
+              {/* Organizer Information Inline */}
+              <div className="pt-2 border-t border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">Organizer</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-medium text-gray-600">Name</Label>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-900">{organizer?.name}</span>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-medium text-gray-600">Email</Label>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-900 truncate">{organizer?.email}</span>
+                    </div>
+                  </div>
+                  {organizer?.college && (
+                    <div className="grid gap-2">
+                      <Label className="text-xs font-medium text-gray-600">College</Label>
+                      <p className="text-sm text-gray-900">{organizer.college}</p>
+                    </div>
+                  )}
+                  {organizer?.department && (
+                    <div className="grid gap-2">
+                      <Label className="text-xs font-medium text-gray-600">Department</Label>
+                      <p className="text-sm text-gray-900">{organizer.department}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Equipment Required - Grid Layout */}
+          {/* Equipment Required - Full Width Below */}
           {requestedEquipment.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Package className="h-5 w-5" />
+                <Package className="h-5 w-5 text-blue-600" />
                 Equipment Required
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {requestedEquipment.map((eq, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg p-3">
-                    <span className="h-2 w-2 rounded-full bg-gray-400 flex-shrink-0" />
-                    <span className="text-base text-gray-700">{eq}</span>
+                  <div key={index} className="flex items-center gap-3 bg-white rounded-md p-3 border border-blue-100">
+                    <span className="h-3 w-3 rounded-full bg-blue-600 flex-shrink-0" />
+                    <span className="text-base font-medium text-gray-800">{eq}</span>
                   </div>
                 ))}
               </div>

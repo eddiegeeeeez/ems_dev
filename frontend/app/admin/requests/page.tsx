@@ -17,7 +17,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import { BookingDetailsModal } from "@/components/booking-details-modal"
-import { Eye, ChevronDown } from 'lucide-react'
+import { QrScanner } from "@/components/qr-scanner"
+import { Eye, ChevronDown, QrCode } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +41,7 @@ export default function AdminRequestsPage() {
   const [filter, setFilter] = useState<"pending" | "approved" | "rejected">("pending")
   const [selectedBooking, setSelectedBooking] = useState<typeof bookings[0] | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
     id: true,
     eventTitle: true,
@@ -102,13 +104,35 @@ export default function AdminRequestsPage() {
     setSelectedBooking(null)
   }
 
+  const handleQrScanResult = (qrData: string) => {
+    // Extract booking ID from QR code data (format: UM-EVENT-ID-RANDOM)
+    const parts = qrData.split("-")
+    if (parts[0] === "UM" && parts[1] === "EVENT") {
+      const bookingId = parts[2]
+      const booking = bookings.find((b) => b.id === bookingId)
+      if (booking) {
+        handleOpenDetails(booking)
+      }
+    }
+  }
+
   return (
     <AdminGuard>
       <main className="min-h-screen bg-gray-50">
         <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Booking Requests</h1>
-            <p className="text-sm md:text-base text-gray-600 mt-2">Review and manage event booking requests</p>
+          <div className="mb-6 md:mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Booking Requests</h1>
+              <p className="text-sm md:text-base text-gray-600 mt-2">Review and manage event booking requests</p>
+            </div>
+            <Button
+              onClick={() => setIsScannerOpen(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <QrCode className="h-4 w-4" />
+              Scan QR Code
+            </Button>
           </div>
 
           <Tabs value={filter} onValueChange={handleFilterChange}>
@@ -277,6 +301,12 @@ export default function AdminRequestsPage() {
               showActions={selectedBooking.status === "pending"}
             />
           )}
+
+          <QrScanner
+            open={isScannerOpen}
+            onClose={() => setIsScannerOpen(false)}
+            onScanResult={handleQrScanResult}
+          />
         </div>
       </main>
     </AdminGuard>

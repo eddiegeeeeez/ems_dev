@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\SvgWriter;
 
 class Booking extends Model
 {
@@ -25,6 +28,8 @@ class Booking extends Model
         'reason',
         'notes',
         'total_cost',
+        'qr_code_data',
+        'qr_code_svg',
     ];
 
     protected $casts = [
@@ -32,6 +37,15 @@ class Booking extends Model
         'end_datetime' => 'datetime',
         'total_cost' => 'decimal:2',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($booking) {
+            $booking->generateQrCode();
+        });
+    }
 
     public function user(): BelongsTo
     {
@@ -76,5 +90,33 @@ class Booking extends Model
     public function scopeUpcoming($query)
     {
         return $query->where('start_datetime', '>', now());
+    }
+
+    public function generateQrCode(): void
+    {
+        if (!$this->qr_code_data) {
+            $this->qr_code_data = 'UM-EVENT-' . Str::upper($this->id) . '-' . Str::random(8);
+        }
+
+        try {
+            $qrCode = new QrCode($this->qr_code_data);
+            $writer = new SvgWriter();
+            $qrCodeSvg = $writer->write($qrCode)->string();
+            
+            $this->qr_code_svg = $qrCodeSvg;
+            $this->save();
+        } catch (\Exception $e) {
+            \Log::error('QR Code generation failed: ' . $e->getMessage());
+        }
+    }
+
+    public function getQrCodeDataAttribute(): ?string
+    {
+        return $this->attributes['qr_code_data'] ?? null;
+    }
+
+    public function getQrCodeSvgAttribute(): ?string
+    {
+        return $this->attributes['qr_code_svg'] ?? null;
     }
 }

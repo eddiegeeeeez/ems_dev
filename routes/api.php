@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Bookings
     Route::prefix('bookings')->group(function () {
+        Route::get('/search/qr-code', [BookingController::class, 'searchByQrCode']);
         Route::get('/', [BookingController::class, 'index']);
         Route::post('/', [BookingController::class, 'store']);
         Route::get('/{id}', [BookingController::class, 'show']);
@@ -65,7 +66,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Profile
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'show']);
-        Route::put('/', [ProfileController::class, 'update']);
+        Route::put('/update', [ProfileController::class, 'update']);
+        Route::put('/settings', [ProfileController::class, 'updateSettings']);
+        Route::get('/export', [ProfileController::class, 'export']);
+        Route::delete('/delete', [ProfileController::class, 'delete']);
     });
     
     // Notifications

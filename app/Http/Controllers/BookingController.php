@@ -230,4 +230,57 @@ class BookingController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Search booking by QR code data
+     */
+    public function searchByQrCode(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'qr_code' => 'required|string',
+            ]);
+
+            $booking = Booking::where('qr_code_data', $validated['qr_code'])
+                ->with(['venue', 'user', 'bookingEquipment.equipment'])
+                ->first();
+
+            if (!$booking) {
+                // Try to extract booking ID from QR code format: UM-EVENT-ID-RANDOM
+                $parts = explode('-', $validated['qr_code']);
+                if (count($parts) >= 3 && $parts[0] === 'UM' && $parts[1] === 'EVENT') {
+                    $bookingId = $parts[2];
+                    $booking = Booking::find($bookingId)
+                        ->with(['venue', 'user', 'bookingEquipment.equipment'])
+                        ->first();
+                }
+            }
+
+            if (!$booking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking not found'
+                ], 404);
+            }
+
+            // Check if user has permission to view this booking
+            if ($booking->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized'
+                ], 403);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $booking
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to search booking',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

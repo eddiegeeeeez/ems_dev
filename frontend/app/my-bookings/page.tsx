@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/auth-context"
 import { useData } from "@/lib/data-context"
+import { formatTo12Hour } from "@/lib/utils"
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -128,7 +129,7 @@ export default function MyBookingsPage() {
           </div>
           <div className="flex items-center gap-1 mt-1">
             <Clock className="h-3 w-3" />
-            {row.original.startTime} - {row.original.endTime}
+            {formatTo12Hour(row.original.startTime)} - {formatTo12Hour(row.original.endTime)}
           </div>
         </div>
       ),

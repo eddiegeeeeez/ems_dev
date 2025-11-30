@@ -1,21 +1,13 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/admin/audit-logs/page": "app/admin/audit-logs/page.js",
   "/admin/calendar/page": "app/admin/calendar/page.js",
   "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/admin/departments/page": "app/admin/departments/page.js",
-  "/admin/maintenance/page": "app/admin/maintenance/page.js",
-  "/admin/maintenance/requests/page": "app/admin/maintenance/requests/page.js",
   "/admin/reports/booking-statistics/page": "app/admin/reports/booking-statistics/page.js",
-  "/admin/reports/venue-utilization/page": "app/admin/reports/venue-utilization/page.js",
   "/admin/requests/page": "app/admin/requests/page.js",
   "/admin/settings/booking-rules/page": "app/admin/settings/booking-rules/page.js",
+  "/admin/settings/email-templates/page": "app/admin/settings/email-templates/page.js",
+  "/admin/settings/general/page": "app/admin/settings/general/page.js",
   "/admin/users/page": "app/admin/users/page.js",
-  "/admin/venues/page": "app/admin/venues/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/my-bookings/page": "app/my-bookings/page.js",
   "/page": "app/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/venues/[id]/page": "app/venues/[id]/page.js",
-  "/venues/page": "app/venues/page.js"
+  "/profile/page": "app/profile/page.js"
 }
