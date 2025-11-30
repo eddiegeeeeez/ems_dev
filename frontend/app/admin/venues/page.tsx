@@ -165,7 +165,7 @@ export default function AdminVenuesPage() {
         )
       },
       cell: ({ row }) => (
-        <div className="flex items-center justify-center gap-1 text-sm text-gray-600">
+        <div className="flex items-center justify-end gap-1 text-sm text-gray-600 text-right">
           <Users className="h-4 w-4 flex-shrink-0" />
           <span>{row.original.capacity}</span>
         </div>

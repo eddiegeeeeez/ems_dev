@@ -197,7 +197,7 @@ export default function AdminRequestsPage() {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50">
-                          {columnVisibility.id && <TableHead className="font-semibold text-gray-900">Request ID</TableHead>}
+                          {columnVisibility.id && <TableHead className="font-semibold text-gray-900 text-right">Request ID</TableHead>}
                           {columnVisibility.eventTitle && <TableHead className="font-semibold text-gray-900">Event Title</TableHead>}
                           {columnVisibility.venue && <TableHead className="font-semibold text-gray-900">Venue</TableHead>}
                           {columnVisibility.organizer && <TableHead className="font-semibold text-gray-900">Organizer</TableHead>}
@@ -213,7 +213,7 @@ export default function AdminRequestsPage() {
                           return (
                             <TableRow key={booking.id} className="hover:bg-gray-50">
                               {columnVisibility.id && (
-                                <TableCell className="font-mono text-xs text-gray-600">
+                                <TableCell className="font-mono text-xs text-gray-600 text-right">
                                   {booking.id.toUpperCase()}
                                 </TableCell>
                               )}
@@ -229,13 +229,18 @@ export default function AdminRequestsPage() {
                                 <TableCell className="text-sm text-gray-600">{organizer?.name}</TableCell>
                               )}
                               {columnVisibility.date && (
-                                <TableCell className="text-sm text-gray-600">
+                                <TableCell className="text-sm text-gray-600 text-right">
                                   {new Date(booking.startDate).toLocaleDateString()}
                                 </TableCell>
                               )}
                               {columnVisibility.status && (
                                 <TableCell>
-                                  <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : "rejected"}>
+                                  <Status
+                                    status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : "rejected"}
+                                    className={booking.status === "approved" ? "bg-transparent" : 
+                                      booking.status === "pending" ? "bg-transparent" :
+                                      booking.status === "rejected" ? "bg-transparent" : undefined}
+                                  >
                                     <StatusIndicator />
                                     <StatusLabel />
                                   </Status>

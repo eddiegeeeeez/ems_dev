@@ -54,30 +54,30 @@ export default function MaintenanceRequestsPage() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical":
-        return "bg-red-100 text-red-800"
+        return "bg-transparent text-red-200"
       case "high":
-        return "bg-orange-100 text-orange-800"
+        return "bg-transparent text-orange-800"
       case "medium":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-transparent text-yellow-800"
       case "low":
-        return "bg-blue-100 text-blue-800"
+        return "bg-transparent text-blue-800"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-transparent text-gray-800"
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800"
+        return "text-green-800 bg-transparent"
       case "in-progress":
-        return "bg-blue-100 text-blue-800"
+        return "text-blue-800 bg-transparent"
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "text-yellow-800 bg-transparent"
       case "cancelled":
-        return "bg-gray-100 text-gray-800"
+        return "text-gray-800 bg-transparent"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "text-gray-800 bg-transparent"
     }
   }
 
@@ -112,25 +112,25 @@ export default function MaintenanceRequestsPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Total Requests</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{maintenanceRequests.length}</div>
+              <div className="text-right text-2xl font-bold text-gray-900">{maintenanceRequests.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
+            <CardContent>"
+              <div className="text-right text-2xl font-bold text-yellow-600">
                 {maintenanceRequests.filter((r) => r.status === "pending").length}
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">In Progress</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600"> In Progress</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-right text-2xl font-bold text-blue-600">
                 {maintenanceRequests.filter((r) => r.status === "in-progress").length}
               </div>
             </CardContent>
@@ -140,7 +140,7 @@ export default function MaintenanceRequestsPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Critical Issues</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-right text-2xl font-bold text-red-600">
                 {maintenanceRequests.filter((r) => r.priority === "critical").length}
               </div>
             </CardContent>
@@ -264,7 +264,8 @@ export default function MaintenanceRequestsPage() {
                     )}
                     {columnVisibility.status && (
                       <TableCell>
-                        <Status status={request.status === "completed" ? "completed" : request.status === "in-progress" ? "maintenance" : request.status === "pending" ? "pending" : "offline"}>
+                        <Status status={request.status === "completed" ? "completed" : request.status === "in-progress" ? "maintenance" : request.status === "pending" ? "pending" : "offline"}
+                            className={getStatusColor(request.status)}>
                           <StatusIndicator />
                           <StatusLabel />
                         </Status>

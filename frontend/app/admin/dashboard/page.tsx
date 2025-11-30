@@ -64,7 +64,7 @@ export default function AdminDashboardPage() {
               <CardContent className="space-y-2">
                 {maintenanceVenues.length > 0 && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-yellow-800">{maintenanceVenues.length} Venues Under Maintenance</span>
+                    <span className="text-yellow-800 text-right flex-1">{maintenanceVenues.length} Venues Under Maintenance</span>
                     <Button
                       size="sm"
                       variant="outline"
@@ -77,7 +77,7 @@ export default function AdminDashboardPage() {
                 )}
                 {pendingBookings.length > 5 && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-yellow-800">{pendingBookings.length} Pending Requests Require Attention</span>
+                    <span className="text-yellow-800 text-right flex-1">{pendingBookings.length} Pending Requests Require Attention</span>
                     <Button
                       size="sm"
                       variant="outline"
@@ -101,9 +101,9 @@ export default function AdminDashboardPage() {
                 <CardTitle className="text-sm font-medium text-gray-600">Total Bookings</CardTitle>
                 <Calendar className="w-4 h-4 text-gray-600" />
               </CardHeader>
-              <CardContent>
+              <CardContent className="text-right">
                 <div className="text-3xl font-bold text-gray-900">{bookings.length}</div>
-                <p className="text-sm text-green-600 mt-1">
+                <p className="text-left text-sm text-green-600 mt-1">
                   <TrendingUp className="w-3 h-3 inline mr-1" />
                   +12% from last month
                 </p>
@@ -118,9 +118,9 @@ export default function AdminDashboardPage() {
                 <CardTitle className="text-sm font-medium text-gray-600">Approval Rate</CardTitle>
                 <BarChart3 className="w-4 h-4 text-gray-600" />
               </CardHeader>
-              <CardContent>
+              <CardContent className="text-right">
                 <div className="text-3xl font-bold text-gray-900">{approvalRate}%</div>
-                <p className="text-sm text-gray-600 mt-1">{approvedBookings.length} approved bookings</p>
+                <p className="text-left text-sm text-gray-600 mt-1">{approvedBookings.length} approved bookings</p>
               </CardContent>
             </Card>
 
@@ -132,9 +132,9 @@ export default function AdminDashboardPage() {
                 <CardTitle className="text-sm font-medium text-gray-600">Pending Requests</CardTitle>
                 <Clock className="w-4 h-4 text-gray-600" />
               </CardHeader>
-              <CardContent>
+              <CardContent className="text-right">
                 <div className="text-3xl font-bold text-amber-600">{pendingBookings.length}</div>
-                <p className="text-sm text-gray-600 mt-1">Awaiting review</p>
+                <p className="text-left text-sm text-gray-600 mt-1">Awaiting review</p>
               </CardContent>
             </Card>
 
@@ -146,9 +146,9 @@ export default function AdminDashboardPage() {
                 <CardTitle className="text-sm font-medium text-gray-600">Completed Events</CardTitle>
                 <Users className="w-4 h-4 text-gray-600" />
               </CardHeader>
-              <CardContent>
+              <CardContent className="text-right">
                 <div className="text-3xl font-bold text-green-600">{completedBookings.length}</div>
-                <p className="text-sm text-gray-600 mt-1">Successfully held</p>
+                <p className="text-left text-sm text-gray-600 mt-1">Successfully held</p>
               </CardContent>
             </Card>
           </div>
@@ -169,7 +169,7 @@ export default function AdminDashboardPage() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700">Overall Utilization</span>
-                      <span className="text-2xl font-bold text-[#c41e3a]">{utilizationPercent}%</span>
+                      <span className="text-2xl font-bold text-[#c41e3a] text-right block">{utilizationPercent}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
                       <div
@@ -266,8 +266,12 @@ export default function AdminDashboardPage() {
                         {new Date(booking.startDate).toLocaleDateString()} at {booking.startTime}
                       </p>
                     </div>
-                    <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}>
-                      <StatusIndicator />
+                    <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}
+                       className={booking.status === "approved" ? "bg-transparent" : 
+                        booking.status === "pending" ? "bg-transparent" :
+                        booking.status === "completed" ? "bg-transparent" : "bg-transparent"
+                       } >
+                      <StatusIndicator/>
                       <StatusLabel />
                     </Status>
                   </div>
