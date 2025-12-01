@@ -1,8 +1,7 @@
 "use client"
 
-import { useAuth } from "@/lib/auth-context"
 import { useData } from "@/lib/data-context"
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { BookingForm } from "@/components/booking-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,43 +11,34 @@ import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/
 import { Users, MapPin } from 'lucide-react'
 import Link from "next/link"
 import Image from "next/image"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default function VenueDetailPage() {
-  const { isAuthenticated, isLoading } = useAuth()
   const { venues, getVenueById } = useData()
-  const router = useRouter()
   const params = useParams()
   const venueId = params.id as string
 
   const [venue, setVenue] = useState(getVenueById(venueId))
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/")
-    }
-  }, [isAuthenticated, isLoading, router])
-
-  useEffect(() => {
     const foundVenue = getVenueById(venueId)
     setVenue(foundVenue)
   }, [venueId, venues])
 
-  if (isLoading) {
+  if (!venue) {
     return (
+      <ProtectedRoute requiredRole="organizer">
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="h-12 w-12 rounded-full border-4 border-gray-300 border-t-[#c41e3a] animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Venue not found</p>
         </div>
       </div>
+      </ProtectedRoute>
     )
   }
 
-  if (!isAuthenticated || !venue) {
-    return null
-  }
-
   return (
+    <ProtectedRoute requiredRole="organizer">
     <main className="min-h-screen bg-gray-50">
       <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
         <Link href="/venues">
@@ -106,5 +96,6 @@ export default function VenueDetailPage() {
           </div>
         </div>
       </main>
+      </ProtectedRoute>
   )
 }

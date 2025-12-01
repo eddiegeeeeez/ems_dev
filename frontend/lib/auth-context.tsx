@@ -17,21 +17,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    // Check localStorage for existing session
-    const storedUser = localStorage.getItem("currentUser")
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch (error) {
-        console.error("Failed to parse stored user:", error)
-      }
+  // Initialize user from localStorage synchronously to prevent flash
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const storedUser = localStorage.getItem("currentUser")
+      return storedUser ? JSON.parse(storedUser) : null
+    } catch (error) {
+      console.error("Failed to parse stored user:", error)
+      return null
     }
-    setIsLoading(false)
-  }, [])
+  })
+  const [isLoading, setIsLoading] = useState(false)
 
   const login = async (email: string, password: string) => {
     setIsLoading(true)
@@ -53,6 +50,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null)
     localStorage.removeItem("currentUser")
+    // Redirect to home/login page
+    if (typeof window !== 'undefined') {
+      window.location.href = '/'
+    }
   }
 
   const updateUserProfile = (updates: Partial<User>) => {

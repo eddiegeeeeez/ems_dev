@@ -80,6 +80,14 @@ export function QrScanner({ open, onClose, onScanResult }: QrScannerProps) {
     if (!ctx) return
 
     const scanFrame = () => {
+      // Check if video has valid dimensions before processing
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        if (scannerActive) {
+          requestAnimationFrame(scanFrame)
+        }
+        return
+      }
+
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
 

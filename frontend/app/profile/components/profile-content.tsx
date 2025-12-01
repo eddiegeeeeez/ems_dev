@@ -22,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { OTPVerificationModal } from "@/components/otp-verification-modal"
 
 export default function ProfileContent() {
   const { user, logout } = useAuth()
@@ -37,6 +38,8 @@ export default function ProfileContent() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [pendingSaveData, setPendingSaveData] = useState<any>(null)
   const [accountSettings, setAccountSettings] = useState({
     accountVisibility: true,
     emailNotifications: true,
@@ -65,23 +68,38 @@ export default function ProfileContent() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = () => {
+    // Store the data and show OTP modal
+    console.log("Save button clicked, showing OTP modal")
+    setPendingSaveData({
+      name: formData.name,
+      department: formData.department,
+      college: formData.college,
+      position: formData.position,
+      bio: formData.bio
+    })
+    setShowOTPModal(true)
+    console.log("OTP modal state set to true")
+  }
+
+  const verifyAndSaveProfile = async (pin: string) => {
     setIsSaving(true)
     try {
       const token = localStorage.getItem('token')
+      
+      // In production, verify OTP with backend first
+      // For now, simulate verification
+      if (pin !== "123456") {
+        throw new Error('Invalid OTP')
+      }
+
       const response = await fetch('/api/profile/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          name: formData.name,
-          department: formData.department,
-          college: formData.college,
-          position: formData.position,
-          bio: formData.bio
-        })
+        body: JSON.stringify(pendingSaveData)
       })
 
       if (response.ok) {
@@ -90,15 +108,20 @@ export default function ProfileContent() {
           description: "Profile updated successfully",
         })
         setIsEditing(false)
+        setPendingSaveData(null)
       } else {
         throw new Error('Failed to update profile')
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === 'Invalid OTP') {
+        throw error // Re-throw to be handled by OTP modal
+      }
       toast({
         title: "Error",
         description: "Failed to update profile. Please try again.",
         variant: "destructive"
       })
+      throw error
     } finally {
       setIsSaving(false)
     }
@@ -621,6 +644,14 @@ export default function ProfileContent() {
           </CardContent>
         </Card>
       </TabsContent>
+
+      <OTPVerificationModal
+        open={showOTPModal}
+        onOpenChange={setShowOTPModal}
+        onVerify={verifyAndSaveProfile}
+        title="Authorize Profile Changes"
+        description="Please verify your identity before saving changes to your profile."
+      />
     </Tabs>
   )
 }

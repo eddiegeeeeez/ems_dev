@@ -9,13 +9,53 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Settings, Bell, Shield, Database, Mail } from 'lucide-react'
+import { OTPVerificationModal } from "@/components/otp-verification-modal"
+import { useToast } from "@/hooks/use-toast"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default function SystemSettingsPage() {
+  const { toast } = useToast()
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [autoApproval, setAutoApproval] = useState(false)
   const [maintenanceMode, setMaintenanceMode] = useState(false)
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [otpAction, setOTPAction] = useState<'general' | 'security' | null>(null)
+
+  const handleSaveSettings = (action: 'general' | 'security') => {
+    setOTPAction(action)
+    setShowOTPModal(true)
+  }
+
+  const verifyAndSaveSettings = async (pin: string) => {
+    try {
+      // In production, verify OTP with backend first
+      if (pin !== "123456") {
+        throw new Error('Invalid OTP')
+      }
+
+      // Simulate saving settings
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      toast({
+        title: "Success",
+        description: `${otpAction === 'general' ? 'General' : 'Security'} settings saved successfully`,
+      })
+      setOTPAction(null)
+    } catch (error: any) {
+      if (error.message === 'Invalid OTP') {
+        throw error // Re-throw to be handled by OTP modal
+      }
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive"
+      })
+      throw error
+    }
+  }
 
   return (
+    <ProtectedRoute requiredRole="admin">
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">System Settings</h1>
@@ -72,7 +112,12 @@ export default function SystemSettingsPage() {
                 </div>
                 <Switch checked={autoApproval} onCheckedChange={setAutoApproval} />
               </div>
-              <Button className="bg-[#8B1538] hover:bg-[#6B1028]">Save Changes</Button>
+              <Button 
+                className="bg-[#8B1538] hover:bg-[#6B1028]"
+                onClick={() => handleSaveSettings('general')}
+              >
+                Save Changes
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -142,7 +187,12 @@ export default function SystemSettingsPage() {
                 </div>
                 <Switch />
               </div>
-              <Button className="bg-[#8B1538] hover:bg-[#6B1028]">Save Security Settings</Button>
+              <Button 
+                className="bg-[#8B1538] hover:bg-[#6B1028]"
+                onClick={() => handleSaveSettings('security')}
+              >
+                Save Security Settings
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -195,6 +245,15 @@ export default function SystemSettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <OTPVerificationModal
+        open={showOTPModal}
+        onOpenChange={setShowOTPModal}
+        onVerify={verifyAndSaveSettings}
+        title="Authorize Settings Changes"
+        description="Please verify your identity before saving system settings."
+      />
     </div>
+    </ProtectedRoute>
   )
 }

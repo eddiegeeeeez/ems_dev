@@ -2,6 +2,7 @@
 
 import { useData } from "@/lib/data-context"
 import { useAuth } from "@/lib/auth-context"
+import { useState, useEffect } from "react"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Bell, CheckCircle, AlertCircle, Clock } from "lucide-react"
@@ -9,8 +10,13 @@ import { Bell, CheckCircle, AlertCircle, Clock } from "lucide-react"
 export function NotificationsPanel() {
   const { user } = useAuth()
   const { notifications, markNotificationAsRead } = useData()
+  const [mounted, setMounted] = useState(false)
 
-  const userNotifications = notifications.filter((n) => n.userId === user?.id)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const userNotifications = mounted ? notifications.filter((n) => n.userId === user?.id) : []
   const unreadCount = userNotifications.filter((n) => !n.read).length
 
   const getIcon = (type: string) => {

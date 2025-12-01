@@ -2,45 +2,18 @@
 
 import { useAuth } from "@/lib/auth-context"
 import { useData } from "@/lib/data-context"
-import { useRouter } from 'next/navigation'
-import { useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import { Calendar, FileText, CheckCircle, Clock } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DashboardHeader } from "@/components/dashboard-header"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default function DashboardPage() {
-  const { isAuthenticated, isLoading, user } = useAuth()
+  const { user } = useAuth()
   const { bookings, getBookingsByOrganizer } = useData()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/")
-    } else if (!isLoading && isAuthenticated && user?.role === "admin") {
-      // Redirect admins to admin dashboard
-      router.push("/admin/dashboard")
-    }
-  }, [isAuthenticated, isLoading, user?.role, router])
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <Spinner className="h-12 w-12 text-[#c41e3a] mx-auto mb-4" />
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return null
-  }
 
   const userBookings = user?.role === "organizer" ? getBookingsByOrganizer(user.id) : []
   const pendingCount = userBookings.filter((b) => b.status === "pending").length
@@ -49,15 +22,16 @@ export default function DashboardPage() {
 
   const handleViewAllBookings = () => {
     console.log("[v0] View all bookings clicked for user:", user?.id)
-    router.push("/my-bookings")
+    window.location.href = "/my-bookings"
   }
 
   const handleBrowseVenues = () => {
     console.log("[v0] Browse venues clicked")
-    router.push("/venues")
+    window.location.href = "/venues"
   }
 
   return (
+    <ProtectedRoute requiredRole="organizer">
     <main className="min-h-screen bg-gray-50">
       <DashboardHeader
         user={user}
@@ -165,5 +139,6 @@ export default function DashboardPage() {
         </Card>
       </div>
     </main>
+    </ProtectedRoute>
   )
 }

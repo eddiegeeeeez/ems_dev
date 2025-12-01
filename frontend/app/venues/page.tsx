@@ -134,7 +134,8 @@ export default function VenuesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <ProtectedRoute requiredRole="organizer">
+    <div className="min-h-screen bg-gray-50">
       <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Available Venues</h1>
@@ -148,6 +149,7 @@ export default function VenuesPage() {
           searchPlaceholder="Search venues..."
         />
       </div>
-    </main>
+    </div>
+    </ProtectedRoute>
   )
 }
