@@ -128,7 +128,7 @@ export default function AdminVenuesPage() {
         )
       },
       cell: ({ row }) => (
-        <div className="font-medium text-gray-900">{row.original.name}</div>
+        <div className="font-medium text-sm text-gray-900">{row.original.name}</div>
       ),
     },
     {
@@ -145,7 +145,7 @@ export default function AdminVenuesPage() {
         )
       },
       cell: ({ row }) => (
-        <div className="flex items-center gap-1 text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span className="line-clamp-1">{row.original.location}</span>
         </div>
@@ -165,7 +165,7 @@ export default function AdminVenuesPage() {
         )
       },
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1 text-sm text-gray-600 text-right">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
           <Users className="h-4 w-4 flex-shrink-0" />
           <span>{row.original.capacity}</span>
         </div>
@@ -186,9 +186,9 @@ export default function AdminVenuesPage() {
     },
     {
       id: "actions",
-      header: "Actions",
+      header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => (
-        <div className="flex justify-end">
+        <div className="flex justify-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

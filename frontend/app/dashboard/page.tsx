@@ -135,16 +135,16 @@ export default function DashboardPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
-                      <TableHead className="font-semibold text-gray-900">Event Title</TableHead>
-                      <TableHead className="font-semibold text-gray-900">Date & Time</TableHead>
-                      <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                      <TableHead className="font-medium text-sm text-gray-700">Event Title</TableHead>
+                      <TableHead className="font-medium text-sm text-gray-700">Date & Time</TableHead>
+                      <TableHead className="font-medium text-sm text-gray-700">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {userBookings.slice(0, 5).map((booking) => (
                       <TableRow key={booking.id} className="hover:bg-gray-50">
                         <TableCell>
-                          <div className="font-medium text-gray-900">{booking.eventTitle}</div>
+                          <div className="font-medium text-sm text-gray-900">{booking.eventTitle}</div>
                         </TableCell>
                         <TableCell className="text-sm text-gray-600">
                           {new Date(booking.startDate).toLocaleDateString()} at {booking.startTime}

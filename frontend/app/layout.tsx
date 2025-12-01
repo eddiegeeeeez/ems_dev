@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   title: "UM Events Management System",
   description: "University of Mindanao Events Management System",
   generator: "v0.app",
+  icons: {
+    icon: "/um-logo.png",
+    apple: "/um-logo.png",
+  },
 }
 
 export default function RootLayout({

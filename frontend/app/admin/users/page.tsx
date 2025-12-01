@@ -290,10 +290,10 @@ export default function UserManagementPage() {
               <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
+                  <TableRow key={headerGroup.id} className="bg-gray-50">
                     {headerGroup.headers.map((header) => {
                       return (
-                        <TableHead key={header.id}>
+                        <TableHead key={header.id} className="font-medium text-sm text-gray-700">
                           {header.isPlaceholder
                             ? null
                             : flexRender(

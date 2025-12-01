@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EquipmentModal } from "@/components/equipment-modal"
 import { AlertCircle, CheckCircle, Plus, X, Upload, FileText } from 'lucide-react'
 
@@ -313,24 +314,35 @@ export function BookingForm({ venue, onSuccess }: BookingFormProps) {
               </div>
 
               {selectedEquipmentDetails.length > 0 && (
-                <div className="space-y-2">
-                  {selectedEquipmentDetails.map((eq) => (
-                    <div key={eq?.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 text-xs md:text-sm truncate">{eq?.name}</p>
-                        <p className="text-xs text-gray-600">Qty: {eq?.quantity}</p>
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={() => handleRemoveEquipment(eq?.id || "")}
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="font-medium text-xs md:text-sm text-gray-700">Equipment Name</TableHead>
+                        <TableHead className="font-medium text-xs md:text-sm text-gray-700 text-center">Quantity</TableHead>
+                        <TableHead className="font-medium text-xs md:text-sm text-gray-700 text-center w-[100px]">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedEquipmentDetails.map((eq) => (
+                        <TableRow key={eq?.id}>
+                          <TableCell className="font-medium text-xs md:text-sm">{eq?.name}</TableCell>
+                          <TableCell className="text-xs md:text-sm text-center">{eq?.quantity}</TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              type="button"
+                              onClick={() => handleRemoveEquipment(eq?.id || "")}
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </div>

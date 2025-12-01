@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Calendar, Users, Clock, MapPin, Mail, User, Package } from "lucide-react"
+import { Calendar, Users, Clock, MapPin, Mail, User, Package, FileText, Download } from "lucide-react"
 import { useData } from "@/lib/data-context"
 
 interface BookingRequestCardProps {
@@ -192,6 +192,33 @@ export function BookingRequestCard({ booking, onApprove, onReject }: BookingRequ
                           <span className="h-1.5 w-1.5 rounded-full bg-gray-400 mt-2 flex-shrink-0" />
                           <span className="text-base text-gray-700">{eq}</span>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Attachments */}
+                {booking.documents && booking.documents.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Activity Proposal & Attachments
+                    </h3>
+                    <div className="grid gap-2">
+                      {booking.documents.map((doc, index) => (
+                        <a
+                          key={index}
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between gap-3 p-3 rounded-md border border-gray-200 hover:border-green-300 hover:bg-green-50/50 transition-colors group"
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />
+                            <span className="text-sm text-gray-800 truncate">{doc.name}</span>
+                          </div>
+                          <Download className="h-4 w-4 text-gray-400 group-hover:text-green-600 flex-shrink-0" />
+                        </a>
                       ))}
                     </div>
                   </div>

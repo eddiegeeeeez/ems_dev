@@ -7,6 +7,23 @@ import { Button } from "@/components/ui/button"
 import { Edit, Trash2, ArrowUpDown, MoreHorizontal, ChevronDown } from 'lucide-react'
 import { useState } from "react"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
@@ -25,7 +42,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -55,30 +71,88 @@ export default function AdminEquipmentPage() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  
+  // Modal states
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
+  
+  // Form states
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+    venueId: "",
+    quantity: 0,
+    available: 0,
+  })
 
   const getVenueName = (venueId: string) => {
     return venues.find((v) => v.id === venueId)?.name || "Unknown Venue"
   }
 
   const handleAddEquipment = () => {
-    console.log("[v0] Add equipment clicked")
-    // TODO: Implement add equipment modal
+    setFormData({
+      name: "",
+      category: "",
+      venueId: "",
+      quantity: 0,
+      available: 0,
+    })
+    setIsAddOpen(true)
   }
 
   const handleEditEquipment = (equipmentId: string, equipmentName: string) => {
-    console.log("[v0] Edit equipment clicked:", equipmentId, equipmentName)
-    // TODO: Implement edit equipment modal
+    const eq = equipment.find((e) => e.id === equipmentId)
+    if (eq) {
+      setSelectedEquipment(eq)
+      setFormData({
+        name: eq.name,
+        category: eq.category,
+        venueId: eq.venueId,
+        quantity: eq.quantity,
+        available: eq.available,
+      })
+      setIsEditOpen(true)
+    }
   }
 
   const handleDeleteEquipment = (equipmentId: string, equipmentName: string) => {
-    console.log("[v0] Delete equipment clicked:", equipmentId, equipmentName)
-    if (confirm(`Are you sure you want to delete "${equipmentName}"?`)) {
-      setIsLoading(true)
-      setTimeout(() => {
-        console.log("[v0] Equipment deleted successfully:", equipmentId)
-        setIsLoading(false)
-      }, 500)
+    const eq = equipment.find((e) => e.id === equipmentId)
+    if (eq) {
+      setSelectedEquipment(eq)
+      setIsDeleteOpen(true)
     }
+  }
+
+  const handleSubmitAdd = () => {
+    setIsLoading(true)
+    console.log("[v0] Adding equipment:", formData)
+    // TODO: Implement API call to add equipment
+    setTimeout(() => {
+      setIsLoading(false)
+      setIsAddOpen(false)
+    }, 1000)
+  }
+
+  const handleSubmitEdit = () => {
+    setIsLoading(true)
+    console.log("[v0] Editing equipment:", selectedEquipment?.id, formData)
+    // TODO: Implement API call to edit equipment
+    setTimeout(() => {
+      setIsLoading(false)
+      setIsEditOpen(false)
+    }, 1000)
+  }
+
+  const handleSubmitDelete = () => {
+    setIsLoading(true)
+    console.log("[v0] Deleting equipment:", selectedEquipment?.id)
+    // TODO: Implement API call to delete equipment
+    setTimeout(() => {
+      setIsLoading(false)
+      setIsDeleteOpen(false)
+    }, 1000)
   }
 
   const columns: ColumnDef<Equipment>[] = [
@@ -286,10 +360,10 @@ export default function AdminEquipmentPage() {
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
+                    <TableRow key={headerGroup.id} className="bg-gray-50">
                       {headerGroup.headers.map((header) => {
                         return (
-                          <TableHead key={header.id}>
+                          <TableHead key={header.id} className="font-medium text-sm text-gray-700">
                             {header.isPlaceholder
                               ? null
                               : flexRender(
@@ -359,6 +433,194 @@ export default function AdminEquipmentPage() {
             </div>
           </div>
         </div>
+
+        {/* Add Equipment Modal */}
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Equipment</DialogTitle>
+              <DialogDescription>Add new equipment to a venue</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Equipment Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Enter equipment name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="audio-visual">Audio-Visual</SelectItem>
+                    <SelectItem value="supplies">Supplies</SelectItem>
+                    <SelectItem value="furniture">Furniture</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="venue">Venue</Label>
+                <Select value={formData.venueId} onValueChange={(value) => setFormData({ ...formData, venueId: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select venue" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {venues.map((venue) => (
+                      <SelectItem key={venue.id} value={venue.id}>
+                        {venue.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Total Quantity</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    min="0"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="available">Available</Label>
+                  <Input
+                    id="available"
+                    type="number"
+                    min="0"
+                    max={formData.quantity}
+                    value={formData.available}
+                    onChange={(e) => setFormData({ ...formData, available: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddOpen(false)} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button onClick={handleSubmitAdd} disabled={isLoading} className="bg-[#c41e3a] hover:bg-[#a01830]">
+                {isLoading ? "Adding..." : "Add Equipment"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Equipment Modal */}
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Equipment</DialogTitle>
+              <DialogDescription>Update equipment details</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Equipment Name</Label>
+                <Input
+                  id="edit-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Enter equipment name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="audio-visual">Audio-Visual</SelectItem>
+                    <SelectItem value="supplies">Supplies</SelectItem>
+                    <SelectItem value="furniture">Furniture</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-venue">Venue</Label>
+                <Select value={formData.venueId} onValueChange={(value) => setFormData({ ...formData, venueId: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select venue" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {venues.map((venue) => (
+                      <SelectItem key={venue.id} value={venue.id}>
+                        {venue.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-quantity">Total Quantity</Label>
+                  <Input
+                    id="edit-quantity"
+                    type="number"
+                    min="0"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-available">Available</Label>
+                  <Input
+                    id="edit-available"
+                    type="number"
+                    min="0"
+                    max={formData.quantity}
+                    value={formData.available}
+                    onChange={(e) => setFormData({ ...formData, available: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditOpen(false)} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button onClick={handleSubmitEdit} disabled={isLoading} className="bg-[#c41e3a] hover:bg-[#a01830]">
+                {isLoading ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Equipment Modal */}
+        <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Delete Equipment</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this equipment? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-gray-600">
+                <span className="font-semibold">Equipment:</span> {selectedEquipment?.name}
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                <span className="font-semibold">Venue:</span> {selectedEquipment && getVenueName(selectedEquipment.venueId)}
+              </p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeleteOpen(false)} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button onClick={handleSubmitDelete} disabled={isLoading} variant="destructive">
+                {isLoading ? "Deleting..." : "Delete Equipment"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </AdminGuard>
   )

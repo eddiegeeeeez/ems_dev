@@ -237,25 +237,25 @@ export default function MaintenanceRequestsPage() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Request ID</TableHead>
-                  {columnVisibility.title && <TableHead>Title</TableHead>}
-                  {columnVisibility.venue && <TableHead>Venue</TableHead>}
-                  {columnVisibility.priority && <TableHead>Priority</TableHead>}
-                  {columnVisibility.status && <TableHead>Status</TableHead>}
-                  {columnVisibility.createdDate && <TableHead>Reported Date</TableHead>}
-                  {columnVisibility.actions && <TableHead className="font-semibold text-gray-900">Actions</TableHead>}
+                <TableRow className="bg-gray-50">
+                  <TableHead className="font-medium text-sm text-gray-700">Request ID</TableHead>
+                  {columnVisibility.title && <TableHead className="font-medium text-sm text-gray-700">Title</TableHead>}
+                  {columnVisibility.venue && <TableHead className="font-medium text-sm text-gray-700">Venue</TableHead>}
+                  {columnVisibility.priority && <TableHead className="font-medium text-sm text-gray-700">Priority</TableHead>}
+                  {columnVisibility.status && <TableHead className="font-medium text-sm text-gray-700">Status</TableHead>}
+                  {columnVisibility.createdDate && <TableHead className="font-medium text-sm text-gray-700">Reported Date</TableHead>}
+                  {columnVisibility.actions && <TableHead className="font-medium text-sm text-gray-700 text-center">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRequests.map((request) => (
                   <TableRow key={request.id}>
-                    <TableCell className="font-mono text-sm">{request.id}</TableCell>
+                    <TableCell className="font-mono text-xs text-gray-600">{request.id}</TableCell>
                     {columnVisibility.title && (
-                      <TableCell className="font-medium">{request.title}</TableCell>
+                      <TableCell className="font-medium text-sm text-gray-900">{request.title}</TableCell>
                     )}
                     {columnVisibility.venue && (
-                      <TableCell>{venues.find((v) => v.id === request.venueId)?.name || "Unknown"}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{venues.find((v) => v.id === request.venueId)?.name || "Unknown"}</TableCell>
                     )}
                     {columnVisibility.priority && (
                       <TableCell>

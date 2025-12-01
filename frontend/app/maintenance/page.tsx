@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useData } from "@/lib/data-context"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -44,10 +45,18 @@ type ColumnVisibility = {
 }
 
 export default function MaintenancePage() {
+  const router = useRouter()
   const { maintenanceRequests, venues } = useData()
   const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [priorityFilter, setPriorityFilter] = useState("all")
+
+  // Redirect non-admin users to dashboard
+  useEffect(() => {
+    if (user && user.role !== "admin") {
+      router.push("/dashboard")
+    }
+  }, [user, router])
   const [statusFilter, setStatusFilter] = useState("all")
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
     venue: true,
@@ -435,13 +444,13 @@ export default function MaintenancePage() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    {columnVisibility.venue && <TableHead>Venue</TableHead>}
-                    {columnVisibility.title && <TableHead>Issue Title</TableHead>}
-                    {columnVisibility.priority && <TableHead>Priority</TableHead>}
-                    {columnVisibility.status && <TableHead>Status</TableHead>}
-                    {columnVisibility.reportedDate && <TableHead>Reported Date</TableHead>}
-                    {columnVisibility.actions && <TableHead className="text-right">Actions</TableHead>}
+                  <TableRow className="bg-gray-50">
+                    {columnVisibility.venue && <TableHead className="font-medium text-sm text-gray-700">Venue</TableHead>}
+                    {columnVisibility.title && <TableHead className="font-medium text-sm text-gray-700">Issue Title</TableHead>}
+                    {columnVisibility.priority && <TableHead className="font-medium text-sm text-gray-700">Priority</TableHead>}
+                    {columnVisibility.status && <TableHead className="font-medium text-sm text-gray-700">Status</TableHead>}
+                    {columnVisibility.reportedDate && <TableHead className="font-medium text-sm text-gray-700">Reported Date</TableHead>}
+                    {columnVisibility.actions && <TableHead className="font-medium text-sm text-gray-700 text-center">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
