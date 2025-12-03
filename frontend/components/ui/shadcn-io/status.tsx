@@ -28,29 +28,26 @@ const statusVariants = cva(
   }
 )
 
-const indicatorVariants = cva(
-  "relative flex h-2 w-2 rounded-full",
-  {
-    variants: {
-      status: {
-        online: "bg-transparent text-green-600",
-        offline: "bg-transparent text-gray-600",
-        maintenance: "bg-transparent text-blue-600",
-        degraded: "bg-transparent text-orange-600",
-        available: "bg-transparent text-green-600",
-        unavailable: "bg-transparent text-gray-600",
-        pending: "bg-transparent text-yellow-600",
-        approved: "bg-transparent text-green-600",
-        rejected: "bg-transparent text-red-600",
-        completed: "bg-transparent text-green-600",
-        cancelled: "bg-transparent text-gray-600",
-      },
+const indicatorVariants = cva("relative flex h-2 w-2 rounded-full", {
+  variants: {
+    status: {
+      online: "bg-green-500",
+      offline: "bg-gray-400",
+      maintenance: "bg-blue-500",
+      degraded: "bg-orange-500",
+      available: "bg-green-500",
+      unavailable: "bg-gray-400",
+      pending: "bg-yellow-500",
+      approved: "bg-green-500",
+      rejected: "bg-red-500",
+      completed: "bg-green-500",
+      cancelled: "bg-gray-400",
     },
-    defaultVariants: {
-      status: "online",
-    },
-  }
-)
+  },
+  defaultVariants: {
+    status: "online",
+  },
+})
 
 export interface StatusProps
   extends React.HTMLAttributes<HTMLDivElement>,

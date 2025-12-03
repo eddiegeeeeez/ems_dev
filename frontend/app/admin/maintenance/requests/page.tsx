@@ -105,47 +105,6 @@ export default function MaintenanceRequestsPage() {
           <p className="text-sm md:text-base text-gray-600 mt-2">Track and manage venue maintenance issues</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Requests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-right text-2xl font-bold text-gray-900">{maintenanceRequests.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>"
-              <div className="text-right text-2xl font-bold text-yellow-600">
-                {maintenanceRequests.filter((r) => r.status === "pending").length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600"> In Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-right text-2xl font-bold text-blue-600">
-                {maintenanceRequests.filter((r) => r.status === "in-progress").length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Critical Issues</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-right text-2xl font-bold text-red-600">
-                {maintenanceRequests.filter((r) => r.priority === "critical").length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Filters Section */}
         <div className="mb-4 flex gap-4 items-start">

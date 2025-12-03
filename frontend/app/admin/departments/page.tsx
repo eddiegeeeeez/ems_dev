@@ -43,7 +43,7 @@ export default function DepartmentsPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Total Departments</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{departments.length}</div>
+              <div className="text-end text-2xl font-bold text-gray-900">{departments.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -51,7 +51,7 @@ export default function DepartmentsPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Total Members</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{totalMembers}</div>
+              <div className="text-endtext-2xl font-bold text-blue-600">{totalMembers}</div>
             </CardContent>
           </Card>
           <Card>
@@ -59,7 +59,7 @@ export default function DepartmentsPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Active Events</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{totalEvents}</div>
+              <div className="text-end text-2xl font-bold text-green-600">{totalEvents}</div>
             </CardContent>
           </Card>
         </div>

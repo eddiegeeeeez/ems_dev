@@ -2,7 +2,6 @@
 
 import { useData } from "@/lib/data-context"
 import { AdminGuard } from "@/components/admin-guard"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2, ArrowUpDown, MoreHorizontal, ChevronDown } from 'lucide-react'
 import { useState } from "react"
@@ -51,19 +50,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { Equipment } from "@/lib/types"
-
-const getCategoryBadgeColor = (category: string) => {
-  switch (category.toLowerCase()) {
-    case "audio-visual":
-      return "bg-purple-100 text-purple-800"
-    case "supplies":
-      return "bg-blue-100 text-blue-800"
-    case "furniture":
-      return "bg-green-100 text-green-800"
-    default:
-      return "bg-gray-100 text-gray-800"
-  }
-}
 
 export default function AdminEquipmentPage() {
   const { equipment, venues } = useData()
@@ -186,10 +172,22 @@ export default function AdminEquipmentPage() {
       },
       cell: ({ row }) => {
         const category = row.getValue("category") as string
+        const getCategoryTextColor = (value: string) => {
+          switch (value.toLowerCase()) {
+            case "audio-visual":
+              return "text-purple-700"
+            case "supplies":
+              return "text-blue-700"
+            case "furniture":
+              return "text-green-700"
+            default:
+              return "text-gray-800"
+          }
+        }
         return (
-          <Badge className={getCategoryBadgeColor(category)}>
+          <div className={`text-sm font-medium ${getCategoryTextColor(category)}`}>
             {category}
-          </Badge>
+          </div>
         )
       },
     },
@@ -234,11 +232,11 @@ export default function AdminEquipmentPage() {
       },
       cell: ({ row }) => {
         const available = row.getValue("available") as number
+        const availableColor =
+          available > 0 ? "text-[#4caf50]" : "text-red-600"
         return (
-          <div className="flex justify-end">
-            <Badge className={available > 0 ? "bg-[#4caf50] text-white" : "bg-red-500 text-white"}>
-              {available}
-            </Badge>
+          <div className={`text-right font-semibold ${availableColor}`}>
+            {available}
           </div>
         )
       },

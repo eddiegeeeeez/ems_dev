@@ -66,7 +66,7 @@ export default function BookingStatisticsPage() {
             <Calendar className="w-4 h-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{totalBookings}</div>
+            <div className="text-end text-3xl font-bold text-gray-900">{totalBookings}</div>
             <p className="text-sm text-green-600 mt-1">
               <TrendingUp className="w-3 h-3 inline mr-1" />
               +12% from last month
@@ -80,7 +80,7 @@ export default function BookingStatisticsPage() {
             <BarChart3 className="w-4 h-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{approvalRate}%</div>
+            <div className="text-end text-3xl font-bold text-gray-900">{approvalRate}%</div>
             <p className="text-sm text-gray-600 mt-1">{approvedBookings} approved bookings</p>
           </CardContent>
         </Card>
@@ -91,7 +91,7 @@ export default function BookingStatisticsPage() {
             <Clock className="w-4 h-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-amber-600">{pendingBookings}</div>
+            <div className="text-end text-3xl font-bold text-amber-600">{pendingBookings}</div>
             <p className="text-sm text-gray-600 mt-1">Awaiting review</p>
           </CardContent>
         </Card>
@@ -102,7 +102,7 @@ export default function BookingStatisticsPage() {
             <Users className="w-4 h-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{completedBookings}</div>
+            <div className="text-end text-3xl font-bold text-green-600">{completedBookings}</div>
             <p className="text-sm text-gray-600 mt-1">Successfully held</p>
           </CardContent>
         </Card>

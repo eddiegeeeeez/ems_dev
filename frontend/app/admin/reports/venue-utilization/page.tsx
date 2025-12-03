@@ -71,7 +71,7 @@ export default function VenueUtilizationPage() {
             <CardTitle className="text-sm font-medium text-gray-600">Overall Utilization</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{totalUtilization.toFixed(1)}%</div>
+            <div className="text-end text-2xl font-bold text-gray-900">{totalUtilization.toFixed(1)}%</div>
             <Progress value={totalUtilization} className="mt-2" />
           </CardContent>
         </Card>
@@ -80,7 +80,7 @@ export default function VenueUtilizationPage() {
             <CardTitle className="text-sm font-medium text-gray-600">Total Venues</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{venues.length}</div>
+            <div className="text-end text-2xl font-bold text-gray-900">{venues.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -88,7 +88,7 @@ export default function VenueUtilizationPage() {
             <CardTitle className="text-sm font-medium text-gray-600">Active Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-end text-2xl font-bold text-green-600">
               {bookings.filter((b) => b.status === "approved").length}
             </div>
           </CardContent>
@@ -213,10 +213,10 @@ export default function VenueUtilizationPage() {
                         <Badge
                           className={
                             venue.status === "available"
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-transparent text-green-800"
                               : venue.status === "maintenance"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
+                              ? "bg-transparent text-yellow-800"
+                              : "bg-transparent text-gray-800"
                           }
                         >
                           {venue.status}
