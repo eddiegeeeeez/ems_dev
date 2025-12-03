@@ -46,7 +46,7 @@ export default function DashboardPage() {
               <Calendar className="w-4 h-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{totalCount}</div>
+              <div className="text-end text-3xl font-bold text-gray-900">{totalCount}</div>
               <p className="text-sm text-gray-600 mt-1">All your bookings</p>
             </CardContent>
           </Card>
@@ -57,7 +57,7 @@ export default function DashboardPage() {
               <Clock className="w-4 h-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-amber-600">{pendingCount}</div>
+              <div className="text-end text-3xl font-bold text-amber-600">{pendingCount}</div>
               <p className="text-sm text-gray-600 mt-1">Awaiting review</p>
             </CardContent>
           </Card>
@@ -68,7 +68,7 @@ export default function DashboardPage() {
               <CheckCircle className="w-4 h-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">{approvedCount}</div>
+              <div className="text-end text-3xl font-bold text-green-600">{approvedCount}</div>
               <p className="text-sm text-gray-600 mt-1">Successfully approved</p>
             </CardContent>
           </Card>

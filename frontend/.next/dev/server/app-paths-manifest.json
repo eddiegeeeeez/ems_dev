@@ -16,5 +16,7 @@
   "/admin/users/page": "app/admin/users/page.js",
   "/admin/venues/page": "app/admin/venues/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/venues/page": "app/venues/page.js"
 }
