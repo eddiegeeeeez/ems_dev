@@ -52,9 +52,6 @@ export default function Home() {
     return <LandingPage onSignIn={() => setShowLogin(true)} />
   }
 
-  return (
-    <div className="flex flex-1">
-      <main className="flex-1" />
-    </div>
-  )
+  // This should never render, but return null for consistency
+  return null
 }

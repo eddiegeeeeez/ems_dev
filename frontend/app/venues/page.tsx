@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { DataTable } from "@/components/data-table"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
+import { ProtectedRoute } from "@/components/protected-route"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Venue } from "@/lib/types"
 
