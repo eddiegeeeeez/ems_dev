@@ -40,6 +40,7 @@ interface OTPVerificationModalProps {
   onVerify: (pin: string) => Promise<void>
   title?: string
   description?: string
+  onResend?: () => Promise<void> | void
 }
 
 export function OTPVerificationModal({
@@ -48,11 +49,13 @@ export function OTPVerificationModal({
   onVerify,
   title = "Verify Your Identity",
   description = "Please enter the one-time password to authorize this action.",
+  onResend,
 }: OTPVerificationModalProps) {
   const [isVerifying, setIsVerifying] = useState(false)
   const [countdown, setCountdown] = useState(120) // 2 minutes
   const [canResend, setCanResend] = useState(false)
   const [attempts, setAttempts] = useState(0)
+  const [isResending, setIsResending] = useState(false)
   const maxAttempts = 3
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -100,11 +103,23 @@ export function OTPVerificationModal({
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  const handleResend = () => {
-    // In production, this would trigger sending a new OTP
-    setCountdown(120)
-    setCanResend(false)
-    form.reset()
+  const handleResend = async () => {
+    try {
+      setIsResending(true)
+      if (onResend) {
+        await onResend()
+      }
+      setCountdown(120)
+      setCanResend(false)
+      form.reset()
+    } catch (error) {
+      form.setError("pin", {
+        message: "Failed to resend code. Please try again.",
+      })
+      setCanResend(true)
+    } finally {
+      setIsResending(false)
+    }
   }
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
@@ -200,11 +215,11 @@ export function OTPVerificationModal({
                   variant="ghost"
                   size="sm"
                   onClick={handleResend}
-                  disabled={!canResend || attempts >= maxAttempts}
+                  disabled={!canResend || attempts >= maxAttempts || isResending}
                   className="text-[#8B1538] hover:text-[#6B0D28] hover:bg-[#8B1538]/10"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
-                  Resend Code
+                  {isResending ? "Sending..." : "Resend Code"}
                 </Button>
               </div>
 

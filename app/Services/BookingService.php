@@ -4,7 +4,11 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\Notification;
+use App\Mail\BookingApproved;
+use App\Mail\BookingRejected;
+use App\Mail\BookingRequestReceived;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Mail;
 
 class BookingService
 {
@@ -32,6 +36,9 @@ class BookingService
         // Calculate costs if venue has hourly rate
         $this->calculateBookingCost($booking);
 
+        // Send approval email
+        Mail::to($booking->user->email)->send(new BookingApproved($booking));
+
         $this->notifyUser($booking->user, 'booking_approved', $booking);
 
         return $booking;
@@ -46,6 +53,9 @@ class BookingService
             'status' => 'rejected',
             'rejection_reason' => $reason,
         ]);
+
+        // Send rejection email
+        Mail::to($booking->user->email)->send(new BookingRejected($booking));
 
         $this->notifyUser($booking->user, 'booking_rejected', $booking);
 
@@ -116,6 +126,9 @@ class BookingService
         $admins = \App\Models\User::where('role', 'ADMIN')->get();
 
         foreach ($admins as $admin) {
+            // Send email notification
+            Mail::to($admin->email)->send(new BookingRequestReceived($booking));
+
             Notification::create([
                 'type' => $type,
                 'notifiable_type' => User::class,

@@ -1,46 +1,58 @@
-"use client"
 
-import type React from "react"
+'use client'
 
-import { useState } from "react"
-import { useAuth } from "@/lib/auth-context"
+import Link from 'next/link'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useAuth } from '@/lib/auth-context'
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
+
+import { loginFormSchema } from '@/lib/validation-schemas'
+
+const formSchema = loginFormSchema
 
 export function LoginForm() {
-  const [email, setEmail] = useState("")
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const { login, user } = useAuth()
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
+
   const router = useRouter()
+  const { login } = useAuth()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
-
-    console.log("[v0] Login attempt with email:", email)
-
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const user = await login(email, "")
-      console.log("[v0] Login successful, redirecting to dashboard")
-      // Redirect based on user role
-      const dashboardUrl = user?.role === "admin" ? "/admin/dashboard" : "/dashboard"
-      router.push(dashboardUrl)
-    } catch (err) {
-      console.log("[v0] Login failed:", err)
-      setError("Invalid email. Please use a valid UM account.")
-    } finally {
-      setIsLoading(false)
+      await login(values.email, values.password)
+      // Redirect based on role (backend user will be fetched by auth-context)
+      router.push('/dashboard')
+    } catch (error: any) {
+      console.error('Form submission error', error)
+      toast.error(error?.message || 'Failed to login. Please check your credentials.')
     }
-  }
-
-  const handleDemoLogin = (demoEmail: string) => {
-    console.log("[v0] Demo login initiated with:", demoEmail)
-    setEmail(demoEmail)
   }
 
   return (
@@ -56,83 +68,52 @@ export function LoginForm() {
           <CardDescription>Sign in with your University of Mindanao account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="grid gap-2">
+                      <FormLabel htmlFor="email">Email</FormLabel>
+                      <FormControl>
+                        <Input id="email" placeholder="you@umindanao.edu.ph" autoComplete="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Email Address</label>
-              <Input
-                type="email"
-                placeholder="your.name@umindanao.edu.ph"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="border-gray-300"
-              />
-              <p className="text-xs text-gray-500">Use your official UM email account</p>
-            </div>
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="grid gap-2">
+                      <div className="flex justify-between items-center">
+                        <FormLabel htmlFor="password">Password</FormLabel>
+                        <Link href="#" className="ml-auto inline-block text-sm underline">
+                          Forgot your password?
+                        </Link>
+                      </div>
+                      <FormControl>
+                        <PasswordInput id="password" placeholder="******" autoComplete="current-password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <Button type="submit" disabled={isLoading} className="w-full bg-[#c41e3a] hover:bg-[#a01830] text-white">
-              {isLoading ? "Signing in..." : "Sign in with Google"}
-            </Button>
+                <Button type="submit" className="w-full bg-[#c41e3a] hover:bg-[#a01830] text-white">
+                  Login
+                </Button>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <Button variant="outline" type="button" className="w-full" onClick={() => {/* trigger google flow in future */}}>
+                  Login with Google
+                </Button>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">Demo Accounts</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="text-xs text-gray-600">
-                <p className="mb-2">
-                  <strong>Organizer (Existing):</strong> edgar.garan@umindanao.edu.ph
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full text-xs bg-transparent"
-                onClick={() => handleDemoLogin("edgar.garan@umindanao.edu.ph")}
-              >
-                Login as Organizer
-              </Button>
-
-              <div className="text-xs text-gray-600">
-                <p className="mb-2">
-                  <strong>New User (Needs Onboarding):</strong> newuser@umindanao.edu.ph
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full text-xs bg-transparent"
-                onClick={() => handleDemoLogin("newuser@umindanao.edu.ph")}
-              >
-                Login as New User
-              </Button>
-
-              <div className="text-xs text-gray-600">
-                <p className="mb-2">
-                  <strong>Admin:</strong> admin@umindanao.edu.ph
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full text-xs bg-transparent"
-                onClick={() => handleDemoLogin("admin@umindanao.edu.ph")}
-              >
-                Login as Admin
-              </Button>
-            </div>
-          </form>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>

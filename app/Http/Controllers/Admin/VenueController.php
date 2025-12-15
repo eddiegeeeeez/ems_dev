@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Services\VenueService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class VenueController extends Controller
 {
@@ -52,7 +53,14 @@ class VenueController extends Controller
                 'hourly_rate' => 'required|numeric|min:0',
                 'is_active' => 'boolean',
                 'amenities' => 'nullable|array',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
             ]);
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('venues', 'public');
+                $validated['image_url'] = Storage::url($imagePath);
+            }
 
             $venue = Venue::create($validated);
             return response()->json([
@@ -100,7 +108,20 @@ class VenueController extends Controller
                 'hourly_rate' => 'required|numeric|min:0',
                 'is_active' => 'boolean',
                 'amenities' => 'nullable|array',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
             ]);
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if it exists
+                if ($venue->image_url) {
+                    $oldPath = str_replace('/storage/', '', $venue->image_url);
+                    Storage::disk('public')->delete($oldPath);
+                }
+                
+                $imagePath = $request->file('image')->store('venues', 'public');
+                $validated['image_url'] = Storage::url($imagePath);
+            }
 
             $venue->update($validated);
             return response()->json([

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Upload, X } from 'lucide-react'
 
 interface AddVenueModalProps {
   open: boolean
@@ -27,6 +28,7 @@ export interface VenueFormData {
   location: string
   description: string
   capacity: number
+  image?: File
 }
 
 export function AddVenueModal({ open, onOpenChange, onConfirm, isLoading = false }: AddVenueModalProps) {
@@ -36,9 +38,45 @@ export function AddVenueModal({ open, onOpenChange, onConfirm, isLoading = false
     description: "",
     capacity: 0,
   })
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleClose = () => {
     onOpenChange(false)
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        console.log("[v0] Invalid file type - must be an image")
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        console.log("[v0] File too large - max 5MB")
+        return
+      }
+
+      setFormData({ ...formData, image: file })
+      
+      // Create preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image: undefined })
+    setImagePreview(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
   }
 
   const handleConfirm = () => {
@@ -54,12 +92,13 @@ export function AddVenueModal({ open, onOpenChange, onConfirm, isLoading = false
       description: "",
       capacity: 0,
     })
+    setImagePreview(null)
     onOpenChange(false)
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-[#c41e3a]">Add New Venue</DialogTitle>
           <DialogDescription>Fill in the details to create a new venue for events.</DialogDescription>
@@ -129,6 +168,45 @@ export function AddVenueModal({ open, onOpenChange, onConfirm, isLoading = false
               placeholder="Describe the venue..."
               className="mt-1 min-h-20"
             />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">
+              Venue Picture
+            </Label>
+            <div className="mt-2">
+              {imagePreview ? (
+                <div className="relative inline-block">
+                  <img 
+                    src={imagePreview} 
+                    alt="Venue preview" 
+                    className="max-w-sm max-h-60 rounded-lg object-cover border border-gray-200"
+                  />
+                  <button
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#c41e3a] hover:bg-red-50 transition"
+                >
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Click to upload venue picture</p>
+                  <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </div>
           </div>
 
         </div>

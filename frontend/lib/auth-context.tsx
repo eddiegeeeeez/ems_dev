@@ -3,65 +3,156 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import type { User } from "./types"
-import { mockUsers } from "./mock-data"
 
 interface AuthContextType {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   updateUserProfile: (updates: Partial<User>) => void
   isAuthenticated: boolean
+  loginWithGoogle: (credential: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Initialize user from localStorage synchronously to prevent flash
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null
-    try {
-      const storedUser = localStorage.getItem("currentUser")
-      return storedUser ? JSON.parse(storedUser) : null
-    } catch (error) {
-      console.error("Failed to parse stored user:", error)
-      return null
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const apiBase = typeof window !== 'undefined' 
+    ? (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api")
+    : ""
+
+  // Initialize auth state by checking with backend on mount
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        // First, preflight CSRF cookie
+        if (typeof window !== 'undefined') {
+          await fetch((process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace('/api', '/sanctum/csrf-cookie'), {
+            credentials: 'include',
+          }).catch(() => {}) // Ignore errors, just ensure cookie is set
+
+          // Then check current user
+          const response = await fetch(`${apiBase}/auth/user`, {
+            credentials: 'include',
+          })
+          if (response.ok) {
+            const data = await response.json()
+            setUser(data)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to initialize auth:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  })
-  const [isLoading, setIsLoading] = useState(false)
+
+    initAuth()
+  }, [apiBase])
 
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      // Simulate Google OAuth - find user by email
-      const foundUser = mockUsers.find((u) => u.email === email)
-      if (foundUser) {
-        setUser(foundUser)
-        localStorage.setItem("currentUser", JSON.stringify(foundUser))
-        return foundUser
-      } else {
-        throw new Error("User not found")
+      // Preflight CSRF cookie
+      await fetch((process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace('/api', '/sanctum/csrf-cookie'), {
+        credentials: 'include',
+      }).catch(() => {})
+
+      // Attempt login
+      const response = await fetch(`${apiBase}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.message || 'Login failed')
       }
+
+      // Fetch authenticated user
+      const userResponse = await fetch(`${apiBase}/auth/user`, {
+        credentials: 'include',
+      })
+      if (userResponse.ok) {
+        const userData = await userResponse.json()
+        setUser(userData)
+      }
+    } catch (error: any) {
+      console.error("Login error:", error)
+      throw error
     } finally {
       setIsLoading(false)
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem("currentUser")
-    // Redirect to home/login page
-    if (typeof window !== 'undefined') {
-      window.location.href = '/'
+  const loginWithGoogle = async (credential: string) => {
+    setIsLoading(true)
+    try {
+      // Preflight CSRF cookie
+      await fetch((process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace('/api', '/sanctum/csrf-cookie'), {
+        credentials: 'include',
+      }).catch(() => {})
+
+      // Send credential to backend
+      const response = await fetch(`${apiBase}/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ credential }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Google login failed')
+      }
+
+      // Fetch authenticated user
+      const userResponse = await fetch(`${apiBase}/auth/user`, {
+        credentials: 'include',
+      })
+      if (userResponse.ok) {
+        const userData = await userResponse.json()
+        setUser(userData)
+      }
+    } catch (error: any) {
+      console.error("Google login error:", error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const logout = async () => {
+    try {
+      await fetch(`${apiBase}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error("Logout error:", error)
+    } finally {
+      setUser(null)
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      }
     }
   }
 
   const updateUserProfile = (updates: Partial<User>) => {
-    console.log("[v0] Updating user profile:", updates)
     if (user) {
       const updatedUser = { ...user, ...updates }
       setUser(updatedUser)
-      localStorage.setItem("currentUser", JSON.stringify(updatedUser))
     }
   }
 
@@ -74,6 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         updateUserProfile,
         isAuthenticated: !!user,
+        loginWithGoogle,
       }}
     >
       {children}

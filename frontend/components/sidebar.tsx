@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { LayoutDashboard, Building2, Calendar, FileText, Settings, X, Menu, User, BarChart3, Users, ChevronDown, Wrench, GitBranch, FileSearch, Mail, Sliders } from 'lucide-react'
 import { useAuth } from "@/lib/auth-context"
 import { UserAvatar } from "@/components/user-avatar"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const organizerSections = [
   {
@@ -88,6 +88,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const { user } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     "Bookings Management": true,
     "Facilities Management": true,
@@ -96,6 +97,10 @@ export function Sidebar() {
     "System Settings": true,
     Bookings: true,
   })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const sections = user?.role === "admin" ? adminSections : organizerSections
 
@@ -107,6 +112,21 @@ export function Sidebar() {
   const handleNavigation = (href: string) => {
     console.log("[v0] Navigating to:", href)
     setMobileOpen(false)
+  }
+
+  // Render placeholder during hydration
+  if (!mounted) {
+    return (
+      <aside className="hidden md:flex md:flex-col w-64 bg-white border-r border-gray-200">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Placeholder skeleton */}
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-3/4" />
+            <div className="h-4 bg-gray-200 rounded w-1/2" />
+          </div>
+        </div>
+      </aside>
+    )
   }
 
   return (

@@ -13,6 +13,7 @@ class UserSeeder extends Seeder
         // Admin users
         User::create([
             'name' => 'Admin User',
+            'username' => 'admin',
             'email' => 'admin@ems.edu',
             'password' => Hash::make('password'),
             'role' => 'ADMIN',
@@ -23,6 +24,7 @@ class UserSeeder extends Seeder
 
         User::create([
             'name' => 'John Admin',
+            'username' => 'johnadmin',
             'email' => 'john.admin@ems.edu',
             'password' => Hash::make('password'),
             'role' => 'ADMIN',
@@ -53,6 +55,7 @@ class UserSeeder extends Seeder
         foreach ($organizers as $organizer) {
             User::create([
                 'name' => $organizer['name'],
+                'username' => strtolower(str_replace([' ', '.'], '', explode('@', $organizer['email'])[0])),
                 'email' => $organizer['email'],
                 'password' => Hash::make('password'),
                 'role' => 'ORGANIZER',

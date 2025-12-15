@@ -35,24 +35,61 @@ export default function AdminVenuesPage() {
     setAddVenueOpen(true)
   }
 
-  const handleConfirmAddVenue = (venueData: VenueFormData) => {
+  const handleConfirmAddVenue = async (venueData: VenueFormData) => {
     setIsLoading(true)
     console.log("[v0] Creating new venue with data:", venueData)
 
-    setTimeout(() => {
-      const newVenue: Venue = {
-        id: `venue-${Date.now()}`,
-        name: venueData.name,
-        location: venueData.location,
-        description: venueData.description,
-        capacity: venueData.capacity,
-        status: "available",
-        image: "/elegant-wedding-venue.png",
+    try {
+      // Create FormData to handle file upload
+      const payload = new FormData()
+      payload.append('name', venueData.name)
+      payload.append('location', venueData.location)
+      payload.append('description', venueData.description)
+      payload.append('capacity', venueData.capacity.toString())
+      payload.append('department_id', '1') // Default department
+      payload.append('hourly_rate', '0') // Default rate
+      if (venueData.image) payload.append('image', venueData.image)
+
+      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api"
+
+      const response = await fetch(`${apiBase}/admin/venues`, {
+        method: 'POST',
+        body: payload,
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      })
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '')
+        console.error('[v0] Create venue failed:', response.status, response.statusText, text)
+        if (response.status === 401 || response.status === 419) {
+          throw new Error('Authentication required. Please login again.')
+        }
+        throw new Error('Failed to create venue')
       }
+
+      const data = await response.json()
+
+      const newVenue: Venue = {
+        id: data.venue.id.toString(),
+        name: data.venue.name,
+        location: data.venue.location,
+        description: data.venue.description,
+        capacity: data.venue.capacity,
+        status: "available",
+        image: data.venue.image_url || "/elegant-wedding-venue.png",
+      }
+
       addVenue(newVenue)
-      setIsLoading(false)
       console.log("[v0] Venue created successfully:", newVenue.id)
-    }, 500)
+    } catch (err) {
+      console.error("[v0] Error creating venue:", err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleEditVenue = (venueId: string) => {

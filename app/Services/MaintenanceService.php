@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\MaintenanceRequest;
 use App\Models\Notification;
 use App\Models\User;
+use App\Mail\MaintenanceAssigned;
+use Illuminate\Support\Facades\Mail;
 
 class MaintenanceService
 {
@@ -93,6 +95,9 @@ class MaintenanceService
 
         $technician = User::find($request->assigned_to);
         if (!$technician) return;
+
+        // Send email notification
+        Mail::to($technician->email)->send(new MaintenanceAssigned($request));
 
         Notification::create([
             'type' => 'maintenance_assigned',

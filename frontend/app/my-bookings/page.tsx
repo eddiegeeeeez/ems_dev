@@ -14,6 +14,7 @@ import { Calendar, Users, Clock, Trash2, Edit, Eye, ArrowUpDown, MoreHorizontal 
 import Link from "next/link"
 import { DataTable } from "@/components/data-table"
 import { BookingDetailsModal } from "@/components/booking-details-modal"
+import { ProtectedRoute } from "@/components/protected-route"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import type { Booking } from "@/lib/types"
 import type { ColumnDef } from "@tanstack/react-table"

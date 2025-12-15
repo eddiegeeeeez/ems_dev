@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\VenueController;
 use App\Http\Controllers\BookingController;
@@ -27,12 +28,11 @@ Route::get('/health', function () {
 
 // Auth routes
 Route::prefix('auth')->group(function () {
+    Route::post('/login', [LoginController::class, 'login']);
     Route::get('/google', [GoogleController::class, 'redirectToGoogle']);
     Route::get('/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-    Route::post('/logout', [ProfileController::class, 'logout'])->middleware('auth:sanctum');
-    Route::get('/user', function (Request $request) {
-        return response()->json($request->user());
-    })->middleware('auth:sanctum');
+    Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
+    Route::get('/user', [LoginController::class, 'user'])->middleware('auth:sanctum');
 });
 
 // Protected routes
@@ -167,6 +167,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/booking-rules', [SettingsController::class, 'bookingRules']);
             Route::put('/booking-rules', [SettingsController::class, 'updateBookingRules']);
             Route::get('/email-templates', [SettingsController::class, 'emailTemplates']);
+            Route::post('/email-templates/request-otp', [SettingsController::class, 'requestEmailTemplateOtp']);
+            Route::post('/email-templates/preview', [SettingsController::class, 'previewEmailTemplate']);
+            Route::post('/email-templates/send-test', [SettingsController::class, 'sendTestEmail']);
             Route::put('/email-templates', [SettingsController::class, 'updateEmailTemplate']);
             Route::get('/general', [SettingsController::class, 'general']);
             Route::put('/general', [SettingsController::class, 'updateGeneral']);
