@@ -26,13 +26,13 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'message' => 'API is running']);
 });
 
-// Auth routes
+// Auth routes - NO auth:sanctum middleware on login
 Route::prefix('auth')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/google', [GoogleController::class, 'redirectToGoogle']);
     Route::get('/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-    Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
-    Route::get('/user', [LoginController::class, 'user'])->middleware('auth:sanctum');
+    Route::post('/logout', [LoginController::class, 'logout']);
+    Route::get('/user', [LoginController::class, 'user']);
 });
 
 // Protected routes

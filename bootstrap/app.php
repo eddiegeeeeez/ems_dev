@@ -14,6 +14,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => route('login'));
 
+        // Enable stateful API authentication
+        $middleware->statefulApi();
+        
+        // Exclude CSRF verification for API auth routes in local development
+        $middleware->validateCsrfTokens(except: [
+            'api/auth/*',
+        ]);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
         ]);

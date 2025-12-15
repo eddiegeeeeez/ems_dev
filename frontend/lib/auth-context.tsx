@@ -16,34 +16,39 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Centralized API base URL configuration
+const getApiBase = () => {
+  if (typeof window === 'undefined') return ""
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const apiBase = typeof window !== 'undefined' 
-    ? (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api")
-    : ""
+  const apiBase = getApiBase()
 
   // Initialize auth state by checking with backend on mount
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // First, preflight CSRF cookie
         if (typeof window !== 'undefined') {
-          await fetch((process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace('/api', '/sanctum/csrf-cookie'), {
-            credentials: 'include',
-          }).catch(() => {}) // Ignore errors, just ensure cookie is set
-
-          // Then check current user
+          // Check current user without CSRF preflight (GET request is safe)
+          console.log('[Auth] Checking current user at:', `${apiBase}/auth/user`)
           const response = await fetch(`${apiBase}/auth/user`, {
             credentials: 'include',
           })
+          console.log('[Auth] User response status:', response.status)
+          
           if (response.ok) {
             const data = await response.json()
+            console.log('[Auth] User authenticated:', data)
             setUser(data)
+          } else {
+            console.log('[Auth] Not authenticated (this is normal for logged out users)')
           }
         }
       } catch (error) {
-        console.error("Failed to initialize auth:", error)
+        console.log('[Auth] Could not check auth status (this is normal on first visit):', error)
       } finally {
         setIsLoading(false)
       }
@@ -55,34 +60,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      // Preflight CSRF cookie
-      await fetch((process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace('/api', '/sanctum/csrf-cookie'), {
-        credentials: 'include',
-      }).catch(() => {})
-
-      // Attempt login
-      const response = await fetch(`${apiBase}/auth/login`, {
+      console.log('[Auth] Logging in with email:', email)
+      
+      // Attempt login directly (CSRF disabled for local testing)
+      const loginUrl = `${apiBase}/auth/login`
+      console.log('[Auth] Posting login to:', loginUrl)
+      
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
         },
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       })
 
+      console.log('[Auth] Login response status:', response.status)
+      
       if (!response.ok) {
         const error = await response.json().catch(() => ({}))
+        console.error('[Auth] Login failed:', error)
         throw new Error(error.message || 'Login failed')
       }
 
+      console.log('[Auth] Login successful, fetching user data')
+      
       // Fetch authenticated user
       const userResponse = await fetch(`${apiBase}/auth/user`, {
         credentials: 'include',
       })
       if (userResponse.ok) {
         const userData = await userResponse.json()
+        console.log('[Auth] User data received:', userData)
         setUser(userData)
       }
     } catch (error: any) {
@@ -96,18 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = async (credential: string) => {
     setIsLoading(true)
     try {
-      // Preflight CSRF cookie
-      await fetch((process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace('/api', '/sanctum/csrf-cookie'), {
-        credentials: 'include',
-      }).catch(() => {})
-
       // Send credential to backend
       const response = await fetch(`${apiBase}/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
         },
         credentials: 'include',
         body: JSON.stringify({ credential }),
@@ -137,6 +141,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch(`${apiBase}/auth/logout`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         credentials: 'include',
       })
     } catch (error) {

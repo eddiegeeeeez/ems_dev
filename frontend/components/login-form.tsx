@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { useState } from 'react'
 
 import {
   Form,
@@ -42,16 +43,25 @@ export function LoginForm() {
   })
 
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, user, isLoading } = useAuth()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true)
     try {
+      console.log('[LoginForm] Submitting login for:', values.email)
       await login(values.email, values.password)
-      // Redirect based on role (backend user will be fetched by auth-context)
+      console.log('[LoginForm] Login completed')
+      
+      // Give the state a moment to update
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      console.log('[LoginForm] Redirecting to dashboard')
       router.push('/dashboard')
     } catch (error: any) {
       console.error('Form submission error', error)
       toast.error(error?.message || 'Failed to login. Please check your credentials.')
+      setIsSubmitting(false)
     }
   }
 
@@ -104,8 +114,12 @@ export function LoginForm() {
                   )}
                 />
 
-                <Button type="submit" className="w-full bg-[#c41e3a] hover:bg-[#a01830] text-white">
-                  Login
+                <Button 
+                  type="submit" 
+                  className="w-full bg-[#c41e3a] hover:bg-[#a01830] text-white"
+                  disabled={isSubmitting || form.formState.isSubmitting}
+                >
+                  {isSubmitting ? 'Logging in...' : 'Login'}
                 </Button>
 
                 <Button variant="outline" type="button" className="w-full" onClick={() => {/* trigger google flow in future */}}>

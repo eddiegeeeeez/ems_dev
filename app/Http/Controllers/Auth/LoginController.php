@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
 class LoginController extends Controller
@@ -22,25 +23,36 @@ class LoginController extends Controller
                 'password' => 'required|string|min:6',
             ]);
 
-            // Attempt to authenticate
-            if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
-                $user = Auth::user();
+            // Attempt to authenticate with session (not tokens)
+            if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']], true)) {
+                // Regenerate session to prevent session fixation attacks
+                $request->session()->regenerate();
                 
-                // Create a Sanctum token
-                $token = $user->createToken('api-token')->plainTextToken;
+                $user = Auth::user();
 
                 return response()->json([
                     'message' => 'Login successful',
                     'user' => $user,
-                    'token' => $token,
                 ]);
             }
 
             return response()->json([
                 'message' => 'Invalid credentials',
             ], 401);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Login failed'], 500);
+            Log::error('Login error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Login failed',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -49,7 +61,22 @@ class LoginController extends Controller
      */
     public function user(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        try {
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Unauthenticated',
+                ], 401);
+        } catch (\Exception $e) {
+            Log::error('User check error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error checking authentication',
+            ], 500);
+        }   return response()->json([
+                'message' => 'Error checking authentication',
+            ], 500);
+        }
     }
 
     /**
@@ -57,11 +84,22 @@ class LoginController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        if ($request->user()) {
-            // Revoke all tokens
-            $request->user()->tokens()->delete();
-        }
+        try {
+            if (Auth::check()) {
+                Auth::guard('web')->logout();
+            }
+            
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
 
-        return response()->json(['message' => 'Logged out successfully']);
+            return response()->json(['message' => 'Logged out successfully']);
+        } catch (\Exception $e) {
+            Log::error('Logout error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Logout completed',
+            ], 200);
+        }
     }
 }

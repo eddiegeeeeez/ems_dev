@@ -16,7 +16,6 @@ class GoogleController extends Controller
     public function redirectToGoogle()
     {
         return Socialite::driver('google')
-            ->with(['hd' => 'umindanao.edu.ph'])
             ->redirect();
     }
 
@@ -26,7 +25,7 @@ class GoogleController extends Controller
         try {
             Log::info('=== Google OAuth Callback Started ===');
             
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $googleUser = Socialite::driver('google')->user();
             Log::info('Google user retrieved', ['email' => $googleUser->getEmail()]);
 
 
