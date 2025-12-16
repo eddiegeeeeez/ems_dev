@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Acer%20NITRO%205%20-__-/Downloads/it9%20ni%20edgardough/ems_dev/frontend/app/admin/maintenance/page.tsx"],"sourcesContent":["\"use client\"\n\nimport { useRouter } from 'next/navigation'\nimport { useEffect } from \"react\"\n\nexport default function MaintenancePage() {\n  const router = useRouter()\n\n  useEffect(() => {\n    // Redirect to maintenance requests by default\n    router.push(\"/admin/maintenance/requests\")\n  }, [router])\n\n  return null\n}\n"],"names":[],"mappings":";;;;AAEA;AACA;;AAHA;;;AAKe,SAAS;;IACtB,MAAM,SAAS,IAAA,kJAAS;IAExB,IAAA,0KAAS;qCAAC;YACR,8CAA8C;YAC9C,OAAO,IAAI,CAAC;QACd;oCAAG;QAAC;KAAO;IAEX,OAAO;AACT;GATwB;;QACP,kJAAS;;;KADF","debugId":null}}]
-}

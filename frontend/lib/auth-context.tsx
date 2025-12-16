@@ -36,19 +36,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('[Auth] Checking current user at:', `${apiBase}/auth/user`)
           const response = await fetch(`${apiBase}/auth/user`, {
             credentials: 'include',
+            mode: 'cors',
+          }).catch(err => {
+            console.warn('[Auth] Network error checking user (backend might not be running):', err.message)
+            return null
           })
-          console.log('[Auth] User response status:', response.status)
           
-          if (response.ok) {
+          if (response && response.ok) {
             const data = await response.json()
             console.log('[Auth] User authenticated:', data)
             setUser(data)
-          } else {
-            console.log('[Auth] Not authenticated (this is normal for logged out users)')
+          } else if (response) {
+            console.log('[Auth] Not authenticated (status:', response.status, ')')
           }
         }
       } catch (error) {
-        console.log('[Auth] Could not check auth status (this is normal on first visit):', error)
+        console.log('[Auth] Could not check auth status:', error)
       } finally {
         setIsLoading(false)
       }
@@ -61,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     try {
       console.log('[Auth] Logging in with email:', email)
+      console.log('[Auth] API Base:', apiBase)
       
       // Attempt login directly (CSRF disabled for local testing)
       const loginUrl = `${apiBase}/auth/login`
@@ -73,7 +77,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           'Accept': 'application/json',
         },
         credentials: 'include',
+        mode: 'cors',
         body: JSON.stringify({ email, password }),
+      }).catch(fetchError => {
+        console.error('[Auth] Network error - Cannot reach API server:', fetchError)
+        throw new Error('Cannot connect to server. Please ensure the backend is running on http://localhost:8000')
       })
 
       console.log('[Auth] Login response status:', response.status)
@@ -84,19 +92,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(error.message || 'Login failed')
       }
 
-      console.log('[Auth] Login successful, fetching user data')
+      const loginData = await response.json()
+      console.log('[Auth] Login successful:', loginData)
       
-      // Fetch authenticated user
-      const userResponse = await fetch(`${apiBase}/auth/user`, {
-        credentials: 'include',
-      })
-      if (userResponse.ok) {
-        const userData = await userResponse.json()
-        console.log('[Auth] User data received:', userData)
-        setUser(userData)
+      // Set user from login response
+      if (loginData.user) {
+        console.log('[Auth] User data received:', loginData.user)
+        setUser(loginData.user)
+      } else {
+        // Fallback: Fetch authenticated user
+        const userResponse = await fetch(`${apiBase}/auth/user`, {
+          credentials: 'include',
+        })
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          console.log('[Auth] User data fetched:', userData)
+          setUser(userData)
+        }
       }
     } catch (error: any) {
-      console.error("Login error:", error)
+      console.error("[Auth] Login error:", error)
       throw error
     } finally {
       setIsLoading(false)
