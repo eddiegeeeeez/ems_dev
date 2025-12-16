@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('location');
             $table->integer('capacity');
             $table->string('image_url')->nullable();
-            $table->json('amenities')->default('[]');
+            $table->json('amenities')->nullable();
             $table->json('opening_hours')->nullable(); // e.g., {"monday": "08:00-17:00"}
             $table->decimal('hourly_rate', 10, 2)->nullable();
             $table->boolean('is_active')->default(true);

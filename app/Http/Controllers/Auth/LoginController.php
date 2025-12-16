@@ -68,12 +68,12 @@ class LoginController extends Controller
                 return response()->json([
                     'message' => 'Unauthenticated',
                 ], 401);
+            }
+
+            return response()->json($user);
         } catch (\Exception $e) {
             Log::error('User check error: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Error checking authentication',
-            ], 500);
-        }   return response()->json([
                 'message' => 'Error checking authentication',
             ], 500);
         }

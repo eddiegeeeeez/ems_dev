@@ -16,6 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Enable stateful API authentication
         $middleware->statefulApi();
+
+        // Add Sanctum and session middleware to api group
+        $middleware->api(prepend: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+        ]);
         
         // Exclude CSRF verification for API auth routes in local development
         $middleware->validateCsrfTokens(except: [
