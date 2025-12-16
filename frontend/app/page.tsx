@@ -15,8 +15,10 @@ export default function Home() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
+      console.log('[Page] User authenticated, role:', user?.role)
       // Redirect based on user role
-      const dashboardUrl = user?.role === "admin" ? "/admin/dashboard" : "/dashboard"
+      const dashboardUrl = user?.role === "ADMIN" ? "/admin/dashboard" : "/dashboard"
+      console.log('[Page] Redirecting to:', dashboardUrl)
       router.push(dashboardUrl)
     }
   }, [isAuthenticated, isLoading, user?.role, router])

@@ -56,7 +56,7 @@ export function DashboardHeader({
                   </p>
                   <div className="flex items-center gap-2 mt-3">
                     <Badge variant="default">
-                      {user.role === "admin" ? "Administrator" : "Student"}
+                      {user.role === "ADMIN" ? "Administrator" : "Student"}
                     </Badge>
                   </div>
                 </>

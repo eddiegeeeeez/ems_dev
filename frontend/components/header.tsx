@@ -63,7 +63,7 @@ export function Header() {
       <div className="w-full h-full px-4 md:px-6 lg:px-8 py-3 md:py-4 flex items-center justify-between">
         {/* Logo Section */}
         <Link
-          href={user?.role === "admin" ? "/admin/dashboard" : "/dashboard"}
+          href={user?.role === "ADMIN" ? "/admin/dashboard" : "/dashboard"}
           className="flex items-center gap-3 flex-shrink-0 hover:opacity-80 transition-opacity"
           onClick={() => console.log("[v0] Navigating to dashboard")}
         >
@@ -98,7 +98,7 @@ export function Header() {
                   <span className="text-sm font-medium">{user?.name}</span>
                   <span className="text-xs text-gray-500">{user?.email}</span>
                   <span className="text-xs text-[#c41e3a] font-semibold mt-1 uppercase">
-                    {user?.role === "admin" ? "Facility Manager" : "Event Organizer"}
+                    {user?.role === "ADMIN" ? "Facility Manager" : "Event Organizer"}
                   </span>
                 </div>
               </DropdownMenuItem>

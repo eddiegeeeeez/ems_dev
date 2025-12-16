@@ -28,11 +28,11 @@ export default function ProfileHeader() {
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
               <Badge className="bg-[#8B1538] text-white">
-                {user?.role === "admin" ? "Pro Member" : "Member"}
+                {user?.role === "ADMIN" ? "Pro Member" : "Member"}
               </Badge>
             </div>
             <p className="text-gray-600 mt-1">
-              {user?.role === "admin" ? "Facility Manager" : "Event Organizer"}
+              {user?.role === "ADMIN" ? "Facility Manager" : "Event Organizer"}
             </p>
             
             <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-600">

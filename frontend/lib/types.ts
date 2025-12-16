@@ -1,6 +1,6 @@
 // Data types for the Events Management System
 
-export type UserRole = "organizer" | "admin"
+export type UserRole = "ORGANIZER" | "ADMIN"
 
 export interface User {
   id: string

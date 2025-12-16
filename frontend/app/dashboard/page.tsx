@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const { user } = useAuth()
   const { bookings, getBookingsByOrganizer } = useData()
 
-  const userBookings = user?.role === "organizer" ? getBookingsByOrganizer(user.id) : []
+  const userBookings = user?.role === "ORGANIZER" ? getBookingsByOrganizer(user.id) : []
   const pendingCount = userBookings.filter((b) => b.status === "pending").length
   const approvedCount = userBookings.filter((b) => b.status === "approved").length
   const totalCount = userBookings.length

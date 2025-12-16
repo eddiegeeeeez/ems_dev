@@ -102,7 +102,7 @@ export function Sidebar() {
     setMounted(true)
   }, [])
 
-  const sections = user?.role === "admin" ? adminSections : organizerSections
+  const sections = user?.role === "ADMIN" ? adminSections : organizerSections
 
   const toggleSection = (title: string) => {
     console.log("[v0] Toggling section:", title)
@@ -144,7 +144,7 @@ export function Sidebar() {
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="mb-6">
             <h3 className="px-2 text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-              {user?.role === "admin" ? "Admin" : "Organizer"} Menu
+              {user?.role === "ADMIN" ? "Admin" : "Organizer"} Menu
             </h3>
 
             <nav className="space-y-2">
@@ -228,7 +228,7 @@ export function Sidebar() {
               <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
               <span className="inline-block text-xs font-semibold text-white bg-[#c41e3a] px-2 py-0.5 rounded mt-1">
-                {user?.role === "admin" ? "ADMIN" : "ORGANIZER"}
+                {user?.role === "ADMIN" ? "ADMIN" : "ORGANIZER"}
               </span>
             </div>
           </div>
@@ -249,7 +249,7 @@ export function Sidebar() {
 
             <div className="flex-1 overflow-y-auto px-4 py-6">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-                {user?.role === "admin" ? "Admin" : "Organizer"} Menu
+                {user?.role === "ADMIN" ? "Admin" : "Organizer"} Menu
               </h3>
               <nav className="space-y-2">
                 {sections.map((section) => {
@@ -327,7 +327,7 @@ export function Sidebar() {
                   <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
                   <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                   <span className="inline-block text-xs font-semibold text-white bg-[#c41e3a] px-2 py-0.5 rounded mt-1">
-                    {user?.role === "admin" ? "ADMIN" : "ORGANIZER"}
+                    {user?.role === "ADMIN" ? "ADMIN" : "ORGANIZER"}
                   </span>
                 </div>
               </div>

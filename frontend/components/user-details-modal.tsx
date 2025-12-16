@@ -101,8 +101,8 @@ export function UserDetailsModal({ user, open, onOpenChange, onRoleChange, onPos
             <div className="flex-1 min-w-0">
               <h3 className="text-xl font-bold text-gray-900 mb-2">{user.name}</h3>
               <div className="flex items-center gap-2 mb-3">
-                <Badge className={user.role === "admin" ? "bg-[#c41e3a]" : "bg-[#4caf50]"}>
-                  {user.role === "admin" ? "Administrator" : "Event Organizer"}
+                <Badge className={user.role === "ADMIN" ? "bg-[#c41e3a]" : "bg-[#4caf50]"}>
+                  {user.role === "ADMIN" ? "Administrator" : "Event Organizer"}
                 </Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">

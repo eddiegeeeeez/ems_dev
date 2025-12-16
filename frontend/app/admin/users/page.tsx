@@ -184,7 +184,7 @@ export default function UserManagementPage() {
         const role = row.getValue("role") as string
         return (
           <span className="inline-flex items-center gap-2 text-sm">
-            {role === "admin" ? (
+            {role === "ADMIN" ? (
               <>
                 <Shield className="h-4 w-4 text-[#c41e3a]" />
                 <span className="font-medium text-[#c41e3a]">Admin</span>

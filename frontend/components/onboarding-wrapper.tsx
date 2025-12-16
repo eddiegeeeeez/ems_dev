@@ -10,7 +10,7 @@ export function OnboardingWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Show onboarding modal for organizers who haven't completed onboarding
-    if (user && user.role === "organizer" && !user.isOnboarded) {
+    if (user && user.role === "ORGANIZER" && !user.isOnboarded) {
       console.log("[v0] User needs onboarding:", user.id)
       setShowOnboarding(true)
     } else {

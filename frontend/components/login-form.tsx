@@ -51,13 +51,15 @@ export function LoginForm() {
     try {
       console.log('[LoginForm] Submitting login for:', values.email)
       await login(values.email, values.password)
-      console.log('[LoginForm] Login completed')
+      console.log('[LoginForm] Login completed, user:', user)
       
       // Give the state a moment to update
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      console.log('[LoginForm] Redirecting to dashboard')
-      router.push('/dashboard')
+      // Redirect based on user role
+      const targetUrl = user?.role === "ADMIN" ? "/admin/dashboard" : "/dashboard"
+      console.log('[LoginForm] Redirecting to:', targetUrl, 'with role:', user?.role)
+      router.push(targetUrl)
     } catch (error: any) {
       console.error('Form submission error', error)
       toast.error(error?.message || 'Failed to login. Please check your credentials.')
