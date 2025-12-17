@@ -33,14 +33,18 @@ export function ProtectedRoute({
       return
     }
 
-    // Check role requirements
-    if (requiredRole !== "any") {
-      if (user?.role !== requiredRole) {
+    // Normalize role comparison to avoid case-sensitivity issues
+    const normalizedRequired = String(requiredRole ?? "any").toUpperCase()
+    const userRole = String(user?.role ?? "").toUpperCase()
+
+    // Check role requirements (skip if required is ANY)
+    if (normalizedRequired !== "ANY") {
+      if (userRole !== normalizedRequired) {
         // Wrong role - redirect based on their actual role
-        if (user?.role === "ADMIN") {
-          router.push("/admin/dashboard")
-        } else {
-          router.push("/dashboard")
+        const target = userRole === "ADMIN" ? "/admin/dashboard" : "/dashboard"
+        // avoid pushing same pathname to prevent redirect loops
+        if (typeof window !== 'undefined' && window.location.pathname !== target) {
+          router.push(target)
         }
         return
       }

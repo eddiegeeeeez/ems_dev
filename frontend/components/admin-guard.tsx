@@ -11,7 +11,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== "admin")) {
+    if (!isLoading && (!isAuthenticated || String(user?.role ?? "").toUpperCase() !== "ADMIN")) {
       router.push("/")
     }
   }, [isAuthenticated, isLoading, user, router])
@@ -27,7 +27,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!isAuthenticated || user?.role !== "admin") {
+  if (!isAuthenticated || String(user?.role ?? "").toUpperCase() !== "ADMIN") {
     return null
   }
 
