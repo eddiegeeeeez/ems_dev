@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Download, Copy, Check } from "lucide-react"
-import QRCode from "qrcode"
 
 interface QrCodeDisplayProps {
   bookingId: string
@@ -20,31 +19,58 @@ export function QrCodeDisplay({
   qrCodeSvg,
   eventTitle,
 }: QrCodeDisplayProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [qrUrl, setQrUrl] = useState<string>("")
   const [copied, setCopied] = useState(false)
   const [qrGeneratedData, setQrGeneratedData] = useState(qrCodeData || "")
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Use backend QR code data if available, otherwise generate locally
-    const dataToUse = qrCodeData || `UM-EVENT-${bookingId.toUpperCase()}`
-    setQrGeneratedData(dataToUse)
+    setMounted(true)
+  }, [])
 
-    // Generate QR code as data URL
-    QRCode.toDataURL(dataToUse, {
-      width: 300,
-      margin: 2,
-      color: {
-        dark: "#000000",
-        light: "#FFFFFF",
-      },
+  useEffect(() => {
+    if (!mounted) return
+
+    // Dynamically import QRCode only on client side
+    import("qrcode").then((QRCode) => {
+      // Use backend QR code data if available, otherwise generate locally
+      const dataToUse = qrCodeData || `UM-EVENT-${String(bookingId).toUpperCase()}`
+      setQrGeneratedData(dataToUse)
+
+      if (canvasRef.current) {
+        QRCode.toCanvas(canvasRef.current, dataToUse, {
+          width: 250,
+          margin: 2,
+          color: {
+            dark: "#000000",
+            light: "#FFFFFF",
+          },
+        })
+          .then(() => {
+            setQrUrl(canvasRef.current?.toDataURL("image/png") || "")
+          })
+          .catch((err) => {
+            console.error("Error generating QR code to canvas:", err)
+          })
+      } else {
+        QRCode.toDataURL(dataToUse, {
+          width: 250,
+          margin: 2,
+          color: {
+            dark: "#000000",
+            light: "#FFFFFF",
+          },
+        })
+          .then((url) => {
+            setQrUrl(url)
+          })
+          .catch((err) => {
+            console.error("Error generating QR code data URL:", err)
+          })
+      }
     })
-      .then((url) => {
-        setQrUrl(url)
-      })
-      .catch((err) => {
-        console.error("Error generating QR code:", err)
-      })
-  }, [bookingId, qrCodeData])
+  }, [bookingId, qrCodeData, mounted])
 
   const handleDownload = () => {
     if (!qrUrl) return
@@ -66,9 +92,9 @@ export function QrCodeDisplay({
   return (
     <Card className="space-y-4 p-6">
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700">Booking QR Code</Label>
+        <Label className="text-sm font-medium text-gray-700">Venue Access Pass</Label>
         <p className="text-xs text-gray-500">
-          Use this QR code to quickly identify and reference this booking
+          Present this QR code to the venue custodian to verify details and gain access.
         </p>
       </div>
 

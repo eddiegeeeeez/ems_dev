@@ -1,47 +1,34 @@
-*.log
-.DS_Store
-.env
-.env.backup
-.env.production
-.env.local
-.phpactor.json
-.phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
-
-# Dependencies - Backend (Laravel)
-/node_modules
-/vendor
-composer.lock
-
-# Dependencies - Frontend (Next.js)
-frontend/node_modules
-frontend/.next
-frontend/.turbo
-frontend/out
-frontend/dist
-frontend/build
-frontend/package-lock.json
-frontend/yarn.lock
-frontend/pnpm-lock.yaml
-
-# Build outputs
-/public/build
-/public/hot
-/public/storage
-/storage/*.key
-/storage/pail
-
-# Config files
-Homestead.json
-Homestead.yaml
-auth.json
+# Root level gitignore for the entire project
 
 # OS files
-Thumbs.db
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Build artifacts
+dist/
+build/

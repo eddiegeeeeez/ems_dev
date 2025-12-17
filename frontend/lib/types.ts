@@ -12,6 +12,7 @@ export interface User {
   college?: string
   position?: string
   isOnboarded?: boolean
+  created_at?: string
 }
 
 export interface Venue {
@@ -34,8 +35,14 @@ export interface Equipment {
   description: string
 }
 
+// Assuming BookingEquipment and BookingDocument are defined elsewhere or will be added.
+// For the purpose of this edit, we'll use the types as specified in the instruction.
+export type BookingEquipment = { equipmentId: string; quantity: number };
+export type BookingDocument = { name: string; url: string };
+
 export interface Booking {
   id: string
+  userId?: string
   organizerId: string
   venueId: string
   eventTitle: string
@@ -45,12 +52,29 @@ export interface Booking {
   startTime: string
   endTime: string
   expectedAttendees: number
-  equipment: { equipmentId: string; quantity: number }[]
-  documents: { name: string; url: string }[]
-  status: "pending" | "approved" | "rejected" | "cancelled" | "completed" | "resubmission"
+  equipment: BookingEquipment[]
+  documents?: BookingDocument[]
+  status: "pending" | "approved" | "rejected" | "completed" | "cancelled"
   createdAt: string
   updatedAt: string
   adminNotes?: string
+  rejectionReason?: string
+  qrCode?: string
+  // Nested objects from backend
+  venue?: {
+    id: string
+    name: string
+    location: string
+    capacity: number
+  }
+  user?: {
+    id: string
+    name: string
+    email: string
+    role: string
+    department?: string
+    college?: string
+  }
 }
 
 export interface Notification {
@@ -61,43 +85,29 @@ export interface Notification {
   type: "booking" | "approval" | "rejection"
   read: boolean
   createdAt: string
+  relatedId?: string
 }
 
-export interface MaintenanceRequest {
-  id: string
-  venueId: string
-  title: string
-  description: string
-  priority: "low" | "medium" | "high" | "critical"
-  status: "pending" | "in-progress" | "completed" | "cancelled"
-  reportedBy: string
-  assignedTo?: string
-  createdAt: string
-  completedAt?: string
+export interface Program {
+  id: number
+  collegeId: number
+  name: string
+  isActive: boolean
 }
 
-export interface ScheduledMaintenance {
-  id: string
-  venueId: string
-  title: string
-  description: string
-  scheduledDate: string
-  scheduledTime: string
-  estimatedDuration: string
-  status: "scheduled" | "in-progress" | "completed" | "cancelled"
-  assignedTo: string
-  createdAt: string
-}
-
-export interface Department {
+export interface College {
   id: string
   name: string
-  college: string
-  headOfDepartment: string
-  email: string
-  totalMembers: number
-  activeEvents: number
+  code: string
+  dean: string
+  description: string | null
+  programs?: Program[]
+  programsCount?: number
+  isActive: boolean
 }
+
+// Deprecated alias for backward compatibility until refactor is complete
+export type Department = College
 
 export interface AuditLog {
   id: string

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Upload, X } from 'lucide-react'
 import type { Venue } from "@/lib/types"
 
 interface EditVenueModalProps {
@@ -29,6 +30,7 @@ export interface EditVenueData {
   location: string
   description: string
   capacity: number
+  image?: File | null
 }
 
 export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading = false }: EditVenueModalProps) {
@@ -37,30 +39,60 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
     location: "",
     description: "",
     capacity: 0,
+    image: null,
   })
-
-  const handleClose = () => {
-    onOpenChange(false)
-  }
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (venue) {
-      console.log("[v0] Loading venue data for edit:", venue.id)
       setFormData({
         name: venue.name,
         location: venue.location,
         description: venue.description,
         capacity: venue.capacity,
+        image: null,
       })
+      setImagePreview(null)
     }
   }, [venue, open])
 
-  const handleConfirm = () => {
-    if (!formData.name || !formData.location || !formData.capacity) {
-      console.log("[v0] Form validation failed - missing required fields")
-      return
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        console.log("[v0] Invalid file type - must be an image")
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        console.log("[v0] File too large - max 5MB")
+        return
+      }
+
+      setFormData({ ...formData, image: file })
+      
+      // Create preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
     }
-    console.log("[v0] Updating venue:", venue?.id, "with data:", formData)
+  }
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image: null })
+    setImagePreview(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleConfirm = () => {
+    if (!formData.name || !formData.location || !formData.capacity) return
     onConfirm(formData)
     onOpenChange(false)
   }
@@ -75,85 +107,70 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
 
         <div className="space-y-4 py-4">
           <div>
-            <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Venue Name *
-            </Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => {
-                console.log("[v0] Venue name updated:", e.target.value)
-                setFormData({ ...formData, name: e.target.value })
-              }}
-              placeholder="e.g., Main Auditorium"
-              className="mt-1"
-            />
+            <Label htmlFor="name" className="text-sm font-medium text-gray-700">Venue Name *</Label>
+            <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g., Main Auditorium" className="mt-1" />
           </div>
 
           <div>
-            <Label htmlFor="location" className="text-sm font-medium text-gray-700">
-              Location *
-            </Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => {
-                console.log("[v0] Venue location updated:", e.target.value)
-                setFormData({ ...formData, location: e.target.value })
-              }}
-              placeholder="e.g., Building A, 3rd Floor"
-              className="mt-1"
-            />
+            <Label htmlFor="location" className="text-sm font-medium text-gray-700">Location *</Label>
+            <Input id="location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="e.g., Building A, 3rd Floor" className="mt-1" />
           </div>
 
           <div>
-            <Label htmlFor="capacity" className="text-sm font-medium text-gray-700">
-              Capacity (people) *
-            </Label>
-            <Input
-              id="capacity"
-              type="number"
-              value={formData.capacity || ""}
-              onChange={(e) => {
-                console.log("[v0] Venue capacity updated:", e.target.value)
-                setFormData({ ...formData, capacity: Number.parseInt(e.target.value) || 0 })
-              }}
-              placeholder="e.g., 100"
-              className="mt-1"
-            />
+            <Label htmlFor="capacity" className="text-sm font-medium text-gray-700">Capacity (people) *</Label>
+            <Input id="capacity" type="number" value={formData.capacity || ""} onChange={(e) => setFormData({ ...formData, capacity: Number.parseInt(e.target.value) || 0 })} placeholder="e.g., 100" className="mt-1" />
           </div>
 
           <div>
-            <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => {
-                console.log("[v0] Venue description updated")
-                setFormData({ ...formData, description: e.target.value })
-              }}
-              placeholder="Describe the venue..."
-              className="mt-1 min-h-20"
-            />
+            <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
+            <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Describe the venue..." className="mt-1 min-h-20" />
           </div>
 
+          <div>
+            <Label className="text-sm font-medium text-gray-700">
+              Venue Picture
+            </Label>
+            <div className="mt-2">
+              {imagePreview ? (
+                <div className="relative inline-block">
+                  <img 
+                    src={imagePreview} 
+                    alt="Venue preview" 
+                    className="max-w-sm max-h-60 rounded-lg object-cover border border-gray-200"
+                  />
+                  <button
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#c41e3a] hover:bg-red-50 transition"
+                >
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Click to upload venue picture</p>
+                  <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" disabled={isLoading}>
-              Cancel
-            </Button>
+            <Button variant="outline" disabled={isLoading}>Cancel</Button>
           </DialogClose>
-          <Button
-            onClick={handleConfirm}
-            disabled={!formData.name || !formData.location || !formData.capacity || isLoading}
-            className="bg-[#c41e3a] hover:bg-[#a01830] text-white"
-          >
-            {isLoading ? "Updating..." : "Update Venue"}
-          </Button>
+          <Button onClick={handleConfirm} disabled={!formData.name || !formData.location || !formData.capacity || isLoading} className="bg-[#c41e3a] hover:bg-[#a01830] text-white">{isLoading ? "Updating..." : "Update Venue"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

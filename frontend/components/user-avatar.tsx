@@ -1,6 +1,6 @@
 "use client"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User as UserIcon } from 'lucide-react'
 
 interface UserAvatarProps {
@@ -9,6 +9,7 @@ interface UserAvatarProps {
   avatar?: string
   size?: 'sm' | 'md' | 'lg' | 'xl'
   showInitials?: boolean
+  useImageUrl?: boolean
 }
 
 export function UserAvatar({
@@ -17,6 +18,7 @@ export function UserAvatar({
   avatar,
   size = 'md',
   showInitials = true,
+  useImageUrl = false,
 }: UserAvatarProps) {
   const sizeClasses = {
     sm: 'h-6 w-6 text-xs',
@@ -25,8 +27,17 @@ export function UserAvatar({
     xl: 'h-20 w-20 text-2xl',
   }
 
+  // Generate DiceBear avatar URL if useImageUrl is true
+  const getAvatarImageUrl = () => {
+    if (avatar && !useImageUrl) return undefined
+    if (avatar && useImageUrl) return avatar
+    if (useImageUrl && email) {
+      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email)}`
+    }
+    return undefined
+  }
+
   const getInitials = () => {
-    if (avatar) return avatar
     if (showInitials && name) {
       const parts = name.trim().split(' ')
       return parts.length > 1
@@ -36,8 +47,11 @@ export function UserAvatar({
     return 'U'
   }
 
+  const imageUrl = getAvatarImageUrl()
+
   return (
     <Avatar className={`${sizeClasses[size]} bg-[#8B1538] flex-shrink-0`}>
+      {imageUrl && <AvatarImage src={imageUrl} alt={name} className="object-cover" />}
       <AvatarFallback className="bg-[#8B1538] text-white font-bold">
         {getInitials()}
       </AvatarFallback>

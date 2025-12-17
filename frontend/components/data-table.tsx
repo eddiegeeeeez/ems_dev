@@ -67,6 +67,11 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
     },
+    initialState: {
+      pagination: {
+        pageSize: 8,
+      },
+    },
   })
 
   return (
@@ -107,20 +112,20 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-gray-50">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="font-medium text-sm text-gray-700">
+                    <TableHead key={header.id} className="font-semibold text-sm text-gray-900">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   )
                 })}
@@ -144,7 +149,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  No Data Found
                 </TableCell>
               </TableRow>
             )}

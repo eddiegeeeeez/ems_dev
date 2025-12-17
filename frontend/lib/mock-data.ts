@@ -1,38 +1,28 @@
-// Mock data for development
-// NOTE: Only user data is mocked. All other data should come from the backend API.
-
 import type { User } from "./types"
 
 export const mockUsers: User[] = [
   {
-    id: "user-1",
-    email: "edgar.garan@umindanao.edu.ph",
-    name: "Edgar Allain Sobremonte Garan",
-    role: "organizer",
-    department: "Bachelor of Science in Information Technology",
-    college: "College of Computer Studies",
-    position: "Event Organizer",
-    isOnboarded: true,
-    avatar: "EA",
+    id: "1",
+    name: "Admin User",
+    email: "admin@example.com",
+    role: "ADMIN",
+    avatar: "https://api.example.com/avatars/admin.jpg",
+    department: "Admin",
   },
   {
-    id: "admin-1",
-    email: "admin@umindanao.edu.ph",
-    name: "Maria Santos",
-    role: "admin",
-    department: "Facilities Management",
-    college: "University Administration",
-    position: "Facility Manager",
-    isOnboarded: true,
-    avatar: "MS",
+    id: "2",
+    name: "Event Organizer",
+    email: "organizer@example.com",
+    role: "ORGANIZER",
+    avatar: "https://api.example.com/avatars/organizer.jpg",
+    department: "Events",
   },
   {
-    id: "user-2",
-    email: "newuser@umindanao.edu.ph",
-    name: "John Doe",
-    role: "organizer",
-    isOnboarded: false,
-    avatar: "JD",
+    id: "3",
+    name: "Regular Organizer",
+    email: "organizer2@example.com",
+    role: "ORGANIZER",
+    avatar: "https://api.example.com/avatars/organizer2.jpg",
+    department: "Events",
   },
 ]
-

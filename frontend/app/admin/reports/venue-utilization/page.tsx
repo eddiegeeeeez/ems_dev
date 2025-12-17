@@ -2,44 +2,49 @@
 
 import { useState } from "react"
 import { useData } from "@/lib/data-context"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DataTable } from "@/components/data-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Calendar, TrendingUp, ChevronDown } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { MapPin, Calendar, TrendingUp, ArrowUpDown } from 'lucide-react'
 
-type ColumnVisibility = {
-  name: boolean
-  location: boolean
-  events: boolean
-  attendees: boolean
-  utilization: boolean
-  status: boolean
-}
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import { useBookingTrends } from "@/hooks/use-booking-trends"
+import { VenueUtilizationChart } from "@/components/venue-utilization-chart"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+const chartConfig = {
+  utilization: {
+    label: "Hours Booked",
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig
+
 
 export default function VenueUtilizationPage() {
   const { venues, bookings } = useData()
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
-    name: true,
-    location: true,
-    events: true,
-    attendees: true,
-    utilization: true,
-    status: true,
-  })
+  const { trendData, timeRange, setTimeRange } = useBookingTrends(bookings, 'hours')
+
 
   const getVenueStats = (venueId: string) => {
     const venueBookings = bookings.filter((b) => b.venueId === venueId && b.status === "approved")
     const totalEvents = venueBookings.length
     const totalAttendees = venueBookings.reduce((sum, b) => sum + b.expectedAttendees, 0)
-    
+
     // Calculate utilization percentage (assuming 30 days in a month, 10 hours per day)
     const totalHours = venueBookings.reduce((sum, b) => {
       const start = new Date(`${b.startDate}T${b.startTime}`)
@@ -56,13 +61,208 @@ export default function VenueUtilizationPage() {
     stats: getVenueStats(venue.id),
   }))
 
-  const totalUtilization = venueStats.reduce((sum, v) => sum + v.stats.utilization, 0) / venues.length
+  const totalUtilization = venues.length > 0
+    ? venueStats.reduce((sum, v) => sum + v.stats.utilization, 0) / venues.length
+    : 0
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF()
+
+    // Title
+    doc.setFontSize(20)
+    doc.text("Venue Utilization Report", 14, 22)
+    doc.setFontSize(10)
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30)
+
+    // Summary Statistics
+    doc.setFontSize(14)
+    doc.text("Summary", 14, 45)
+
+    const summaryData = [
+      ["Total Venues", venues.length.toString()],
+      ["Overall Utilization", `${totalUtilization.toFixed(1)}%`],
+      ["Active Bookings", bookings.filter(b => b.status === "approved").length.toString()]
+    ]
+
+    autoTable(doc, {
+      startY: 50,
+      head: [['Metric', 'Value']],
+      body: summaryData,
+      theme: 'striped',
+      headStyles: { fillColor: [139, 21, 56] }
+    })
+
+    // Venue Details Table
+    const tableRows = venueStats.map(venue => [
+      venue.name,
+      venue.location,
+      venue.stats.totalEvents,
+      venue.stats.totalAttendees,
+      `${venue.stats.utilization.toFixed(1)}%`,
+      venue.status
+    ])
+
+    doc.addPage()
+    doc.text("Detailed Venue Statistics", 14, 22)
+
+    autoTable(doc, {
+      startY: 30,
+      head: [['Venue Name', 'Location', 'Total Events', 'Attendees', 'Utilization', 'Status']],
+      body: tableRows,
+      theme: 'grid',
+      headStyles: { fillColor: [139, 21, 56] }
+    })
+
+    doc.save("venue_utilization_report.pdf")
+  }
+
+  /* Define columns for DataTable */
+  const columns = [
+    {
+      accessorKey: "name",
+      header: ({ column }: any) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold text-gray-900"
+          >
+            Venue Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }: any) => <div className="font-medium">{row.original.name}</div>
+    },
+    {
+      accessorKey: "location",
+      header: ({ column }: any) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold text-gray-900"
+          >
+            Location
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }: any) => (
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-gray-400" />
+          {row.original.location}
+        </div>
+      )
+    },
+    {
+      accessorKey: "stats.totalEvents",
+      header: ({ column }: any) => {
+        return (
+          <div className="flex justify-center">
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              className="h-auto p-0 font-semibold text-gray-900"
+            >
+              Total Events
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        )
+      },
+      cell: ({ row }: any) => (
+        <div className="flex items-center justify-center gap-2">
+          <Calendar className="w-4 h-4 text-gray-400" />
+          {row.original.stats.totalEvents}
+        </div>
+      )
+    },
+    {
+      accessorKey: "stats.totalAttendees",
+      header: ({ column }: any) => {
+        return (
+          <div className="text-center">
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              className="h-auto p-0 font-semibold text-gray-900"
+            >
+              Total Attendees
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        )
+      },
+      cell: ({ row }: any) => (
+        <div className="text-center">{row.original.stats.totalAttendees}</div>
+      )
+    },
+    {
+      accessorKey: "stats.utilization",
+      header: ({ column }: any) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold text-gray-900"
+          >
+            Utilization
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }: any) => (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 flex-shrink-0 text-gray-400" />
+            <span className="font-medium">{row.original.stats.utilization.toFixed(1)}%</span>
+          </div>
+          <Progress value={row.original.stats.utilization} className="w-32" />
+        </div>
+      )
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }: any) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold text-gray-900"
+          >
+            Status
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }: any) => (
+        <Badge
+          className={
+            row.original.status === "available"
+              ? "bg-transparent text-green-800"
+              : row.original.status === "maintenance"
+                ? "bg-transparent text-yellow-800"
+                : "bg-transparent text-gray-800"
+          }
+        >
+          {row.original.status}
+        </Badge>
+      )
+    }
+  ]
+
+  // Import DataTable locally if top-level import fails or assume top-level import
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Venue Utilization</h1>
-        <p className="text-gray-600 mt-1">Track venue usage and efficiency</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Venue Utilization</h1>
+          <p className="text-gray-600 mt-1">Track venue usage and efficiency</p>
+        </div>
+        <Button onClick={handleExportPDF} className="bg-[#8B1538] hover:bg-[#a01830] text-white">
+          Export Report
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -95,141 +295,22 @@ export default function VenueUtilizationPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Venue Statistics</CardTitle>
-            <CardDescription>Detailed breakdown of each venue's usage</CardDescription>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.name}
-                onCheckedChange={(checked) =>
-                  setColumnVisibility((prev) => ({ ...prev, name: checked }))
-                }
-              >
-                Venue Name
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.location}
-                onCheckedChange={(checked) =>
-                  setColumnVisibility((prev) => ({ ...prev, location: checked }))
-                }
-              >
-                Location
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.events}
-                onCheckedChange={(checked) =>
-                  setColumnVisibility((prev) => ({ ...prev, events: checked }))
-                }
-              >
-                Total Events
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.attendees}
-                onCheckedChange={(checked) =>
-                  setColumnVisibility((prev) => ({ ...prev, attendees: checked }))
-                }
-              >
-                Total Attendees
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.utilization}
-                onCheckedChange={(checked) =>
-                  setColumnVisibility((prev) => ({ ...prev, utilization: checked }))
-                }
-              >
-                Utilization
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.status}
-                onCheckedChange={(checked) =>
-                  setColumnVisibility((prev) => ({ ...prev, status: checked }))
-                }
-              >
-                Status
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {columnVisibility.name && <TableHead>Venue Name</TableHead>}
-                  {columnVisibility.location && <TableHead>Location</TableHead>}
-                  {columnVisibility.events && <TableHead>Total Events</TableHead>}
-                  {columnVisibility.attendees && <TableHead>Total Attendees</TableHead>}
-                  {columnVisibility.utilization && <TableHead>Utilization</TableHead>}
-                  {columnVisibility.status && <TableHead>Status</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {venueStats.map((venue) => (
-                  <TableRow key={venue.id}>
-                    {columnVisibility.name && (
-                      <TableCell className="font-medium">{venue.name}</TableCell>
-                    )}
-                    {columnVisibility.location && (
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-gray-400" />
-                          {venue.location}
-                        </div>
-                      </TableCell>
-                    )}
-                    {columnVisibility.events && (
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          {venue.stats.totalEvents}
-                        </div>
-                      </TableCell>
-                    )}
-                    {columnVisibility.attendees && (
-                      <TableCell className="text-center">{venue.stats.totalAttendees}</TableCell>
-                    )}
-                    {columnVisibility.utilization && (
-                      <TableCell>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                            <span className="font-medium">{venue.stats.utilization.toFixed(1)}%</span>
-                          </div>
-                          <Progress value={venue.stats.utilization} className="w-32" />
-                        </div>
-                      </TableCell>
-                    )}
-                    {columnVisibility.status && (
-                      <TableCell>
-                        <Badge
-                          className={
-                            venue.status === "available"
-                              ? "bg-transparent text-green-800"
-                              : venue.status === "maintenance"
-                              ? "bg-transparent text-yellow-800"
-                              : "bg-transparent text-gray-800"
-                          }
-                        >
-                          {venue.status}
-                        </Badge>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Utilization Trends Chart */}
+      <div className="mb-6">
+        <VenueUtilizationChart bookings={bookings} venues={venues} />
+      </div>
+
+
+
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Venue Statistics</h2>
+          <p className="text-sm text-gray-500">Detailed breakdown of each venue's usage</p>
+        </div>
+        <div>
+          <DataTable columns={columns} data={venueStats} searchKey="name" />
+        </div>
+      </div>
     </div>
   )
 }

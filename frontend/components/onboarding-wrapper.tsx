@@ -9,8 +9,8 @@ export function OnboardingWrapper({ children }: { children: React.ReactNode }) {
   const [showOnboarding, setShowOnboarding] = useState(false)
 
   useEffect(() => {
-    // Show onboarding modal for organizers who haven't completed onboarding
-    if (user && user.role === "ORGANIZER" && !user.isOnboarded) {
+    // Show onboarding modal for organizers who haven't set college and department
+    if (user && user.role === "ORGANIZER" && (!user.college || !user.department)) {
       console.log("[v0] User needs onboarding:", user.id)
       setShowOnboarding(true)
     } else {
@@ -23,7 +23,6 @@ export function OnboardingWrapper({ children }: { children: React.ReactNode }) {
     updateUserProfile({
       college,
       department,
-      isOnboarded: true,
       position: "Event Organizer", // Default position for new organizers
     })
     setShowOnboarding(false)

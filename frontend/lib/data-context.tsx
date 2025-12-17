@@ -2,8 +2,9 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import type { Venue, Equipment, Booking, Notification, User, MaintenanceRequest, ScheduledMaintenance, Department, AuditLog } from "./types"
+import type { Venue, Equipment, Booking, Notification, User, College, AuditLog } from "./types"
 import { mockUsers } from "./mock-data"
+import { useAuth } from "./auth-context"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
@@ -13,9 +14,7 @@ interface DataContextType {
   bookings: Booking[]
   notifications: Notification[]
   users: User[]
-  maintenanceRequests: MaintenanceRequest[]
-  scheduledMaintenance: ScheduledMaintenance[]
-  departments: Department[]
+  colleges: College[]
   auditLogs: AuditLog[]
   loading: boolean
   error: string | null
@@ -34,58 +33,133 @@ interface DataContextType {
     startTime: string,
     endTime: string,
   ) => boolean
+  addVenue: (venue: Venue) => void
+  updateVenue: (id: string, updates: Partial<Venue>) => void
+  refreshVenues: () => Promise<void>
+  refreshBookings: () => Promise<void>
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth()
   const [venues, setVenues] = useState<Venue[]>([])
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [users, setUsers] = useState<User[]>(mockUsers)
-  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([])
-  const [scheduledMaintenance, setScheduledMaintenance] = useState<ScheduledMaintenance[]>([])
-  const [departments, setDepartments] = useState<Department[]>([])
+  const [colleges, setColleges] = useState<College[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hasInitialized, setHasInitialized] = useState(false)
 
+  // CRITICAL: Only fetch data when authenticated
   useEffect(() => {
-    // Fetch data from backend API
     const fetchData = async () => {
+      // Don't fetch if still checking auth or not authenticated
+      if (authLoading || !isAuthenticated) {
+        // Clear data on logout
+        if (!authLoading && !isAuthenticated && hasInitialized) {
+          console.log('[DataProvider] Clearing data on logout')
+          setVenues([])
+          setEquipment([])
+          setBookings([])
+          setNotifications([])
+          setColleges([])
+          setAuditLogs([])
+          setLoading(false)
+          setError(null)
+        }
+        return
+      }
+
+      // Only initialize once and when authenticated
+      if (hasInitialized) {
+        return
+      }
+
       try {
         setLoading(true)
         setError(null)
 
         // Fetch venues
         try {
-          const venuesRes = await fetch(`${API_BASE_URL}/api/venues`)
+          const venuesRes = await fetch(`${API_BASE_URL}/api/venues`, {
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+          })
           if (venuesRes.ok) {
-            const venuesData = await venuesRes.json()
+            const response = await venuesRes.json()
+            // Handle both wrapped { success, data } and unwrapped [] formats
+            const venuesData = Array.isArray(response) ? response : (response.data || response.venues || [])
             setVenues(venuesData)
+            console.log('[DataProvider] Loaded venues:', venuesData.length)
+          } else {
+            console.warn('[DataProvider] Venues fetch failed:', venuesRes.status)
           }
         } catch (err) {
           console.warn("Failed to fetch venues:", err)
         }
 
-        // Fetch equipment
-        try {
-          const equipmentRes = await fetch(`${API_BASE_URL}/api/equipment`)
-          if (equipmentRes.ok) {
-            const equipmentData = await equipmentRes.json()
-            setEquipment(equipmentData)
+        // Fetch equipment (admin endpoint, only if user is admin)
+        if (user?.role === 'ADMIN') {
+          try {
+            const equipmentRes = await fetch(`${API_BASE_URL}/api/admin/equipment`, {
+              credentials: 'include',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+            })
+            if (equipmentRes.ok) {
+              const response = await equipmentRes.json()
+              // Handle paginated response: { equipment: { data: [...] } }
+              let equipmentData = []
+              if (response.equipment?.data) {
+                equipmentData = response.equipment.data
+              } else if (Array.isArray(response.equipment)) {
+                equipmentData = response.equipment
+              } else if (Array.isArray(response.data)) {
+                equipmentData = response.data
+              } else if (Array.isArray(response)) {
+                equipmentData = response
+              }
+              setEquipment(equipmentData)
+              console.log('[DataProvider] Loaded equipment:', equipmentData.length)
+            } else {
+              console.warn('[DataProvider] Equipment fetch failed:', equipmentRes.status)
+            }
+          } catch (err) {
+            console.warn("Failed to fetch equipment:", err)
           }
-        } catch (err) {
-          console.warn("Failed to fetch equipment:", err)
         }
 
         // Fetch bookings
         try {
-          const bookingsRes = await fetch(`${API_BASE_URL}/api/bookings`)
+          const bookingsRes = await fetch(`${API_BASE_URL}/api/bookings`, {
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+          })
           if (bookingsRes.ok) {
-            const bookingsData = await bookingsRes.json()
+            const response = await bookingsRes.json()
+            // Handle both wrapped { success, data } and unwrapped [] formats
+            let bookingsData = []
+            if (response.success && response.data) {
+              bookingsData = Array.isArray(response.data) ? response.data : []
+            } else if (Array.isArray(response)) {
+              bookingsData = response
+            }
             setBookings(bookingsData)
+            console.log('[DataProvider] Loaded bookings:', bookingsData.length)
+          } else {
+            console.warn('[DataProvider] Bookings fetch failed:', bookingsRes.status)
           }
         } catch (err) {
           console.warn("Failed to fetch bookings:", err)
@@ -93,58 +167,93 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
         // Fetch notifications
         try {
-          const notificationsRes = await fetch(`${API_BASE_URL}/api/notifications`)
+          const notificationsRes = await fetch(`${API_BASE_URL}/api/notifications`, {
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+          })
           if (notificationsRes.ok) {
-            const notificationsData = await notificationsRes.json()
+            const response = await notificationsRes.json()
+            const notificationsData = Array.isArray(response) ? response : (response.data || response.notifications || [])
             setNotifications(notificationsData)
+            console.log('[DataProvider] Loaded notifications:', notificationsData.length)
+          } else {
+            console.warn('[DataProvider] Notifications fetch failed:', notificationsRes.status)
           }
         } catch (err) {
           console.warn("Failed to fetch notifications:", err)
         }
 
-        // Fetch departments
-        try {
-          const departmentsRes = await fetch(`${API_BASE_URL}/api/departments`)
-          if (departmentsRes.ok) {
-            const departmentsData = await departmentsRes.json()
-            setDepartments(departmentsData)
+        // Fetch colleges (admin endpoint, only if user is admin)
+        if (user?.role === 'ADMIN') {
+          try {
+            const collegesRes = await fetch(`${API_BASE_URL}/api/admin/colleges`, {
+              credentials: 'include',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+            })
+            if (collegesRes.ok) {
+              const response = await collegesRes.json()
+              const collegesData = response.colleges || []
+              setColleges(collegesData)
+              console.log('[DataProvider] Loaded colleges:', collegesData.length)
+            } else {
+              console.warn('[DataProvider] Colleges fetch failed:', collegesRes.status)
+            }
+          } catch (err) {
+            console.warn("Failed to fetch colleges:", err)
           }
-        } catch (err) {
-          console.warn("Failed to fetch departments:", err)
         }
 
-        // Fetch maintenance requests
-        try {
-          const maintenanceRes = await fetch(`${API_BASE_URL}/api/maintenance-requests`)
-          if (maintenanceRes.ok) {
-            const maintenanceData = await maintenanceRes.json()
-            setMaintenanceRequests(maintenanceData)
+        // Fetch audit logs (admin endpoint, only if user is admin)
+        if (user?.role === 'ADMIN') {
+          try {
+            const auditRes = await fetch(`${API_BASE_URL}/api/admin/audit-logs`, {
+              credentials: 'include',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+            })
+            if (auditRes.ok) {
+              const response = await auditRes.json()
+              // Handle paginated response: { logs: { data: [...] } }
+              let auditData = []
+              if (response.logs?.data) {
+                auditData = response.logs.data
+              } else if (Array.isArray(response.logs)) {
+                auditData = response.logs
+              } else if (Array.isArray(response.data)) {
+                auditData = response.data
+              } else if (Array.isArray(response)) {
+                auditData = response
+              }
+              setAuditLogs(auditData)
+              console.log('[DataProvider] Loaded audit logs:', auditData.length)
+            } else {
+              console.warn('[DataProvider] Audit logs fetch failed:', auditRes.status)
+            }
+          } catch (err) {
+            console.warn("Failed to fetch audit logs:", err)
           }
-        } catch (err) {
-          console.warn("Failed to fetch maintenance requests:", err)
         }
 
-        // Fetch audit logs
-        try {
-          const auditRes = await fetch(`${API_BASE_URL}/api/audit-logs`)
-          if (auditRes.ok) {
-            const auditData = await auditRes.json()
-            setAuditLogs(auditData)
-          }
-        } catch (err) {
-          console.warn("Failed to fetch audit logs:", err)
-        }
+        setHasInitialized(true)
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : "Failed to fetch data"
         setError(errorMsg)
-        console.error("Error fetching data:", err)
+        console.error("[DataProvider] Error fetching data:", err)
       } finally {
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [])
+  }, [isAuthenticated, authLoading, hasInitialized, user?.role])
 
   const addBooking = (booking: Booking) => {
     setBookings((prev) => [...prev, booking])
@@ -157,7 +266,61 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       type: "booking",
       read: false,
       createdAt: new Date().toISOString(),
+      relatedId: booking.id,
     })
+  }
+
+  const addVenue = (venue: Venue) => {
+    setVenues((prev) => [...prev, venue])
+  }
+
+  const updateVenue = (id: string, updates: Partial<Venue>) => {
+    setVenues((prev) => prev.map((v) => (v.id === id ? { ...v, ...updates } : v)))
+  }
+
+  const refreshVenues = async () => {
+    try {
+      const venuesRes = await fetch(`${API_BASE_URL}/api/venues`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      })
+      if (venuesRes.ok) {
+        const response = await venuesRes.json()
+        const venuesData = Array.isArray(response) ? response : (response.data || response.venues || [])
+        setVenues(venuesData)
+        console.log("[v0] Venues refreshed from server:", venuesData.length)
+      }
+    } catch (err) {
+      console.warn("Failed to refresh venues:", err)
+    }
+  }
+
+  const refreshBookings = async () => {
+    try {
+      const bookingsRes = await fetch(`${API_BASE_URL}/api/bookings`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      })
+      if (bookingsRes.ok) {
+        const response = await bookingsRes.json()
+        let bookingsData = []
+        if (response.success && response.data) {
+          bookingsData = Array.isArray(response.data) ? response.data : []
+        } else if (Array.isArray(response)) {
+          bookingsData = response
+        }
+        setBookings(bookingsData)
+        console.log('[DataProvider] Bookings refreshed:', bookingsData.length)
+      }
+    } catch (err) {
+      console.warn('Failed to refresh bookings:', err)
+    }
   }
 
   const updateBooking = (id: string, updates: Partial<Booking>) => {
@@ -209,21 +372,23 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         bookings,
         notifications,
         users,
-        maintenanceRequests,
-        scheduledMaintenance,
-        departments,
+        colleges,
         auditLogs,
         loading,
         error,
         addBooking,
         updateBooking,
         cancelBooking,
+        addVenue,
+        updateVenue,
+        refreshVenues,
         addNotification,
         markNotificationAsRead,
         getVenueById,
         getBookingsByOrganizer,
         getBookingsByVenue,
         checkVenueAvailability,
+        refreshBookings,
       }}
     >
       {children}

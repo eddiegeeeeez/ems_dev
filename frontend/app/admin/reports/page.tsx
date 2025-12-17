@@ -23,7 +23,7 @@ import { Download, Calendar } from 'lucide-react'
 import { useState } from "react"
 
 export default function AdminReportsPage() {
-  const { bookings, venues, maintenanceRequests } = useData()
+  const { bookings, venues } = useData()
   const [timeRange, setTimeRange] = useState<"month" | "quarter" | "year">("month")
 
   // Calculate booking statistics
@@ -33,19 +33,6 @@ export default function AdminReportsPage() {
     pending: bookings.filter((b) => b.status === "pending").length,
     rejected: bookings.filter((b) => b.status === "rejected").length,
     completed: bookings.filter((b) => b.status === "completed").length,
-  }
-
-  // Calculate maintenance statistics
-  const maintenanceStats = {
-    total: maintenanceRequests.length,
-    pending: maintenanceRequests.filter((r) => r.status === "pending").length,
-    inProgress: maintenanceRequests.filter((r) => r.status === "in-progress").length,
-    completed: maintenanceRequests.filter((r) => r.status === "completed").length,
-    cancelled: maintenanceRequests.filter((r) => r.status === "cancelled").length,
-    critical: maintenanceRequests.filter((r) => r.priority === "critical").length,
-    high: maintenanceRequests.filter((r) => r.priority === "high").length,
-    medium: maintenanceRequests.filter((r) => r.priority === "medium").length,
-    low: maintenanceRequests.filter((r) => r.priority === "low").length,
   }
 
   // Venue utilization
@@ -83,22 +70,9 @@ export default function AdminReportsPage() {
       generatedAt: new Date().toISOString(),
       timeRange,
       bookingStats,
-      maintenanceStats,
       venueUtilization,
       bookingTrends,
       statusDistribution,
-      maintenanceRequests: maintenanceRequests.map((req) => ({
-        id: req.id,
-        venueId: req.venueId,
-        venueName: venues.find((v) => v.id === req.venueId)?.name,
-        title: req.title,
-        description: req.description,
-        priority: req.priority,
-        status: req.status,
-        reportedBy: req.reportedBy,
-        createdAt: req.createdAt,
-        completedAt: req.completedAt,
-      })),
     }
 
     const element = document.createElement("a")
@@ -194,84 +168,6 @@ export default function AdminReportsPage() {
               <p className="text-2xl font-bold text-blue-600">{bookingStats.completed}</p>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Maintenance Metrics */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Maintenance Management</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Issues</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-gray-900">{maintenanceStats.total}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-yellow-600">{maintenanceStats.pending}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">In Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-blue-600">{maintenanceStats.inProgress}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Completed</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-green-600">{maintenanceStats.completed}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Critical Priority</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-red-600">{maintenanceStats.critical}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">High Priority</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-orange-600">{maintenanceStats.high}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Medium Priority</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-yellow-600">{maintenanceStats.medium}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">Low Priority</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-blue-600">{maintenanceStats.low}</p>
-              </CardContent>
-            </Card>
-          </div>
         </div>
 
         {/* Charts */}

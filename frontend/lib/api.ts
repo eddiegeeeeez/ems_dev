@@ -9,7 +9,7 @@ class ApiClient {
 
   async fetch(endpoint: string, options: RequestInit = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const defaultOptions: RequestInit = {
       credentials: 'include',
       headers: {
@@ -128,13 +128,13 @@ class ApiClient {
   }
 
   async approveBooking(id: string) {
-    return this.fetch(`/admin/requests/${id}/approve`, {
+    return this.fetch(`/api/admin/requests/${id}/approve`, {
       method: 'POST',
     });
   }
 
   async rejectBooking(id: string, reason?: string) {
-    return this.fetch(`/admin/requests/${id}/reject`, {
+    return this.fetch(`/api/admin/requests/${id}/reject`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
     });
@@ -162,25 +162,6 @@ class ApiClient {
   async deleteEquipment(id: string) {
     return this.fetch(`/admin/equipment/${id}`, {
       method: 'DELETE',
-    });
-  }
-
-  // Maintenance
-  async getMaintenanceRequests() {
-    return this.fetch('/admin/maintenance/requests');
-  }
-
-  async createMaintenanceRequest(data: any) {
-    return this.fetch('/admin/maintenance/requests', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async updateMaintenanceStatus(id: string, status: string) {
-    return this.fetch(`/admin/maintenance/requests/${id}/status`, {
-      method: 'PUT',
-      body: JSON.stringify({ status }),
     });
   }
 

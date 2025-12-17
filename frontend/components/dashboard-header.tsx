@@ -1,7 +1,7 @@
 "use client"
 
 import { User } from "@/lib/types"
-import Image from "next/image"
+import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
 
 interface DashboardHeaderProps {
@@ -15,13 +15,6 @@ export function DashboardHeader({
   title,
   subtitle,
 }: DashboardHeaderProps) {
-  // Using a consistent avatar generator with the user's email as seed
-  const getAvatarUrl = (email: string) => {
-    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email)}`
-  }
-
-  const avatarUrl = user ? getAvatarUrl(user.email) : ""
-
   return (
     <div className="w-full px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
       <div className="space-y-6">
@@ -31,16 +24,13 @@ export function DashboardHeader({
             {/* Avatar */}
             {user && (
               <div className="flex-shrink-0">
-                <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-border shadow-md">
-                  <Image
-                    src={avatarUrl}
-                    alt={user.name}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                    priority
-                  />
-                </div>
+                <UserAvatar
+                  name={user.name}
+                  email={user.email}
+                  avatar={user.avatar}
+                  size="xl"
+                  useImageUrl={true}
+                />
               </div>
             )}
 
@@ -56,7 +46,7 @@ export function DashboardHeader({
                   </p>
                   <div className="flex items-center gap-2 mt-3">
                     <Badge variant="default">
-                      {user.role === "ADMIN" ? "Administrator" : "Student"}
+                      {user.role === "ADMIN" ? "Administrator" : "Organizer"}
                     </Badge>
                   </div>
                 </>

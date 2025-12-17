@@ -1,9 +1,9 @@
 "use client"
 
+import React, { useState, useEffect } from "react"
 import { useData } from "@/lib/data-context"
 import { AdminGuard } from "@/components/admin-guard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Table,
@@ -25,6 +25,16 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { TableSkeleton } from "@/components/skeletons"
 
 type ColumnVisibility = {
   id: boolean
@@ -37,11 +47,15 @@ type ColumnVisibility = {
 }
 
 export default function AdminRequestsPage() {
-  const { bookings, updateBooking, addNotification, venues, users, equipment } = useData()
+  const { updateBooking, addNotification, venues, users, equipment } = useData()
   const [filter, setFilter] = useState<"pending" | "approved" | "rejected">("pending")
-  const [selectedBooking, setSelectedBooking] = useState<typeof bookings[0] | null>(null)
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isScannerOpen, setIsScannerOpen] = useState(false)
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false)
+  const [processedDetails, setProcessedDetails] = useState<{ title: string; action: 'approved' | 'rejected' } | null>(null)
+  const [bookings, setBookings] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
     id: true,
     eventTitle: true,
@@ -52,42 +66,106 @@ export default function AdminRequestsPage() {
     actions: true,
   })
 
-  const filteredBookings = bookings.filter((b) => b.status === filter)
-
-  const handleApprove = (bookingId: string) => {
-    updateBooking(bookingId, { status: "approved", updatedAt: new Date().toISOString() })
-    const booking = bookings.find((b) => b.id === bookingId)
-    if (booking) {
-      addNotification({
-        id: `notif-${Date.now()}`,
-        userId: booking.organizerId,
-        title: "Booking Approved",
-        message: `Your event "${booking.eventTitle}" has been approved!`,
-        type: "approval",
-        read: false,
-        createdAt: new Date().toISOString(),
+  // Fetch bookings from admin endpoint with user information
+  const fetchAdminBookings = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/requests`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       })
+
+      if (response.status === 401 || response.status === 403) {
+        console.error("[AdminRequests] Authentication failed - please log in again")
+        alert("Session expired. Please log in again.")
+        window.location.href = '/'
+        return
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("[AdminRequests] API error:", response.status, errorText)
+        throw new Error(`Failed to fetch admin requests: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log("[AdminRequests] Fetched bookings:", data)
+
+      // Handle response format
+      const bookingsData = data.bookings || data.data || data || []
+      setBookings(bookingsData)
+    } catch (error) {
+      console.error("[AdminRequests] Error fetching bookings:", error)
+      setBookings([])
+    } finally {
+      setIsLoading(false)
     }
-    setIsModalOpen(false)
-    setSelectedBooking(null)
   }
 
-  const handleReject = (bookingId: string) => {
-    updateBooking(bookingId, { status: "rejected", updatedAt: new Date().toISOString() })
-    const booking = bookings.find((b) => b.id === bookingId)
-    if (booking) {
-      addNotification({
-        id: `notif-${Date.now()}`,
-        userId: booking.organizerId,
-        title: "Booking Rejected",
-        message: `Your event "${booking.eventTitle}" has been rejected.`,
-        type: "rejection",
-        read: false,
-        createdAt: new Date().toISOString(),
-      })
+  // Fetch on mount
+  useEffect(() => {
+    fetchAdminBookings()
+  }, [])
+
+  const filteredBookings = bookings.filter((b) => b.status === filter)
+
+  const handleApprove = async (bookingId: string) => {
+    try {
+      const { apiClient } = await import("@/lib/api")
+      await apiClient.approveBooking(bookingId)
+
+      // Refresh bookings from backend to get updated data
+      await fetchAdminBookings()
+
+      const booking = bookings.find((b) => b.id === bookingId)
+      if (booking) {
+        addNotification({
+          id: `notif-${Date.now()}`,
+          userId: booking.organizerId,
+          title: "Booking Approved",
+          message: `Your event "${booking.eventTitle}" has been approved!`,
+          type: "approval",
+          read: false,
+          createdAt: new Date().toISOString(),
+        })
+      }
+      setIsModalOpen(false)
+      setSelectedBooking(null)
+    } catch (error) {
+      console.error("Failed to approve booking:", error)
+      alert("Failed to approve booking. Please try again.")
     }
-    setIsModalOpen(false)
-    setSelectedBooking(null)
+  }
+
+  const handleReject = async (bookingId: string) => {
+    try {
+      const { apiClient } = await import("@/lib/api")
+      await apiClient.rejectBooking(bookingId, "Rejected from admin panel")
+
+      // Refresh bookings from backend to get updated data
+      await fetchAdminBookings()
+
+      const booking = bookings.find((b) => b.id === bookingId)
+      if (booking) {
+        addNotification({
+          id: `notif-${Date.now()}`,
+          userId: booking.organizerId,
+          title: "Booking Rejected",
+          message: `Your event "${booking.eventTitle}" has been rejected.`,
+          type: "rejection",
+          read: false,
+          createdAt: new Date().toISOString(),
+        })
+      }
+      setIsModalOpen(false)
+      setSelectedBooking(null)
+    } catch (error) {
+      console.error("Failed to reject booking:", error)
+      alert("Failed to reject booking. Please try again.")
+    }
   }
 
   const handleFilterChange = (value: string) => {
@@ -105,14 +183,19 @@ export default function AdminRequestsPage() {
   }
 
   const handleQrScanResult = (qrData: string) => {
-    // Extract booking ID from QR code data (format: UM-EVENT-ID-RANDOM)
-    const parts = qrData.split("-")
-    if (parts[0] === "UM" && parts[1] === "EVENT") {
-      const bookingId = parts[2]
-      const booking = bookings.find((b) => b.id === bookingId)
+    // Extract booking ID from QR code data (format: UM-EVENT-ID)
+    if (qrData.startsWith("UM-EVENT-")) {
+      const bookingId = qrData.replace("UM-EVENT-", "")
+      // Compare with string conversion since backend IDs are numbers
+      const booking = bookings.find((b) => String(b.id).toUpperCase() === bookingId.toUpperCase())
+
       if (booking) {
         handleOpenDetails(booking)
+      } else {
+        alert("Booking not found")
       }
+    } else {
+      alert("Invalid QR Code format")
     }
   }
 
@@ -220,25 +303,23 @@ export default function AdminRequestsPage() {
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          {columnVisibility.id && <TableHead className="font-medium text-sm text-gray-700">Request ID</TableHead>}
-                          {columnVisibility.eventTitle && <TableHead className="font-medium text-sm text-gray-700">Event Title</TableHead>}
-                          {columnVisibility.venue && <TableHead className="font-medium text-sm text-gray-700">Venue</TableHead>}
-                          {columnVisibility.organizer && <TableHead className="font-medium text-sm text-gray-700">Organizer</TableHead>}
-                          {columnVisibility.date && <TableHead className="font-medium text-sm text-gray-700">Date</TableHead>}
-                          {columnVisibility.status && <TableHead className="font-medium text-sm text-gray-700">Status</TableHead>}
-                          {columnVisibility.actions && <TableHead className="font-medium text-sm text-gray-700 text-center">Actions</TableHead>}
+                        <TableRow className="bg-gray-50 hover:bg-gray-50">
+                          {columnVisibility.id && <TableHead className="font-semibold text-sm text-gray-900">Request ID</TableHead>}
+                          {columnVisibility.eventTitle && <TableHead className="font-semibold text-sm text-gray-900">Event Title</TableHead>}
+                          {columnVisibility.venue && <TableHead className="font-semibold text-sm text-gray-900">Venue</TableHead>}
+                          {columnVisibility.organizer && <TableHead className="font-semibold text-sm text-gray-900">Organizer</TableHead>}
+                          {columnVisibility.date && <TableHead className="font-semibold text-sm text-gray-900">Date</TableHead>}
+                          {columnVisibility.status && <TableHead className="font-semibold text-sm text-gray-900">Status</TableHead>}
+                          {columnVisibility.actions && <TableHead className="font-semibold text-sm text-gray-900 text-center">Actions</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredBookings.map((booking) => {
-                          const venue = venues?.find((v) => v.id === booking.venueId)
-                          const organizer = users?.find((u) => u.id === booking.organizerId)
                           return (
                             <TableRow key={booking.id} className="hover:bg-gray-50">
                               {columnVisibility.id && (
                                 <TableCell className="font-mono text-xs text-gray-600">
-                                  {booking.id.toUpperCase()}
+                                  {String(booking.id).toUpperCase()}
                                 </TableCell>
                               )}
                               {columnVisibility.eventTitle && (
@@ -247,10 +328,10 @@ export default function AdminRequestsPage() {
                                 </TableCell>
                               )}
                               {columnVisibility.venue && (
-                                <TableCell className="text-sm text-gray-600">{venue?.name}</TableCell>
+                                <TableCell className="text-sm text-gray-600">{booking.venue?.name}</TableCell>
                               )}
                               {columnVisibility.organizer && (
-                                <TableCell className="text-sm text-gray-600">{organizer?.name}</TableCell>
+                                <TableCell className="text-sm text-gray-600">{booking.user?.name}</TableCell>
                               )}
                               {columnVisibility.date && (
                                 <TableCell className="text-sm text-gray-600">
@@ -261,9 +342,9 @@ export default function AdminRequestsPage() {
                                 <TableCell>
                                   <Status
                                     status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : "rejected"}
-                                    className={booking.status === "approved" ? "bg-transparent" : 
+                                    className={booking.status === "approved" ? "bg-transparent" :
                                       booking.status === "pending" ? "bg-transparent" :
-                                      booking.status === "rejected" ? "bg-transparent" : undefined}
+                                        booking.status === "rejected" ? "bg-transparent" : undefined}
                                   >
                                     <StatusIndicator />
                                     <StatusLabel />
@@ -288,6 +369,13 @@ export default function AdminRequestsPage() {
                             </TableRow>
                           )
                         })}
+                        {filteredBookings.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={Object.values(columnVisibility).filter(Boolean).length} className="h-24 text-center text-gray-500">
+                              No Data Found
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   </div>
@@ -312,6 +400,24 @@ export default function AdminRequestsPage() {
             onClose={() => setIsScannerOpen(false)}
             onScanResult={handleQrScanResult}
           />
+
+          <AlertDialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className={processedDetails?.action === 'approved' ? "text-green-600" : "text-red-600"}>
+                  Request Processed Successfully
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  The booking for <strong>"{processedDetails?.title}"</strong> has been {processedDetails?.action}.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction onClick={() => setSuccessDialogOpen(false)} className="bg-[#8B1538] hover:bg-[#6B0D28]">
+                  Dismiss
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </main>
     </AdminGuard>

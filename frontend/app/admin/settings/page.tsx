@@ -20,7 +20,7 @@ interface GeneralSettings {
 
 export default function SystemSettingsPage() {
   const { toast } = useToast()
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api"
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [showOTPModal, setShowOTPModal] = useState(false)

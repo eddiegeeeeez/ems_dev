@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { Lock, CheckCircle2, AlertCircle, Key, Shield, Trash2, Download } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { UM_COLLEGES } from "@/lib/um-data"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { OTPVerificationModal } from "@/components/otp-verification-modal"
+import { TwoFactorSetupModal } from "@/components/profile/two-factor-setup-modal"
 
 export default function ProfileContent() {
   const { user, logout } = useAuth()
@@ -32,23 +33,98 @@ export default function ProfileContent() {
     email: user?.email || "",
     department: user?.department || "",
     college: user?.college || "",
-    position: user?.position || "",
-    bio: ""
+    position: user?.position || ""
   })
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showOTPModal, setShowOTPModal] = useState(false)
-  const [pendingSaveData, setPendingSaveData] = useState<any>(null)
+
+  // Available Programs Logic
+  const selectedCollegeData = UM_COLLEGES.find(c => c.name === formData.college)
+  const availablePrograms = selectedCollegeData?.programs || []
+
   const [accountSettings, setAccountSettings] = useState({
-    accountVisibility: true,
-    emailNotifications: true,
-    pushNotifications: false,
-    marketingEmails: true,
-    weeklySummary: true,
     loginNotifications: true,
-    securityAlerts: true
   })
+
+  const [showTwoFactorModal, setShowTwoFactorModal] = useState(false)
+
+  const handleEnableTwoFactor = async (pin: string, password: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/profile/2fa/enable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          pin,
+          pin_confirmation: pin, // Controller expects confirmation
+          password
+        })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.message || 'Failed to enable 2FA')
+      }
+
+      toast({
+        title: "Success",
+        description: "Two-factor authentication has been enabled.",
+      })
+
+      // Update local user state if possible, effectively re-fetch user or update context
+      // For now we might need to rely on page reload or specific update if user object isn't automatically updated
+      window.location.reload()
+
+    } catch (error) {
+      throw error // Modal handles display
+    }
+  }
+
+  const handleDisableTwoFactor = async () => {
+    // In a real app we'd ask for password here too, but for simplicity/User Request we might skip or use a simple prompt
+    // The previous request implied a flow for enabling. For disabling, let's assume we just call the endpoint.
+    // However, the backend requires password. We should probably re-use the modal or a simple prompt.
+    // For now, let's keep it simple and maybe just alert the user they can't disable it easily without password UI, 
+    // OR we can use the same modal in a "DISABLE" mode? 
+    // The user request didn't specify disable flow details, but backend demands password.
+    // Let's use a simple prompt for now to get the password.
+
+    const password = prompt("Please enter your password to disable 2FA:")
+    if (!password) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/profile/2fa/disable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ password })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to disable 2FA')
+      }
+
+      toast({
+        title: "Success",
+        description: "Two-factor authentication disabled.",
+      })
+      window.location.reload()
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to disable 2FA. Check your password.",
+        variant: "destructive"
+      })
+    }
+  }
 
   useEffect(() => {
     if (user) {
@@ -57,8 +133,7 @@ export default function ProfileContent() {
         email: user.email,
         department: user.department || "",
         college: user.college || "",
-        position: user.position || "",
-        bio: ""
+        position: user.position || ""
       })
     }
   }, [user])
@@ -68,100 +143,49 @@ export default function ProfileContent() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSaveProfile = () => {
-    // Store the data and show OTP modal
-    console.log("Save button clicked, showing OTP modal")
-    setPendingSaveData({
-      name: formData.name,
-      department: formData.department,
-      college: formData.college,
-      position: formData.position,
-      bio: formData.bio
-    })
-    setShowOTPModal(true)
-    console.log("OTP modal state set to true")
-  }
-
-  const verifyAndSaveProfile = async (pin: string) => {
+  const handleSaveProfile = async () => {
     setIsSaving(true)
     try {
-      const token = localStorage.getItem('token')
-      
-      // In production, verify OTP with backend first
-      // For now, simulate verification
-      if (pin !== "123456") {
-        throw new Error('Invalid OTP')
-      }
-
-      const response = await fetch('/api/profile/update', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profile/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(pendingSaveData)
+        credentials: 'include', // Use Sanctum cookie authentication
+        body: JSON.stringify({
+          name: formData.name,
+          department: formData.department,
+          college: formData.college,
+          position: formData.position
+        })
       })
 
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Profile updated successfully",
-        })
-        setIsEditing(false)
-        setPendingSaveData(null)
-      } else {
-        throw new Error('Failed to update profile')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to update profile')
       }
-    } catch (error: any) {
-      if (error.message === 'Invalid OTP') {
-        throw error // Re-throw to be handled by OTP modal
-      }
+
+      const data = await response.json()
+
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      })
+
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Error updating profile:', error)
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive"
+        description: error instanceof Error ? error.message : "Failed to update profile. Please try again.",
+        variant: "destructive",
       })
-      throw error
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleExportData = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch('/api/profile/export', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
 
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `profile-data-${new Date().toISOString().split('T')[0]}.json`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-        
-        toast({
-          title: "Success",
-          description: "Your data has been exported successfully",
-        })
-      } else {
-        throw new Error('Failed to export data')
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to export data. Please try again.",
-        variant: "destructive"
-      })
-    }
-  }
 
   const handleDeleteAccount = async () => {
     try {
@@ -195,7 +219,7 @@ export default function ProfileContent() {
 
   const handleSettingChange = async (setting: string, value: boolean) => {
     setAccountSettings(prev => ({ ...prev, [setting]: value }))
-    
+
     try {
       const token = localStorage.getItem('token')
       const response = await fetch('/api/profile/settings', {
@@ -229,30 +253,25 @@ export default function ProfileContent() {
   return (
     <Tabs defaultValue="personal" className="space-y-6">
       <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full">
-        <TabsTrigger 
-          value="personal" 
+        <TabsTrigger
+          value="personal"
           className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1"
         >
           Personal
         </TabsTrigger>
-        <TabsTrigger 
-          value="account" 
+        <TabsTrigger
+          value="account"
           className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1"
         >
           Account
         </TabsTrigger>
-        <TabsTrigger 
-          value="security" 
+        <TabsTrigger
+          value="security"
           className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1"
         >
           Security
         </TabsTrigger>
-        <TabsTrigger 
-          value="notifications" 
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1"
-        >
-          Notifications
-        </TabsTrigger>
+
       </TabsList>
 
       {/* Personal Information Tab */}
@@ -305,56 +324,67 @@ export default function ProfileContent() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="position">Job Title</Label>
+                <Label htmlFor="role">Role</Label>
                 <Input
-                  id="position"
-                  name="position"
-                  value={formData.position}
-                  onChange={handleInputChange}
-                  placeholder="Senior Product Designer"
+                  id="role"
+                  name="role"
+                  value={user?.role === "ADMIN" ? "Administrator" : "Organizer"}
+                  disabled
+                  className="bg-gray-50"
+                  readOnly
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="college">College/Company</Label>
-                <Input
-                  id="college"
-                  name="college"
+                <Label htmlFor="college">College</Label>
+                <Select
                   value={formData.college}
-                  onChange={handleInputChange}
-                  placeholder="Acme Inc."
-                />
+                  onValueChange={(value) => {
+                    handleInputChange({ target: { name: 'college', value } } as any)
+                    // Reset department when college changes
+                    handleInputChange({ target: { name: 'department', value: '' } } as any)
+                  }}
+                >
+                  <SelectTrigger id="college" className="w-full">
+                    <SelectValue placeholder="Select college" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UM_COLLEGES.map((col) => (
+                      <SelectItem key={col.code} value={col.name}>
+                        {col.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="department">Department/Location</Label>
-                <Input
-                  id="department"
-                  name="department"
+                <Label htmlFor="department">Department</Label>
+                <Select
                   value={formData.department}
-                  onChange={handleInputChange}
-                  placeholder="San Francisco, CA"
-                />
+                  onValueChange={(value) => {
+                    handleInputChange({ target: { name: 'department', value } } as any)
+                  }}
+                  disabled={!formData.college}
+                >
+                  <SelectTrigger id="department" className="w-full">
+                    <SelectValue placeholder={formData.college ? "Select department" : "Select college first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availablePrograms.map((prog) => (
+                      <SelectItem key={prog} value={prog}>
+                        {prog}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                name="bio"
-                value={formData.bio}
-                onChange={handleInputChange}
-                rows={4}
-                placeholder="Passionate product designer with 8+ years of experience creating user-centered digital experiences. I love solving complex problems and turning ideas into beautiful, functional products."
-                className="resize-none"
-              />
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   // Reset form to original values
                   if (user) {
@@ -363,15 +393,14 @@ export default function ProfileContent() {
                       email: user.email,
                       department: user.department || "",
                       college: user.college || "",
-                      position: user.position || "",
-                      bio: ""
+                      position: user.position || ""
                     })
                   }
                 }}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleSaveProfile}
                 disabled={isSaving}
                 className="bg-[#8B1538] hover:bg-[#6B0D28]"
@@ -403,39 +432,7 @@ export default function ProfileContent() {
               </div>
             </div>
 
-            <Separator />
 
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">Account Visibility</p>
-                <p className="text-sm text-gray-600">Make your profile visible to other users</p>
-              </div>
-              <div className="flex-shrink-0 ml-4">
-                <Switch 
-                  checked={accountSettings.accountVisibility}
-                  onCheckedChange={(checked) => handleSettingChange('accountVisibility', checked)}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">Data Export</p>
-                <p className="text-sm text-gray-600">Download a copy of your data</p>
-              </div>
-              <div className="flex-shrink-0 ml-4">
-                <Button 
-                  variant="outline" 
-                  onClick={handleExportData}
-                  className="whitespace-nowrap h-9"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Data
-                </Button>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
@@ -451,8 +448,8 @@ export default function ProfileContent() {
                 <p className="text-sm text-red-700">Permanently delete your account and all data</p>
               </div>
               <div className="flex-shrink-0 ml-4">
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   className="bg-red-600 hover:bg-red-700 whitespace-nowrap h-9"
                   onClick={() => setShowDeleteDialog(true)}
                 >
@@ -500,22 +497,34 @@ export default function ProfileContent() {
                 <p className="font-medium text-gray-900">Two-Factor Authentication</p>
                 <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0" style={{minWidth: '210px'}}>
-                <span className="px-3 py-1.5 bg-green-100 text-green-700 text-sm font-medium rounded-full whitespace-nowrap">
-                  Enabled
-                </span>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    toast({
-                      title: "2FA Configuration",
-                      description: "Two-factor authentication is managed through your Google account",
-                    })
-                  }}
-                  className="whitespace-nowrap h-9"
-                >
-                  Configure
-                </Button>
+              <div className="flex items-center gap-3 flex-shrink-0" style={{ minWidth: '210px' }}>
+                {user?.two_factor_enabled_at ? (
+                  <>
+                    <span className="px-3 py-1.5 bg-green-100 text-green-700 text-sm font-medium rounded-full whitespace-nowrap">
+                      Enabled
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={handleDisableTwoFactor}
+                      className="whitespace-nowrap h-9 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                    >
+                      Disable
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <span className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-full whitespace-nowrap">
+                      Disabled
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowTwoFactorModal(true)}
+                      className="whitespace-nowrap h-9"
+                    >
+                      Enable
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -526,8 +535,8 @@ export default function ProfileContent() {
                 <p className="font-medium text-gray-900">Login Notifications</p>
                 <p className="text-sm text-gray-600">Get notified when someone logs into your account</p>
               </div>
-              <div className="flex-shrink-0 flex justify-end" style={{minWidth: '210px'}}>
-                <Switch 
+              <div className="flex-shrink-0 flex justify-end" style={{ minWidth: '210px' }}>
+                <Switch
                   checked={accountSettings.loginNotifications}
                   onCheckedChange={(checked) => handleSettingChange('loginNotifications', checked)}
                 />
@@ -541,9 +550,9 @@ export default function ProfileContent() {
                 <p className="font-medium text-gray-900">Active Sessions</p>
                 <p className="text-sm text-gray-600">Manage devices that are logged into your account</p>
               </div>
-              <div className="flex-shrink-0 flex justify-end" style={{minWidth: '210px'}}>
-                <Button 
-                  variant="outline" 
+              <div className="flex-shrink-0 flex justify-end" style={{ minWidth: '210px' }}>
+                <Button
+                  variant="outline"
                   onClick={() => {
                     toast({
                       title: "Active Sessions",
@@ -561,96 +570,10 @@ export default function ProfileContent() {
         </Card>
       </TabsContent>
 
-      {/* Notifications Tab */}
-      <TabsContent value="notifications" className="space-y-4">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Notification Preferences</CardTitle>
-            <CardDescription>Choose what notifications you want to receive.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-0">
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">Email Notifications</p>
-                <p className="text-sm text-gray-600">Receive notifications via email</p>
-              </div>
-              <div className="flex-shrink-0 ml-4">
-                <Switch 
-                  checked={accountSettings.emailNotifications}
-                  onCheckedChange={(checked) => handleSettingChange('emailNotifications', checked)}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">Push Notifications</p>
-                <p className="text-sm text-gray-600">Receive push notifications in your browser</p>
-              </div>
-              <div className="flex-shrink-0 ml-4">
-                <Switch 
-                  checked={accountSettings.pushNotifications}
-                  onCheckedChange={(checked) => handleSettingChange('pushNotifications', checked)}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">Marketing Emails</p>
-                <p className="text-sm text-gray-600">Receive emails about new features and updates</p>
-              </div>
-              <div className="flex-shrink-0 ml-4">
-                <Switch 
-                  checked={accountSettings.marketingEmails}
-                  onCheckedChange={(checked) => handleSettingChange('marketingEmails', checked)}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">Weekly Summary</p>
-                <p className="text-sm text-gray-600">Get a weekly summary of your activity</p>
-              </div>
-              <div className="flex-shrink-0 ml-4">
-                <Switch 
-                  checked={accountSettings.weeklySummary}
-                  onCheckedChange={(checked) => handleSettingChange('weeklySummary', checked)}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">Security Alerts</p>
-                <p className="text-sm text-gray-600">Important security notifications (always enabled)</p>
-              </div>
-              <div className="flex-shrink-0 ml-4">
-                <Switch 
-                  checked={accountSettings.securityAlerts}
-                  disabled
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <OTPVerificationModal
-        open={showOTPModal}
-        onOpenChange={setShowOTPModal}
-        onVerify={verifyAndSaveProfile}
-        title="Authorize Profile Changes"
-        description="Please verify your identity before saving changes to your profile."
+      <TwoFactorSetupModal
+        open={showTwoFactorModal}
+        onOpenChange={setShowTwoFactorModal}
+        onEnable={handleEnableTwoFactor}
       />
     </Tabs>
   )

@@ -3,6 +3,7 @@
 import { useData } from "@/lib/data-context"
 import { AdminGuard } from "@/components/admin-guard"
 import { Button } from "@/components/ui/button"
+import { toast } from 'sonner'
 import { DeactivationDialog } from "@/components/deactivation-dialog"
 import { AddVenueModal } from "@/components/add-venue-modal"
 import { EditVenueModal } from "@/components/edit-venue-modal"
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export default function AdminVenuesPage() {
-  const { venues, updateVenue, addVenue } = useData()
+  const { venues, updateVenue, addVenue, refreshVenues } = useData()
   const [deactivationOpen, setDeactivationOpen] = useState(false)
   const [addVenueOpen, setAddVenueOpen] = useState(false)
   const [editVenueOpen, setEditVenueOpen] = useState(false)
@@ -46,12 +47,75 @@ export default function AdminVenuesPage() {
       payload.append('location', venueData.location)
       payload.append('description', venueData.description)
       payload.append('capacity', venueData.capacity.toString())
-      payload.append('department_id', '1') // Default department
-      payload.append('hourly_rate', '0') // Default rate
+      payload.append('college_id', '1') // Default college
       if (venueData.image) payload.append('image', venueData.image)
 
-      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api"
+      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
+      // Ensure Sanctum CSRF cookie is present before making stateful POST
+      if (typeof window !== 'undefined') {
+        const getCookie = (name: string) => {
+          return document.cookie.split('; ').find((row) => row.startsWith(name + '='))?.split('=')[1]
+        }
+
+        const baseRoot = apiBase.replace(/\/api\/?$/, '')
+        if (!getCookie('XSRF-TOKEN')) {
+          await fetch(`${baseRoot}/sanctum/csrf-cookie`, {
+            credentials: 'include',
+            method: 'GET',
+          })
+        }
+
+        const xsrf = getCookie('XSRF-TOKEN') ? decodeURIComponent(getCookie('XSRF-TOKEN') as string) : ''
+
+        const response = await fetch(`${apiBase}/api/admin/venues`, {
+          method: 'POST',
+          body: payload,
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-XSRF-TOKEN': xsrf,
+          },
+        })
+
+        if (!response.ok) {
+          const text = await response.text().catch(() => '')
+          console.error('[v0] Create venue failed:', response.status, response.statusText, text)
+          if (response.status === 401 || response.status === 419) {
+            throw new Error('Authentication required. Please login again.')
+          }
+          let detail = text
+          try {
+            const parsed = JSON.parse(text)
+            detail = parsed.error ?? parsed.message ?? (parsed.errors ? JSON.stringify(parsed.errors) : JSON.stringify(parsed))
+          } catch (_) { }
+          throw new Error(detail || 'Failed to create venue')
+        }
+
+        const data = await response.json()
+
+        const newVenue: Venue = {
+          id: data.venue.id.toString(),
+          name: data.venue.name,
+          location: data.venue.location,
+          description: data.venue.description,
+          capacity: data.venue.capacity,
+          status: "available",
+          image: data.venue.image_url || "/elegant-wedding-venue.png",
+        }
+
+        addVenue(newVenue)
+        console.log("[v0] Venue created successfully:", newVenue.id)
+        toast.success('Venue created successfully')
+        setAddVenueOpen(false)
+        await refreshVenues()
+
+        setIsLoading(false)
+        return
+      }
+
+      // Fallback for non-browser environment (unlikely in this client component)
       const response = await fetch(`${apiBase}/admin/venues`, {
         method: 'POST',
         body: payload,
@@ -68,7 +132,12 @@ export default function AdminVenuesPage() {
         if (response.status === 401 || response.status === 419) {
           throw new Error('Authentication required. Please login again.')
         }
-        throw new Error('Failed to create venue')
+        let detail = text
+        try {
+          const parsed = JSON.parse(text)
+          detail = parsed.error ?? parsed.message ?? (parsed.errors ? JSON.stringify(parsed.errors) : JSON.stringify(parsed))
+        } catch (_) { }
+        throw new Error(detail || 'Failed to create venue')
       }
 
       const data = await response.json()
@@ -85,8 +154,12 @@ export default function AdminVenuesPage() {
 
       addVenue(newVenue)
       console.log("[v0] Venue created successfully:", newVenue.id)
-    } catch (err) {
+      toast.success('Venue created successfully')
+      setAddVenueOpen(false)
+      await refreshVenues()
+    } catch (err: any) {
       console.error("[v0] Error creating venue:", err)
+      toast.error(err?.message || 'Failed to create venue')
     } finally {
       setIsLoading(false)
     }
@@ -103,17 +176,77 @@ export default function AdminVenuesPage() {
     setIsLoading(true)
     console.log("[v0] Updating venue:", selectedVenue, "with data:", venueData)
 
-    setTimeout(() => {
-      updateVenue(selectedVenue, {
-        name: venueData.name,
-        location: venueData.location,
-        description: venueData.description,
-        capacity: venueData.capacity,
-      })
-      setIsLoading(false)
-      setSelectedVenue(null)
-      console.log("[v0] Venue updated successfully")
-    }, 500)
+      ; (async () => {
+        try {
+          const payload = new FormData()
+          payload.append('name', venueData.name)
+          payload.append('location', venueData.location)
+          payload.append('description', venueData.description || '')
+          payload.append('capacity', String(venueData.capacity))
+          payload.append('college_id', '1')
+          if ((venueData as any).image) payload.append('image', (venueData as any).image)
+
+          const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+
+          // Ensure Sanctum CSRF cookie present
+          if (typeof window !== 'undefined') {
+            const getCookie = (name: string) => {
+              return document.cookie.split('; ').find((row) => row.startsWith(name + '='))?.split('=')[1]
+            }
+
+            const baseRoot = apiBase.replace(/\/api\/?$/, '')
+            if (!getCookie('XSRF-TOKEN')) {
+              await fetch(`${baseRoot}/sanctum/csrf-cookie`, { credentials: 'include', method: 'GET' })
+            }
+
+            const xsrf = getCookie('XSRF-TOKEN') ? decodeURIComponent(getCookie('XSRF-TOKEN') as string) : ''
+
+            const response = await fetch(`${apiBase}/api/admin/venues/${selectedVenue}`, {
+              method: 'POST',
+              body: payload,
+              credentials: 'include',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-XSRF-TOKEN': xsrf,
+                // Note: do NOT set Content-Type for FormData
+              },
+            })
+
+            if (!response.ok) {
+              const text = await response.text().catch(() => '')
+              console.error('[v0] Update venue failed:', response.status, response.statusText, text)
+              let detail = text
+              try {
+                const parsed = JSON.parse(text)
+                detail = parsed.error ?? parsed.message ?? (parsed.errors ? JSON.stringify(parsed.errors) : JSON.stringify(parsed))
+              } catch (_) { }
+              throw new Error(detail || 'Failed to update venue')
+            }
+
+            const data = await response.json()
+
+            // Update local state with returned venue
+            updateVenue(selectedVenue, {
+              name: data.venue.name,
+              location: data.venue.location,
+              description: data.venue.description,
+              capacity: data.venue.capacity,
+              image: data.venue.image_url || undefined,
+            })
+
+            toast.success('Venue updated successfully')
+            console.log('[v0] Venue updated successfully:', selectedVenue)
+            await refreshVenues()
+          }
+        } catch (err: any) {
+          console.error('[v0] Error updating venue:', err)
+          toast.error(err?.message || 'Failed to update venue')
+        } finally {
+          setIsLoading(false)
+          setSelectedVenue(null)
+          setEditVenueOpen(false)
+        }
+      })()
   }
 
   const handleDeactivateClick = (venueId: string) => {
@@ -136,9 +269,7 @@ export default function AdminVenuesPage() {
 
     setTimeout(() => {
       updateVenue(selectedVenue, {
-        status: "unavailable",
-        deactivationReason: reason,
-        deactivationDescription: description,
+        status: "inactive",
       })
       setIsLoading(false)
       setSelectedVenue(null)
@@ -158,6 +289,7 @@ export default function AdminVenuesPage() {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold text-gray-900"
           >
             Venue Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -175,6 +307,7 @@ export default function AdminVenuesPage() {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold text-gray-900"
           >
             Location
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -195,6 +328,7 @@ export default function AdminVenuesPage() {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold text-gray-900"
           >
             Capacity
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -223,7 +357,7 @@ export default function AdminVenuesPage() {
     },
     {
       id: "actions",
-      header: () => <div className="text-center">Actions</div>,
+      header: "Actions",
       cell: ({ row }) => (
         <div className="flex justify-center">
           <DropdownMenu>
@@ -239,7 +373,7 @@ export default function AdminVenuesPage() {
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => handleDeactivateClick(row.original.id)}
                 className="text-red-600"
               >
@@ -271,9 +405,9 @@ export default function AdminVenuesPage() {
             </Button>
           </div>
 
-          <DataTable 
-            columns={columns} 
-            data={venues} 
+          <DataTable
+            columns={columns}
+            data={venues}
             searchKey="name"
             searchPlaceholder="Search venues..."
           />

@@ -172,11 +172,13 @@ export function QrScanner({ open, onClose, onScanResult }: QrScannerProps) {
 
           {scannerActive && (
             <>
-              <div className="relative bg-black rounded-lg overflow-hidden">
+              <div className="relative bg-black rounded-lg overflow-hidden h-80 flex items-center justify-center">
                 <video
                   ref={videoRef}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-full object-contain"
                   playsInline
+                  muted
+                  autoPlay
                 />
                 <canvas ref={canvasRef} className="hidden" />
 

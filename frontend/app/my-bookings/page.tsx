@@ -28,16 +28,58 @@ import {
 
 export default function MyBookingsPage() {
   const { isAuthenticated, isLoading, user } = useAuth()
-  const { bookings, getBookingsByOrganizer, getVenueById, cancelBooking } = useData()
+  const { getVenueById, cancelBooking } = useData()
   const router = useRouter()
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "completed">("all")
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [isLoadingBookings, setIsLoadingBookings] = useState(true)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/")
     }
   }, [isAuthenticated, isLoading, router])
+
+  // Fetch bookings from backend
+  useEffect(() => {
+    const fetchBookings = async () => {
+      if (!user) return
+
+      try {
+        setIsLoadingBookings(true)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/bookings`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error("[MyBookings] API error:", response.status, errorText)
+          throw new Error(`Failed to fetch bookings: ${response.status}`)
+        }
+
+        const data = await response.json()
+        console.log("[MyBookings] Fetched bookings:", data)
+
+        // Handle both array response and object with data property
+        const bookingsArray = Array.isArray(data) ? data : (data.data || data.bookings || [])
+        setBookings(bookingsArray)
+      } catch (error) {
+        console.error("[MyBookings] Error fetching bookings:", error)
+        setBookings([])
+      } finally {
+        setIsLoadingBookings(false)
+      }
+    }
+
+    if (user) {
+      fetchBookings()
+    }
+  }, [user])
 
   const handleFilterChange = (value: string) => {
     setFilter(value as typeof filter)
@@ -53,7 +95,7 @@ export default function MyBookingsPage() {
     router.push(`/venues/${venueId}`)
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingBookings) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -68,17 +110,15 @@ export default function MyBookingsPage() {
     return null
   }
 
-  const userBookings = getBookingsByOrganizer(user!.id)
-
   const filteredBookings =
     filter === "all"
-      ? userBookings
-      : userBookings.filter((b) => {
-          if (filter === "pending") return b.status === "pending"
-          if (filter === "approved") return b.status === "approved"
-          if (filter === "completed") return b.status === "completed"
-          return true
-        })
+      ? bookings
+      : bookings.filter((b) => {
+        if (filter === "pending") return b.status === "pending"
+        if (filter === "approved") return b.status === "approved"
+        if (filter === "completed") return b.status === "completed"
+        return true
+      })
 
   const columns: ColumnDef<Booking>[] = [
     {
@@ -200,7 +240,7 @@ export default function MyBookingsPage() {
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => handleCancelBooking(row.original.id, row.original.eventTitle)}
                     className="text-red-600"
                   >
@@ -218,63 +258,63 @@ export default function MyBookingsPage() {
 
   return (
     <ProtectedRoute requiredRole="organizer">
-    <div className="min-h-screen bg-gray-50">
-      <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Bookings</h1>
-          <p className="text-sm md:text-base text-gray-600 mt-2">View and manage your event reservations</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Bookings</h1>
+            <p className="text-sm md:text-base text-gray-600 mt-2">View and manage your event reservations</p>
+          </div>
+
+          <Tabs value={filter} onValueChange={handleFilterChange} className="w-full">
+            <TabsList className="mb-6 w-full grid grid-cols-2 sm:grid-cols-4 h-auto gap-1 bg-gray-200 p-1">
+              <TabsTrigger value="all" className="text-xs sm:text-sm py-2">
+                All ({bookings.length})
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="text-xs sm:text-sm py-2">
+                Pending ({bookings.filter((b) => b.status === "pending").length})
+              </TabsTrigger>
+              <TabsTrigger value="approved" className="text-xs sm:text-sm py-2">
+                Approved ({bookings.filter((b) => b.status === "approved").length})
+              </TabsTrigger>
+              <TabsTrigger value="completed" className="text-xs sm:text-sm py-2">
+                Completed ({bookings.filter((b) => b.status === "completed").length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value={filter} className="mt-0">
+              {filteredBookings.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-600 mb-4 text-sm md:text-base">No bookings found</p>
+                    <Link href="/venues">
+                      <Button className="w-full sm:w-auto bg-[#c41e3a] hover:bg-[#a01830] text-white">
+                        Browse Venues
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ) : (
+                <DataTable
+                  columns={columns}
+                  data={filteredBookings}
+                  searchKey="eventTitle"
+                  searchPlaceholder="Search bookings..."
+                />
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
 
-        <Tabs value={filter} onValueChange={handleFilterChange} className="w-full">
-          <TabsList className="mb-6 w-full grid grid-cols-2 sm:grid-cols-4 h-auto gap-1 bg-gray-200 p-1">
-            <TabsTrigger value="all" className="text-xs sm:text-sm py-2">
-              All ({userBookings.length})
-            </TabsTrigger>
-            <TabsTrigger value="pending" className="text-xs sm:text-sm py-2">
-              Pending ({userBookings.filter((b) => b.status === "pending").length})
-            </TabsTrigger>
-            <TabsTrigger value="approved" className="text-xs sm:text-sm py-2">
-              Approved ({userBookings.filter((b) => b.status === "approved").length})
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="text-xs sm:text-sm py-2">
-              Completed ({userBookings.filter((b) => b.status === "completed").length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={filter} className="mt-0">
-            {filteredBookings.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-600 mb-4 text-sm md:text-base">No bookings found</p>
-                  <Link href="/venues">
-                    <Button className="w-full sm:w-auto bg-[#c41e3a] hover:bg-[#a01830] text-white">
-                      Browse Venues
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              <DataTable 
-                columns={columns} 
-                data={filteredBookings} 
-                searchKey="eventTitle"
-                searchPlaceholder="Search bookings..."
-              />
-            )}
-          </TabsContent>
-        </Tabs>
+        {selectedBooking && (
+          <BookingDetailsModal
+            booking={selectedBooking}
+            open={!!selectedBooking}
+            onClose={() => setSelectedBooking(null)}
+            showActions={false}
+          />
+        )}
       </div>
-
-      {selectedBooking && (
-        <BookingDetailsModal
-          booking={selectedBooking}
-          open={!!selectedBooking}
-          onClose={() => setSelectedBooking(null)}
-          showActions={false}
-        />
-      )}
-    </div>
     </ProtectedRoute>
   )
 }

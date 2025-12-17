@@ -108,48 +108,40 @@ export function BookingForm({ venue, onSuccess }: BookingFormProps) {
         throw new Error("End time must be after start time")
       }
 
-      const isAvailable = checkVenueAvailability(
-        venue.id,
-        formData.startDate,
-        formData.endDate || formData.startDate,
-        formData.startTime,
-        formData.endTime,
-      )
-
-      if (!isAvailable) {
-        throw new Error("This venue is not available for the selected date and time")
-      }
-
-      const booking = {
-        id: `booking-${Date.now()}`,
-        organizerId: user!.id,
-        venueId: venue.id,
-        eventTitle: formData.eventTitle,
-        eventDescription: formData.eventDescription,
-        startDate: formData.startDate,
-        endDate: formData.endDate || formData.startDate,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        expectedAttendees: Number.parseInt(formData.expectedAttendees) || 0,
+      // Prepare booking data for backend
+      const bookingData = {
+        venue_id: venue.id,
+        event_title: formData.eventTitle,
+        event_description: formData.eventDescription || null,
+        start_datetime: `${formData.startDate} ${formData.startTime}:00`,
+        end_datetime: `${formData.endDate || formData.startDate} ${formData.endTime}:00`,
+        expected_attendees: Number.parseInt(formData.expectedAttendees) || 1,
         equipment: Object.entries(selectedEquipment).map(([equipmentId, quantity]) => ({
-          equipmentId,
-          quantity,
+          equipment_id: equipmentId,
+          quantity: quantity,
         })),
-        documents: uploadedFile
-          ? [
-              {
-                name: uploadedFile.name,
-                url: URL.createObjectURL(uploadedFile),
-              },
-            ]
-          : [],
-        status: "pending" as const,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       }
 
-      console.log("[v0] Booking submitted:", booking)
-      addBooking(booking)
+      console.log("[BookingForm] Submitting booking:", bookingData)
+
+      // Call backend API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/bookings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Use Sanctum cookie authentication
+        body: JSON.stringify(bookingData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to create booking')
+      }
+
+      const result = await response.json()
+      console.log("[BookingForm] Booking created successfully:", result)
+
       setSuccess(true)
       setFormData({
         eventTitle: "",
@@ -167,6 +159,7 @@ export function BookingForm({ venue, onSuccess }: BookingFormProps) {
         onSuccess?.()
       }, 2000)
     } catch (err) {
+      console.error("[BookingForm] Error:", err)
       setError(err instanceof Error ? err.message : "Failed to create booking")
     } finally {
       setIsLoading(false)

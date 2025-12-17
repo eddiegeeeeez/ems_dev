@@ -93,16 +93,7 @@ export function Header() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem disabled>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{user?.name}</span>
-                  <span className="text-xs text-gray-500">{user?.email}</span>
-                  <span className="text-xs text-[#c41e3a] font-semibold mt-1 uppercase">
-                    {user?.role === "ADMIN" ? "Facility Manager" : "Event Organizer"}
-                  </span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+
               <DropdownMenuItem asChild>
                 <Link href="/profile" onClick={() => console.log("[v0] Navigating to profile")}>
                   Profile

@@ -173,14 +173,14 @@ export default function EquipmentUsagePage() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  {columnVisibility.name && <TableHead>Equipment Name</TableHead>}
-                  {columnVisibility.category && <TableHead>Category</TableHead>}
-                  {columnVisibility.quantity && <TableHead>Total Quantity</TableHead>}
-                  {columnVisibility.available && <TableHead>Available</TableHead>}
-                  {columnVisibility.inUse && <TableHead>In Use</TableHead>}
-                  {columnVisibility.usageCount && <TableHead>Usage Count</TableHead>}
-                  {columnVisibility.utilization && <TableHead>Utilization</TableHead>}
+                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                  {columnVisibility.name && <TableHead className="font-semibold text-sm text-gray-900">Equipment Name</TableHead>}
+                  {columnVisibility.category && <TableHead className="font-semibold text-sm text-gray-900">Category</TableHead>}
+                  {columnVisibility.quantity && <TableHead className="font-semibold text-sm text-gray-900">Total Quantity</TableHead>}
+                  {columnVisibility.available && <TableHead className="font-semibold text-sm text-gray-900">Available</TableHead>}
+                  {columnVisibility.inUse && <TableHead className="font-semibold text-sm text-gray-900">In Use</TableHead>}
+                  {columnVisibility.usageCount && <TableHead className="font-semibold text-sm text-gray-900">Usage Count</TableHead>}
+                  {columnVisibility.utilization && <TableHead className="font-semibold text-sm text-gray-900">Utilization</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/lib/auth-context"
 import { useData } from "@/lib/data-context"
-import { AdminGuard } from "@/components/admin-guard"
+import { ProtectedRoute } from "@/components/protected-route"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,17 +10,47 @@ import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/
 import { Calendar, CheckCircle, Clock, AlertCircle, TrendingUp, AlertTriangle, Building2, FileText, BarChart3, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { DashboardHeader } from "@/components/dashboard-header"
+import { PendingBookingRow } from "@/components/pending-booking-row"
 
-export default function AdminDashboardPage() {
+import { useBookingTrends } from "@/hooks/use-booking-trends"
+import { VenueUtilizationChart } from "@/components/venue-utilization-chart"
+
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+const chartConfig = {
+  bookings: {
+    label: "Bookings",
+    color: "var(--chart-1)",
+  },
+  utilization: {
+    label: "Hours",
+    color: "var(--chart-2)",
+  },
+} satisfies ChartConfig
+
+function AdminDashboardContent() {
   const { user } = useAuth()
   const { bookings, venues } = useData()
   const router = useRouter()
+  const { trendData, timeRange, setTimeRange } = useBookingTrends(bookings)
 
   const pendingBookings = bookings.filter((b) => b.status === "pending")
   const approvedBookings = bookings.filter((b) => b.status === "approved")
   const rejectedBookings = bookings.filter((b) => b.status === "rejected")
   const completedBookings = bookings.filter((b) => b.status === "completed")
-  const maintenanceVenues = venues.filter((v) => v.status === "maintenance")
 
   const approvalRate = bookings.length > 0 ? ((approvedBookings.length / bookings.length) * 100).toFixed(1) : "0"
 
@@ -36,7 +66,7 @@ export default function AdminDashboardPage() {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
       return bookingDate >= thirtyDaysAgo
     })
-    
+
     // Calculate utilization percentage (mock calculation)
     const totalSlots = venues.length * 30 * 3 // venues * days * slots per day
     const bookedSlots = last30Days.length
@@ -46,241 +76,224 @@ export default function AdminDashboardPage() {
   const utilizationPercent = getVenueUtilization()
 
   return (
-    <AdminGuard>
-      <main className="min-h-screen bg-gray-50">
-        <DashboardHeader
-          user={user}
-        />
+    <main className="min-h-screen bg-gray-50">
+      <DashboardHeader
+        user={user}
+      />
 
-        <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
-          {(pendingBookings.length > 5 || maintenanceVenues.length > 0) && (
-            <Card className="mb-6 border-l-4 border-l-yellow-500 bg-yellow-50">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                  <CardTitle className="text-base text-yellow-900">Critical System Alerts</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {maintenanceVenues.length > 0 && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-yellow-800 text-right flex-1">{maintenanceVenues.length} Venues Under Maintenance</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => router.push("/admin/maintenance")}
-                      className="text-xs"
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                )}
-                {pendingBookings.length > 5 && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-yellow-800 text-right flex-1">{pendingBookings.length} Pending Requests Require Attention</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => router.push("/admin/requests")}
-                      className="text-xs"
-                    >
-                      Review Now
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+      <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 md:mb-8">
-            <Card 
-              className="hover:shadow-lg transition-all cursor-pointer"
-              onClick={() => handleCardClick("/admin/reports/booking-statistics", "Total Bookings")}
-            >
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Bookings</CardTitle>
-                <Calendar className="w-4 h-4 text-gray-600" />
-              </CardHeader>
-              <CardContent className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{bookings.length}</div>
-                <p className="text-left text-sm text-green-600 mt-1">
-                  <TrendingUp className="w-3 h-3 inline mr-1" />
-                  +12% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className="hover:shadow-lg transition-all cursor-pointer"
-              onClick={() => handleCardClick("/admin/reports/booking-statistics", "Approval Rate")}
-            >
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Approval Rate</CardTitle>
-                <BarChart3 className="w-4 h-4 text-gray-600" />
-              </CardHeader>
-              <CardContent className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{approvalRate}%</div>
-                <p className="text-left text-sm text-gray-600 mt-1">{approvedBookings.length} approved bookings</p>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className="hover:shadow-lg transition-all cursor-pointer"
-              onClick={() => handleCardClick("/admin/requests", "Pending Requests")}
-            >
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Pending Requests</CardTitle>
-                <Clock className="w-4 h-4 text-gray-600" />
-              </CardHeader>
-              <CardContent className="text-right">
-                <div className="text-3xl font-bold text-amber-600">{pendingBookings.length}</div>
-                <p className="text-left text-sm text-gray-600 mt-1">Awaiting review</p>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className="hover:shadow-lg transition-all cursor-pointer"
-              onClick={() => handleCardClick("/admin/calendar", "Completed Events")}
-            >
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Completed Events</CardTitle>
-                <Users className="w-4 h-4 text-gray-600" />
-              </CardHeader>
-              <CardContent className="text-right">
-                <div className="text-3xl font-bold text-green-600">{completedBookings.length}</div>
-                <p className="text-left text-sm text-gray-600 mt-1">Successfully held</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 md:mb-8">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg md:text-xl">Venue Utilization</CardTitle>
-                    <CardDescription className="text-xs md:text-sm">Last 30 days performance</CardDescription>
-                  </div>
-                  <TrendingUp className="h-5 w-5 text-[#4caf50]" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Overall Utilization</span>
-                      <span className="text-2xl font-bold text-[#c41e3a] text-right block">{utilizationPercent}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div
-                        className="bg-[#c41e3a] h-3 rounded-full transition-all"
-                        style={{ width: `${utilizationPercent}%` }}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Mini bar chart representation */}
-                  <div className="grid grid-cols-7 gap-2 mt-4">
-                    {[65, 80, 45, 90, 70, 55, 85].map((height, i) => (
-                      <div key={i} className="flex flex-col items-center gap-1">
-                        <div className="w-full bg-gray-200 rounded-t" style={{ height: '100px', position: 'relative' }}>
-                          <div
-                            className="absolute bottom-0 w-full bg-[#c41e3a] rounded-t transition-all"
-                            style={{ height: `${height}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <Button
-                    onClick={() => router.push("/admin/reports/venue-utilization")}
-                    variant="outline"
-                    className="w-full mt-4"
-                  >
-                    View Detailed Report
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg md:text-xl">Quick Actions</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Common administrative tasks</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  onClick={() => router.push("/admin/requests")}
-                  className="w-full bg-[#c41e3a] hover:bg-[#a01830] text-white justify-start"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Review {pendingBookings.length} Pending Requests
-                </Button>
-                <Button
-                  onClick={() => router.push("/admin/calendar")}
-                  className="w-full bg-[#4caf50] hover:bg-[#45a049] text-white justify-start"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  View Venue Calendar
-                </Button>
-                <Button
-                  onClick={() => router.push("/admin/venues")}
-                  className="w-full bg-[#1a1a2e] hover:bg-[#0f0f1a] text-white justify-start"
-                >
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Manage Venues
-                </Button>
-                <Button
-                  onClick={() => router.push("/admin/maintenance")}
-                  variant="outline"
-                  className="w-full justify-start"
-                >
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Maintenance Schedule
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg md:text-xl">Recent Bookings</CardTitle>
-              <CardDescription className="text-xs md:text-sm">Latest booking requests and approvals</CardDescription>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 md:mb-8">
+          <Card
+            className="hover:shadow-lg transition-all cursor-pointer"
+            onClick={() => handleCardClick("/admin/reports/booking-statistics", "Total Bookings")}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Bookings</CardTitle>
+              <Calendar className="w-4 h-4 text-gray-600" />
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3 sm:space-y-4">
-                {bookings.slice(0, 5).map((booking) => (
-                  <div
-                    key={booking.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 border-b pb-3 sm:pb-4 last:border-b-0"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 text-sm md:text-base truncate">{booking.eventTitle}</h3>
-                      <p className="text-xs md:text-sm text-gray-600">
-                        {new Date(booking.startDate).toLocaleDateString()} at {booking.startTime}
-                      </p>
-                    </div>
-                    <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}
-                       className={booking.status === "approved" ? "bg-transparent" : 
-                        booking.status === "pending" ? "bg-transparent" :
-                        booking.status === "completed" ? "bg-transparent" : "bg-transparent"
-                       } >
-                      <StatusIndicator/>
-                      <StatusLabel />
-                    </Status>
-                  </div>
-                ))}
-              </div>
+            <CardContent className="text-right">
+              <div className="text-3xl font-bold text-gray-900">{bookings.length}</div>
+              <p className="text-left text-sm text-green-600 mt-1">
+                <TrendingUp className="w-3 h-3 inline mr-1" />
+                +12% from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="hover:shadow-lg transition-all cursor-pointer"
+            onClick={() => handleCardClick("/admin/reports/booking-statistics", "Approval Rate")}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Approval Rate</CardTitle>
+              <BarChart3 className="w-4 h-4 text-gray-600" />
+            </CardHeader>
+            <CardContent className="text-right">
+              <div className="text-3xl font-bold text-gray-900">{approvalRate}%</div>
+              <p className="text-left text-sm text-gray-600 mt-1">{approvedBookings.length} approved bookings</p>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="hover:shadow-lg transition-all cursor-pointer"
+            onClick={() => handleCardClick("/admin/requests", "Pending Requests")}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Pending Requests</CardTitle>
+              <Clock className="w-4 h-4 text-gray-600" />
+            </CardHeader>
+            <CardContent className="text-right">
+              <div className="text-3xl font-bold text-amber-600">{pendingBookings.length}</div>
+              <p className="text-left text-sm text-gray-600 mt-1">Awaiting review</p>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="hover:shadow-lg transition-all cursor-pointer"
+            onClick={() => handleCardClick("/admin/calendar", "Completed Events")}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Completed Events</CardTitle>
+              <Users className="w-4 h-4 text-gray-600" />
+            </CardHeader>
+            <CardContent className="text-right">
+              <div className="text-3xl font-bold text-green-600">{completedBookings.length}</div>
+              <p className="text-left text-sm text-gray-600 mt-1">Successfully held</p>
             </CardContent>
           </Card>
         </div>
-      </main>
-    </AdminGuard>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 md:mb-8">
+          {/* Booking Trends Chart - NEW */}
+          <Card className="col-span-1 lg:col-span-2">
+            <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+              <div className="grid flex-1 gap-1">
+                <CardTitle className="text-lg md:text-xl">Booking Trends</CardTitle>
+                <CardDescription className="text-xs md:text-sm">
+                  Showing total bookings for the selected period
+                </CardDescription>
+              </div>
+              <Select value={timeRange} onValueChange={(val: any) => setTimeRange(val)}>
+                <SelectTrigger className="w-[160px] rounded-lg sm:ml-auto">
+                  <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="week" className="rounded-lg">
+                    Last 7 days
+                  </SelectItem>
+                  <SelectItem value="month" className="rounded-lg">
+                    Last 30 days
+                  </SelectItem>
+                  <SelectItem value="year" className="rounded-lg">
+                    Last 12 months
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </CardHeader>
+            <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+              <ChartContainer
+                config={chartConfig}
+                className="aspect-auto h-[250px] w-full"
+              >
+                <AreaChart
+                  data={trendData}
+                  margin={{
+                    left: 12,
+                    right: 12,
+                  }}
+                >
+                  <defs>
+                    <linearGradient id="fillBookings" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-bookings)"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-bookings)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    minTickGap={32}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    width={30}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <Area
+                    dataKey="value"
+                    type="monotone"
+                    fill="url(#fillBookings)"
+                    stroke="var(--color-bookings)"
+                    stackId="a"
+                  />
+                </AreaChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          <div className="col-span-1">
+            <VenueUtilizationChart bookings={bookings} venues={venues} />
+          </div>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg md:text-xl">Quick Actions</CardTitle>
+              <CardDescription className="text-xs md:text-sm">Common administrative tasks</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button
+                onClick={() => router.push("/admin/requests")}
+                className="w-full bg-[#c41e3a] hover:bg-[#a01830] text-white justify-start"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Review {pendingBookings.length} Pending Requests
+              </Button>
+              <Button
+                onClick={() => router.push("/admin/calendar")}
+                className="w-full bg-[#4caf50] hover:bg-[#45a049] text-white justify-start"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                View Venue Calendar
+              </Button>
+              <Button
+                onClick={() => router.push("/admin/venues")}
+                className="w-full bg-[#1a1a2e] hover:bg-[#0f0f1a] text-white justify-start"
+              >
+                <Building2 className="h-4 w-4 mr-2" />
+                Manage Venues
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Pending Requests - Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg md:text-xl">Pending Requests</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Recent requests awaiting your approval</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {pendingBookings.length === 0 ? (
+              <div className="text-center py-8 md:py-12">
+                <CheckCircle className="h-12 w-12 text-green-300 mx-auto mb-3" />
+                <p className="text-gray-600">All caught up! No pending requests.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 sm:space-y-4">
+                {pendingBookings.slice(0, 5).map((booking) => (
+                  <PendingBookingRow key={booking.id} booking={booking} />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+      </div>
+    </main>
+  )
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <ProtectedRoute requiredRole="admin" redirectTo="/login">
+      <AdminDashboardContent />
+    </ProtectedRoute>
   )
 }

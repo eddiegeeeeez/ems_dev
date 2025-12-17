@@ -6,15 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Calendar, FileText, CheckCircle, Clock } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { ProtectedRoute } from "@/components/protected-route"
 
-export default function DashboardPage() {
-  const { user } = useAuth()
+function DashboardContent() {
+  const { user, isLoading: authLoading } = useAuth()
   const { bookings, getBookingsByOrganizer } = useData()
 
+  const isLoading = authLoading || !user
   const userBookings = user?.role === "ORGANIZER" ? getBookingsByOrganizer(user.id) : []
   const pendingCount = userBookings.filter((b) => b.status === "pending").length
   const approvedCount = userBookings.filter((b) => b.status === "approved").length
@@ -31,7 +33,6 @@ export default function DashboardPage() {
   }
 
   return (
-    <ProtectedRoute requiredRole="organizer">
     <main className="min-h-screen bg-gray-50">
       <DashboardHeader
         user={user}
@@ -40,38 +41,77 @@ export default function DashboardPage() {
       <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
         {/* Stats Cards - Responsive Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 md:mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Bookings</CardTitle>
-              <Calendar className="w-4 h-4 text-gray-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-end text-3xl font-bold text-gray-900">{totalCount}</div>
-              <p className="text-sm text-gray-600 mt-1">All your bookings</p>
-            </CardContent>
-          </Card>
+          {isLoading ? (
+            // Skeleton loading state for stats cards
+            <>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-16 mb-2" />
+                  <Skeleton className="h-3 w-32" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-16 mb-2" />
+                  <Skeleton className="h-3 w-32" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-16 mb-2" />
+                  <Skeleton className="h-3 w-32" />
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            // Actual content
+            <>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Total Bookings</CardTitle>
+                  <Calendar className="w-4 h-4 text-gray-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-end text-3xl font-bold text-gray-900">{totalCount}</div>
+                  <p className="text-sm text-gray-600 mt-1">All your bookings</p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending Approval</CardTitle>
-              <Clock className="w-4 h-4 text-gray-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-end text-3xl font-bold text-amber-600">{pendingCount}</div>
-              <p className="text-sm text-gray-600 mt-1">Awaiting review</p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Pending Approval</CardTitle>
+                  <Clock className="w-4 h-4 text-gray-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-end text-3xl font-bold text-amber-600">{pendingCount}</div>
+                  <p className="text-sm text-gray-600 mt-1">Awaiting review</p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Approved Events</CardTitle>
-              <CheckCircle className="w-4 h-4 text-gray-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-end text-3xl font-bold text-green-600">{approvedCount}</div>
-              <p className="text-sm text-gray-600 mt-1">Successfully approved</p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Approved Events</CardTitle>
+                  <CheckCircle className="w-4 h-4 text-gray-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-end text-3xl font-bold text-green-600">{approvedCount}</div>
+                  <p className="text-sm text-gray-600 mt-1">Successfully approved</p>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Recent Bookings */}
@@ -93,7 +133,26 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {userBookings.length === 0 ? (
+            {isLoading ? (
+              // Skeleton loading state for table
+              <div className="space-y-3">
+                <div className="flex items-center gap-4 py-3">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                <div className="flex items-center gap-4 py-3 border-t">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                <div className="flex items-center gap-4 py-3 border-t">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              </div>
+            ) : userBookings.length === 0 ? (
               <div className="text-center py-8 md:py-12">
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-600 mb-4">No bookings yet</p>
@@ -139,6 +198,13 @@ export default function DashboardPage() {
         </Card>
       </div>
     </main>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute requiredRole="organizer" redirectTo="/login">
+      <DashboardContent />
     </ProtectedRoute>
   )
 }

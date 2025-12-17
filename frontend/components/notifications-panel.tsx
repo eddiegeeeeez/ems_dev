@@ -6,10 +6,12 @@ import { useState, useEffect } from "react"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Bell, CheckCircle, AlertCircle, Clock } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export function NotificationsPanel() {
   const { user } = useAuth()
   const { notifications, markNotificationAsRead } = useData()
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -29,6 +31,28 @@ export function NotificationsPanel() {
         return <Clock className="h-4 w-4 text-yellow-500" />
       default:
         return <Bell className="h-4 w-4 text-gray-500" />
+    }
+  }
+
+  const handleNotificationClick = (notification: any) => {
+    markNotificationAsRead(notification.id)
+
+    // Redirect logic based on notification type and user role
+    if (notification.relatedId) {
+      if (user?.role === "ADMIN") {
+        router.push("/admin/requests")
+      } else {
+        // For organizers, maybe my-bookings or similar. Assuming /profile or just no redirect for now if path is unknown
+        // But plan said /requests or similar. Let's try /profile since my-bookings isn't visible in root.
+        // Actually, if they are an organizer, they might have access to a simplified request view or just their history.
+        // Let's check where organizers see their bookings.
+        // User bookings are usually on profile or specific page.
+        // Safest default is to close sheet or go to dashboard.
+        // But for Approvals/Rejections, they want to see the booking.
+        // Let's assume /profile for organizers as it has booking history in many apps, or just stick to admin redirect for now.
+        // Actually, let's just redirect to /profile if not admin, assuming that's where they see their stuff.
+        router.push("/my-bookings")
+      }
     }
   }
 
@@ -58,9 +82,11 @@ export function NotificationsPanel() {
             userNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`p-4 rounded-lg border ${
-                  notification.read ? "bg-gray-50 border-gray-200" : "bg-blue-50 border-blue-200"
-                }`}
+                onClick={() => handleNotificationClick(notification)}
+                className={`p-4 rounded-lg border cursor-pointer transition-colors ${notification.read
+                  ? "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  : "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                  }`}
               >
                 <div className="flex items-start gap-3">
                   {getIcon(notification.type)}

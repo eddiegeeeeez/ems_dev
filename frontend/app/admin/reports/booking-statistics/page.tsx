@@ -6,31 +6,105 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { BarChart3, TrendingUp, Calendar, Users, Download, Clock } from 'lucide-react'
 import { useData } from "@/lib/data-context"
+import { useBookingTrends } from "@/hooks/use-booking-trends"
+
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
+
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+
+const chartConfig = {
+  bookings: {
+    label: "Bookings",
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig
 
 export default function BookingStatisticsPage() {
   const { bookings, venues } = useData()
-  const [timeRange, setTimeRange] = useState("month")
+  const { trendData, timeRange, setTimeRange, filteredBookings } = useBookingTrends(bookings)
 
-  const totalBookings = bookings?.length || 0
-  const approvedBookings = bookings?.filter(b => b.status === "approved").length || 0
-  const pendingBookings = bookings?.filter(b => b.status === "pending").length || 0
-  const completedBookings = bookings?.filter(b => b.status === "completed").length || 0
+  const totalBookings = filteredBookings?.length || 0
+  const approvedBookings = filteredBookings?.filter(b => b.status === "approved").length || 0
+  const pendingBookings = filteredBookings?.filter(b => b.status === "pending").length || 0
+  const completedBookings = filteredBookings?.filter(b => b.status === "completed").length || 0
   const approvalRate = totalBookings > 0 ? ((approvedBookings / totalBookings) * 100).toFixed(1) : "0"
 
-  // Mock data for charts
-  const monthlyData = [
-    { month: "Jan", bookings: 45 },
-    { month: "Feb", bookings: 52 },
-    { month: "Mar", bookings: 61 },
-    { month: "Apr", bookings: 58 },
-    { month: "May", bookings: 67 },
-    { month: "Jun", bookings: 73 },
-  ]
+  // Real data for charts
+
 
   const venuePopularity = venues?.map(venue => ({
     name: venue.name,
-    bookings: bookings?.filter(b => b.venueId === venue.id).length || 0
+    bookings: filteredBookings?.filter(b => b.venueId === venue.id).length || 0
   })).sort((a, b) => b.bookings - a.bookings).slice(0, 5) || []
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF()
+
+    // Title
+    doc.setFontSize(20)
+    doc.text("Booking Statistics Report", 14, 22)
+    doc.setFontSize(10)
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30)
+
+    // Key Metrics
+    doc.setFontSize(14)
+    doc.text("Key Metrics", 14, 45)
+
+    const metricsData = [
+      ["Total Bookings", totalBookings.toString()],
+      ["Approval Rate", `${approvalRate}%`],
+      ["Pending Requests", pendingBookings.toString()],
+      ["Completed Events", completedBookings.toString()]
+    ]
+
+    autoTable(doc, {
+      startY: 50,
+      head: [['Metric', 'Value']],
+      body: metricsData,
+      theme: 'striped',
+      headStyles: { fillColor: [139, 21, 56] }
+    })
+
+    // Popular Venues
+    doc.text("Most Popular Venues", 14, (doc as any).lastAutoTable.finalY + 15)
+
+    const venueData = venuePopularity.map((v, i) => [
+      (i + 1).toString(),
+      v.name,
+      v.bookings.toString()
+    ])
+
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 20,
+      head: [['Rank', 'Venue Name', 'Total Bookings']],
+      body: venueData,
+      theme: 'grid',
+      headStyles: { fillColor: [139, 21, 56] }
+    })
+
+    // Trends Data
+    doc.addPage()
+    doc.text(`Booking Trends (${timeRange === 'year' ? 'Last 12 Months' : timeRange === 'month' ? 'Last 30 Days' : 'Last 7 Days'})`, 14, 22)
+
+    const trendsRows = trendData.map(d => [d.label, d.value.toString()])
+
+    autoTable(doc, {
+      startY: 30,
+      head: [['Month', 'Bookings']],
+      body: trendsRows,
+      theme: 'grid',
+      headStyles: { fillColor: [139, 21, 56] }
+    })
+
+    doc.save("booking_statistics_report.pdf")
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -51,7 +125,7 @@ export default function BookingStatisticsPage() {
               <SelectItem value="year">Last Year</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExportPDF}>
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
@@ -109,34 +183,85 @@ export default function BookingStatisticsPage() {
       </div>
 
       {/* Booking Trends Chart */}
+      {/* Booking Trends Chart */}
       <Card>
-        <CardHeader>
-          <CardTitle>Booking Trends</CardTitle>
-          <CardDescription>Monthly booking volume over the past 6 months</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80 flex items-end justify-between gap-4 px-4">
-            {monthlyData.map((data, index) => {
-              const maxBookings = Math.max(...monthlyData.map(d => d.bookings))
-              const heightPercent = (data.bookings / maxBookings) * 90
-              return (
-                <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                  <div 
-                    className="w-full bg-[#c41e3a] rounded-t-lg transition-all hover:bg-[#a01830] hover:shadow-lg cursor-pointer relative group" 
-                    style={{ height: `${heightPercent}%`, minHeight: '40px' }}
-                  >
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      {data.bookings} bookings
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-900">{data.bookings}</p>
-                    <p className="text-xs text-gray-600">{data.month}</p>
-                  </div>
-                </div>
-              )
-            })}
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+          <div className="grid flex-1 gap-1">
+            <CardTitle>Booking Trends</CardTitle>
+            <CardDescription>
+              Showing total bookings for the selected period
+            </CardDescription>
           </div>
+          <Select value={timeRange} onValueChange={(val: any) => setTimeRange(val)}>
+            <SelectTrigger className="w-[160px] rounded-lg sm:ml-auto">
+              <SelectValue placeholder="Select period" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="week" className="rounded-lg">
+                Last 7 days
+              </SelectItem>
+              <SelectItem value="month" className="rounded-lg">
+                Last 30 days
+              </SelectItem>
+              <SelectItem value="year" className="rounded-lg">
+                Last 12 months
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[250px] w-full"
+          >
+            <AreaChart
+              data={trendData}
+              margin={{
+                left: 12,
+                right: 12,
+              }}
+            >
+              <defs>
+                <linearGradient id="fillBookings" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-bookings)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-bookings)"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="label"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                width={30}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="dot" />}
+              />
+              <Area
+                dataKey="value"
+                type="monotone"
+                fill="url(#fillBookings)"
+                stroke="var(--color-bookings)"
+                stackId="a"
+              />
+            </AreaChart>
+          </ChartContainer>
         </CardContent>
       </Card>
 

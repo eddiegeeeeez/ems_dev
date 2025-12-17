@@ -3,10 +3,13 @@
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Building2, Calendar, FileText, Settings, X, Menu, User, BarChart3, Users, ChevronDown, Wrench, GitBranch, FileSearch, Mail, Sliders } from 'lucide-react'
+import { LayoutDashboard, Building2, Calendar, FileText, Settings, X, Menu, User, BarChart3, Users, ChevronDown, GitBranch, FileSearch, Mail, Sliders } from 'lucide-react'
 import { useAuth } from "@/lib/auth-context"
 import { UserAvatar } from "@/components/user-avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useState, useEffect } from "react"
+import { useData } from "@/lib/data-context"
+import { generateSystemReport } from "@/lib/export-utils"
 
 const organizerSections = [
   {
@@ -49,7 +52,6 @@ const adminSections = [
     links: [
       { href: "/admin/venues", label: "Manage Venues", icon: Building2 },
       { href: "/admin/equipment", label: "Equipment", icon: Settings },
-      { href: "/admin/maintenance", label: "Maintenance Management", icon: Wrench },
     ]
   },
   {
@@ -57,7 +59,7 @@ const adminSections = [
     links: [
       { href: "/admin/reports/venue-utilization", label: "Venue Utilization", icon: BarChart3 },
       { href: "/admin/reports/booking-statistics", label: "Booking Statistics", icon: BarChart3 },
-      { href: "/admin/reports/export", label: "Export Data", icon: FileSearch },
+      { href: "#export-data", label: "Export Data", icon: FileSearch, isAction: true },
     ]
   },
   {
@@ -72,7 +74,7 @@ const adminSections = [
     title: "System Settings",
     links: [
       { href: "/admin/settings/booking-rules", label: "Booking Rules", icon: Sliders },
-      { href: "/admin/settings/email-templates", label: "Email Templates", icon: Mail },
+
       { href: "/admin/settings/general", label: "General Settings", icon: Settings },
     ]
   },
@@ -87,6 +89,7 @@ const adminSections = [
 export function Sidebar() {
   const pathname = usePathname()
   const { user } = useAuth()
+  const { bookings, venues } = useData()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -109,20 +112,44 @@ export function Sidebar() {
     setExpandedSections(prev => ({ ...prev, [title]: !prev[title] }))
   }
 
-  const handleNavigation = (href: string) => {
+  const handleNavigation = async (href: string, isAction?: boolean) => {
+    if (isAction && href === "#export-data") {
+      console.log("[v0] Triggering Export Data download...")
+      await generateSystemReport(bookings, venues)
+      setMobileOpen(false)
+      return
+    }
     console.log("[v0] Navigating to:", href)
     setMobileOpen(false)
   }
 
-  // Render placeholder during hydration
-  if (!mounted) {
+  // Render skeleton loading state during hydration or while user data is loading
+  if (!mounted || !user) {
     return (
       <aside className="hidden md:flex md:flex-col w-64 bg-white border-r border-gray-200">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* Placeholder skeleton */}
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-3/4" />
-            <div className="h-4 bg-gray-200 rounded w-1/2" />
+        <div className="flex-1 overflow-y-auto px-4 py-6">
+          {/* Skeleton header */}
+          <div className="mb-6">
+            <Skeleton className="h-4 w-20 mb-3" />
+            <nav className="space-y-2">
+              {/* Skeleton menu items */}
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-lg" />
+              ))}
+            </nav>
+          </div>
+          {/* Skeleton sections */}
+          <div className="space-y-4">
+            {[1, 2, 3].map((section) => (
+              <div key={section}>
+                <Skeleton className="h-4 w-32 mb-2" />
+                <div className="space-y-1 pl-2">
+                  {[1, 2].map((item) => (
+                    <Skeleton key={item} className="h-8 w-full" />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </aside>
@@ -152,7 +179,7 @@ export function Sidebar() {
                 if (section.isDirectLink) {
                   const Icon = section.icon!
                   const isActive = pathname === section.href || pathname.startsWith(section.href + "/")
-                  
+
                   return (
                     <Link
                       key={section.href}
@@ -170,7 +197,7 @@ export function Sidebar() {
                 }
 
                 const isExpanded = expandedSections[section.title]
-                
+
                 return (
                   <div key={section.title}>
                     {/* Section Header */}
@@ -196,9 +223,16 @@ export function Sidebar() {
                             <Link
                               key={link.href}
                               href={link.href}
-                              onClick={() => handleNavigation(link.href)}
+                              onClick={(e) => {
+                                if ((link as any).isAction) {
+                                  e.preventDefault()
+                                  handleNavigation(link.href, true)
+                                } else {
+                                  handleNavigation(link.href)
+                                }
+                              }}
                               className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
                                 isActive ? "bg-[#c41e3a] text-white" : "text-gray-700 hover:bg-gray-100",
                               )}
                             >
@@ -221,8 +255,10 @@ export function Sidebar() {
           <div className="flex items-center gap-3">
             <UserAvatar
               name={user?.name}
+              email={user?.email}
               avatar={user?.avatar}
               size="lg"
+              useImageUrl={true}
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
@@ -256,7 +292,7 @@ export function Sidebar() {
                   if (section.isDirectLink) {
                     const Icon = section.icon!
                     const isActive = pathname === section.href || pathname.startsWith(section.href + "/")
-                    
+
                     return (
                       <Link
                         key={section.href}
@@ -274,7 +310,7 @@ export function Sidebar() {
                   }
 
                   const isExpanded = expandedSections[section.title]
-                  
+
                   return (
                     <div key={section.title}>
                       <button
@@ -298,9 +334,16 @@ export function Sidebar() {
                               <Link
                                 key={link.href}
                                 href={link.href}
-                                onClick={() => handleNavigation(link.href)}
+                                onClick={(e) => {
+                                  if ((link as any).isAction) {
+                                    e.preventDefault()
+                                    handleNavigation(link.href, true)
+                                  } else {
+                                    handleNavigation(link.href)
+                                  }
+                                }}
                                 className={cn(
-                                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
                                   isActive ? "bg-[#c41e3a] text-white" : "text-gray-700 hover:bg-gray-100",
                                 )}
                               >

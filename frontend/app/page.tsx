@@ -3,29 +3,36 @@
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
-import { LoginForm } from "@/components/login-form"
 import { Spinner } from "@/components/ui/spinner"
 import { LandingPage } from "@/components/landing-page"
-import { Button } from "@/components/ui/button"
 
 export default function Home() {
   const { isAuthenticated, isLoading, user } = useAuth()
   const router = useRouter()
-  const [showLogin, setShowLogin] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      console.log('[Page] User authenticated, role:', user?.role)
-      // Redirect based on user role
-      const dashboardUrl = user?.role === "ADMIN" ? "/admin/dashboard" : "/dashboard"
-      console.log('[Page] Redirecting to:', dashboardUrl)
-      router.push(dashboardUrl)
+    // Wait for auth check to complete
+    if (isLoading) {
+      return
     }
-  }, [isAuthenticated, isLoading, user?.role, router])
 
+    // If authenticated, redirect to dashboard
+    if (isAuthenticated && user) {
+      console.log('[Home] User authenticated, redirecting to dashboard')
+      setIsRedirecting(true)
+      const dashboardUrl = user?.role === "ADMIN" ? "/admin/dashboard" : "/dashboard"
+      const timer = setTimeout(() => {
+        router.push(dashboardUrl)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [isAuthenticated, isLoading, user, router])
+
+  // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
           <Spinner className="h-12 w-12 text-[#c41e3a] mx-auto mb-4" />
           <p className="text-gray-600">Loading...</p>
@@ -34,26 +41,30 @@ export default function Home() {
     )
   }
 
-  if (!isAuthenticated) {
-    if (showLogin) {
-      return (
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="w-full max-w-md">
-            <Button
-              variant="outline"
-              onClick={() => setShowLogin(false)}
-              className="mb-6 text-[#c41e3a] border-[#c41e3a] hover:bg-[#c41e3a] hover:text-white"
-            >
-              ← Back to Home
-            </Button>
-            <LoginForm />
-          </div>
+  // If redirecting, show loading state
+  if (isRedirecting) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="text-center">
+          <Spinner className="h-12 w-12 text-[#c41e3a] mx-auto mb-4" />
+          <p className="text-gray-600">Redirecting...</p>
         </div>
-      )
-    }
-    return <LandingPage onSignIn={() => setShowLogin(true)} />
+      </div>
+    )
   }
 
-  // This should never render, but return null for consistency
-  return null
+  // Show landing page only when NOT authenticated AND loading is complete
+  if (!isAuthenticated && !isLoading) {
+    return <LandingPage onSignIn={() => router.push('/login')} />
+  }
+
+  // Fallback (should not reach here)
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="text-center">
+        <Spinner className="h-12 w-12 text-[#c41e3a] mx-auto mb-4" />
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>
+  )
 }

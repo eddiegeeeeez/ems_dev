@@ -57,13 +57,13 @@ export default function AdminEquipmentPage() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  
+
   // Modal states
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
-  
+
   // Form states
   const [formData, setFormData] = useState({
     name: "",
@@ -149,13 +149,14 @@ export default function AdminEquipmentPage() {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold text-gray-900"
           >
             Equipment Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
-      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+      cell: ({ row }) => <div className="font-medium text-sm">{row.getValue("name")}</div>,
     },
     {
       accessorKey: "category",
@@ -164,6 +165,7 @@ export default function AdminEquipmentPage() {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold text-gray-900"
           >
             Category
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -202,10 +204,11 @@ export default function AdminEquipmentPage() {
       accessorKey: "quantity",
       header: ({ column }) => {
         return (
-          <div className="text-right">
+          <div className="w-full flex justify-center">
             <Button
               variant="ghost"
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              className="h-auto p-0 font-semibold text-gray-900"
             >
               Total Qty
               <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -213,16 +216,17 @@ export default function AdminEquipmentPage() {
           </div>
         )
       },
-      cell: ({ row }) => <div className="text-right font-medium">{row.getValue("quantity")}</div>,
+      cell: ({ row }) => <div className="text-center font-medium text-sm">{row.getValue("quantity")}</div>,
     },
     {
       accessorKey: "available",
       header: ({ column }) => {
         return (
-          <div className="text-right">
+          <div className="w-full flex justify-center">
             <Button
               variant="ghost"
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              className="h-auto p-0 font-semibold text-gray-900"
             >
               Available
               <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -235,7 +239,7 @@ export default function AdminEquipmentPage() {
         const availableColor =
           available > 0 ? "text-[#4caf50]" : "text-red-600"
         return (
-          <div className={`text-right font-semibold ${availableColor}`}>
+          <div className={`text-center font-semibold text-sm ${availableColor}`}>
             {available}
           </div>
         )
@@ -244,11 +248,11 @@ export default function AdminEquipmentPage() {
     {
       id: "actions",
       enableHiding: false,
-      header: "Actions",
+      header: () => <div className="text-center font-semibold text-gray-900">Actions</div>,
       cell: ({ row }) => {
         const eq = row.original
         return (
-          <div className="flex justify-end">
+          <div className="flex justify-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -256,19 +260,19 @@ export default function AdminEquipmentPage() {
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEditEquipment(eq.id, eq.name)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => handleDeleteEquipment(eq.id, eq.name)}
-                className="text-red-600"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleEditEquipment(eq.id, eq.name)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleDeleteEquipment(eq.id, eq.name)}
+                  className="text-red-600"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
             </DropdownMenu>
           </div>
         )
@@ -361,13 +365,13 @@ export default function AdminEquipmentPage() {
                     <TableRow key={headerGroup.id} className="bg-gray-50">
                       {headerGroup.headers.map((header) => {
                         return (
-                          <TableHead key={header.id} className="font-medium text-sm text-gray-700">
+                          <TableHead key={header.id} className="font-semibold text-sm text-gray-900">
                             {header.isPlaceholder
                               ? null
                               : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
                           </TableHead>
                         )
                       })}
@@ -397,7 +401,7 @@ export default function AdminEquipmentPage() {
                         colSpan={columns.length}
                         className="h-24 text-center"
                       >
-                        No equipment found.
+                        No Data Found
                       </TableCell>
                     </TableRow>
                   )}

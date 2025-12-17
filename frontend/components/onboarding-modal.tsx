@@ -13,53 +13,8 @@ interface OnboardingModalProps {
   onClose?: () => void
 }
 
-const UM_COLLEGES = [
-  "College of Arts and Sciences",
-  "College of Business Administration",
-  "College of Computer Studies",
-  "College of Education",
-  "College of Engineering and Architecture",
-  "College of Health and Allied Medical Sciences",
-  "College of Law",
-  "College of Nursing",
-]
+import { UM_COLLEGES } from "@/lib/um-data"
 
-const DEPARTMENTS_BY_COLLEGE: Record<string, string[]> = {
-  "College of Arts and Sciences": [
-    "Bachelor of Arts in Communication",
-    "Bachelor of Arts in English",
-    "Bachelor of Science in Biology",
-    "Bachelor of Science in Psychology",
-  ],
-  "College of Business Administration": [
-    "Bachelor of Science in Accountancy",
-    "Bachelor of Science in Business Administration",
-    "Bachelor of Science in Management Accounting",
-  ],
-  "College of Computer Studies": [
-    "Bachelor of Science in Computer Science",
-    "Bachelor of Science in Information Technology",
-    "Bachelor of Science in Information Systems",
-  ],
-  "College of Education": [
-    "Bachelor of Elementary Education",
-    "Bachelor of Secondary Education",
-    "Bachelor of Physical Education",
-  ],
-  "College of Engineering and Architecture": [
-    "Bachelor of Science in Civil Engineering",
-    "Bachelor of Science in Electrical Engineering",
-    "Bachelor of Science in Mechanical Engineering",
-    "Bachelor of Science in Architecture",
-  ],
-  "College of Health and Allied Medical Sciences": [
-    "Bachelor of Science in Medical Technology",
-    "Bachelor of Science in Pharmacy",
-    "Bachelor of Science in Radiologic Technology",
-  ],
-  "College of Law": ["Bachelor of Laws (LLB)", "Juris Doctor (JD)"],
-  "College of Nursing": ["Bachelor of Science in Nursing"],
-}
 
 export function OnboardingModal({ isOpen, userName, onComplete, onClose }: OnboardingModalProps) {
   const [college, setCollege] = useState("")
@@ -77,7 +32,9 @@ export function OnboardingModal({ isOpen, userName, onComplete, onClose }: Onboa
     }
   }
 
-  const availableDepartments = college ? DEPARTMENTS_BY_COLLEGE[college] || [] : []
+  const availableDepartments = college
+    ? UM_COLLEGES.find(c => c.name === college)?.programs || []
+    : []
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -104,8 +61,8 @@ export function OnboardingModal({ isOpen, userName, onComplete, onClose }: Onboa
               </SelectTrigger>
               <SelectContent>
                 {UM_COLLEGES.map((col) => (
-                  <SelectItem key={col} value={col}>
-                    {col}
+                  <SelectItem key={col.code} value={col.name}>
+                    {col.name}
                   </SelectItem>
                 ))}
               </SelectContent>

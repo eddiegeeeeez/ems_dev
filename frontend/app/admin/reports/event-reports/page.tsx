@@ -244,14 +244,14 @@ export default function EventReportsPage() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  {columnVisibility.id && <TableHead>Event ID</TableHead>}
-                  {columnVisibility.title && <TableHead>Event Title</TableHead>}
-                  {columnVisibility.venue && <TableHead>Venue</TableHead>}
-                  {columnVisibility.organizer && <TableHead>Organizer</TableHead>}
-                  {columnVisibility.date && <TableHead>Date</TableHead>}
-                  {columnVisibility.attendees && <TableHead>Attendees</TableHead>}
-                  {columnVisibility.status && <TableHead>Status</TableHead>}
+                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                  {columnVisibility.id && <TableHead className="font-semibold text-sm text-gray-900">Event ID</TableHead>}
+                  {columnVisibility.title && <TableHead className="font-semibold text-sm text-gray-900">Event Title</TableHead>}
+                  {columnVisibility.venue && <TableHead className="font-semibold text-sm text-gray-900">Venue</TableHead>}
+                  {columnVisibility.organizer && <TableHead className="font-semibold text-sm text-gray-900">Organizer</TableHead>}
+                  {columnVisibility.date && <TableHead className="font-semibold text-sm text-gray-900">Date</TableHead>}
+                  {columnVisibility.attendees && <TableHead className="font-semibold text-sm text-gray-900">Attendees</TableHead>}
+                  {columnVisibility.status && <TableHead className="font-semibold text-sm text-gray-900">Status</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
