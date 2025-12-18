@@ -30,8 +30,8 @@ export function LandingPage({ onSignIn }: { onSignIn?: () => void }) {
                 <div className="text-xs text-gray-600">University of Mindanao</div>
               </div>
             </div>
-            <Button 
-              className="bg-[#c41e3a] hover:bg-[#c41e3a]/90 text-white text-sm px-6 py-2 rounded-full font-medium transition-colors" 
+            <Button
+              className="bg-[#c41e3a] hover:bg-[#c41e3a]/90 text-white text-sm px-6 py-2 rounded-full font-medium transition-colors"
               onClick={onSignIn}
             >
               Sign In
@@ -44,7 +44,7 @@ export function LandingPage({ onSignIn }: { onSignIn?: () => void }) {
       <section className="pt-32 pb-24 lg:pt-40 lg:pb-32 relative overflow-hidden bg-gradient-to-b from-[#8b1a3a] to-[#c41e3a]">
         {/* Background Image with Gradient Blur */}
         <div className="absolute inset-0 z-0">
-          <div 
+          <div
             className="absolute inset-0 bg-cover bg-center"
             style={{
               backgroundImage: 'url("/um-campus-hero.jpg")',
@@ -104,11 +104,13 @@ export function LandingPage({ onSignIn }: { onSignIn?: () => void }) {
           <div className="grid lg:grid-cols-3 gap-8 mb-12">
             {/* Convention Center */}
             <div className="group bg-white rounded-3xl overflow-hidden border border-gray-200/50 hover:border-[#c41e3a]/50 hover:shadow-2xl transition-all duration-500 cursor-pointer">
-              <div className="aspect-[4/3] bg-gradient-to-br from-[#c41e3a]/20 to-[#c41e3a]/5 relative overflow-hidden">
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400">Convention Center</span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-white/90 to-transparent"></div>
+              <div className="aspect-[4/3] relative overflow-hidden">
+                <img
+                  src="/um-convention-center.png"
+                  alt="UM Convention Center"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6">
                   <span className="text-xs font-medium bg-[#c41e3a] text-white px-3 py-1.5 rounded-full">
                     Premium Venue
@@ -135,11 +137,13 @@ export function LandingPage({ onSignIn }: { onSignIn?: () => void }) {
 
             {/* Sports Complex */}
             <div className="group bg-white rounded-3xl overflow-hidden border border-gray-200/50 hover:border-[#4caf50]/50 hover:shadow-2xl transition-all duration-500 cursor-pointer">
-              <div className="aspect-[4/3] bg-gradient-to-br from-[#4caf50]/20 to-[#4caf50]/5 relative overflow-hidden">
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400">Sports Complex</span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-white/90 to-transparent"></div>
+              <div className="aspect-[4/3] relative overflow-hidden">
+                <img
+                  src="/um-sports-complex.png"
+                  alt="UM Sports Complex"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6">
                   <span className="text-xs font-medium bg-[#4caf50] text-white px-3 py-1.5 rounded-full">
                     Sports Facility
@@ -166,11 +170,13 @@ export function LandingPage({ onSignIn }: { onSignIn?: () => void }) {
 
             {/* Performing Arts Theater */}
             <div className="group bg-white rounded-3xl overflow-hidden border border-gray-200/50 hover:border-blue-500/50 hover:shadow-2xl transition-all duration-500 cursor-pointer">
-              <div className="aspect-[4/3] bg-gradient-to-br from-blue-500/20 to-blue-500/5 relative overflow-hidden">
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400">Performing Arts Theater</span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-white/90 to-transparent"></div>
+              <div className="aspect-[4/3] relative overflow-hidden">
+                <img
+                  src="/um-performing-arts-theater.png"
+                  alt="UM Performing Arts Theater"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6">
                   <span className="text-xs font-medium bg-blue-600 text-white px-3 py-1.5 rounded-full">
                     Theater
@@ -200,11 +206,13 @@ export function LandingPage({ onSignIn }: { onSignIn?: () => void }) {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Open Grounds */}
             <div className="group bg-white rounded-3xl overflow-hidden border border-gray-200/50 hover:border-orange-500/50 hover:shadow-2xl transition-all duration-500 cursor-pointer">
-              <div className="aspect-[16/9] bg-gradient-to-br from-orange-500/20 to-orange-500/5 relative overflow-hidden">
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400">Open Grounds</span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-white/90 to-transparent"></div>
+              <div className="aspect-[16/9] relative overflow-hidden">
+                <img
+                  src="/um-open-grounds.png"
+                  alt="UM Open Grounds"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6">
                   <span className="text-xs font-medium bg-orange-500 text-white px-3 py-1.5 rounded-full">
                     Outdoor Venue
@@ -231,11 +239,13 @@ export function LandingPage({ onSignIn }: { onSignIn?: () => void }) {
 
             {/* Academic Halls */}
             <div className="group bg-white rounded-3xl overflow-hidden border border-gray-200/50 hover:border-[#c41e3a]/50 hover:shadow-2xl transition-all duration-500 cursor-pointer">
-              <div className="aspect-[16/9] bg-gradient-to-br from-[#c41e3a]/20 to-[#c41e3a]/5 relative overflow-hidden">
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400">Academic Halls</span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-white/90 to-transparent"></div>
+              <div className="aspect-[16/9] relative overflow-hidden">
+                <img
+                  src="/um-academic-halls.png"
+                  alt="UM Academic Halls"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6">
                   <span className="text-xs font-medium bg-[#c41e3a] text-white px-3 py-1.5 rounded-full">
                     Academic
@@ -275,15 +285,15 @@ export function LandingPage({ onSignIn }: { onSignIn?: () => void }) {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Button 
-              className="bg-[#c41e3a] hover:bg-[#c41e3a]/90 text-white text-base px-10 py-4 rounded-full font-medium transition-colors inline-flex items-center gap-2" 
+            <Button
+              className="bg-[#c41e3a] hover:bg-[#c41e3a]/90 text-white text-base px-10 py-4 rounded-full font-medium transition-colors inline-flex items-center gap-2"
               onClick={onSignIn}
             >
               Start Exploring
               <ArrowRight className="w-5 h-5" />
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-gray-300 text-gray-900 hover:bg-gray-100 text-base px-10 py-4 rounded-full"
               onClick={onSignIn}
             >
