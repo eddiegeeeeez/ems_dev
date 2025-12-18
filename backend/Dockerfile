@@ -24,6 +24,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application code
 COPY . .
 
+# Handle Monorepo Build Context (Railway fix)
+# If "backend" folder exists, we are in Root Context -> Move files up
+RUN if [ -d "backend" ]; then cp -rp backend/. . && rm -rf backend frontend; fi
+
 # Install dependencies
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
