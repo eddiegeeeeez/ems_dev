@@ -287,6 +287,28 @@ class ApiClient {
   async searchAuditLogs(query: string) {
     return this.fetch(`/admin/audit-logs/search?q=${encodeURIComponent(query)}`);
   }
+  // Settings
+  async getBookingRules() {
+    return this.fetch('/admin/settings/booking-rules');
+  }
+
+  async updateBookingRules(data: any) {
+    return this.fetch('/admin/settings/booking-rules', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getGeneralSettings() {
+    return this.fetch('/admin/settings/general');
+  }
+
+  async updateGeneralSettings(data: any) {
+    return this.fetch('/admin/settings/general', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const apiClient = new ApiClient(baseURL);

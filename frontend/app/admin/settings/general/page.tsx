@@ -1,5 +1,6 @@
 "use client"
 
+import { apiClient } from "@/lib/api"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,8 +16,6 @@ import { ProtectedRoute } from "@/components/protected-route"
 interface GeneralSettings {
   system_name: string
   university_name: string
-  admin_email: string
-  support_email: string
   system_description: string
   maintenance_mode: boolean
   auto_approval_enabled: boolean
@@ -28,15 +27,12 @@ interface GeneralSettings {
 
 export default function GeneralSettingsPage() {
   const { toast } = useToast()
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [settings, setSettings] = useState<GeneralSettings>({
     system_name: "",
     university_name: "",
-    admin_email: "",
-    support_email: "",
     system_description: "",
     maintenance_mode: false,
     auto_approval_enabled: false,
@@ -54,17 +50,12 @@ export default function GeneralSettingsPage() {
   const fetchSettings = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${apiBase}/admin/settings/general`, {
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
-      })
-      if (!response.ok) throw new Error('Failed to fetch settings')
-
-      const data = await response.json()
-      setSettings(data.settings)
+      const data = await apiClient.getGeneralSettings()
+      if (data.settings) {
+        setSettings(data.settings)
+      } else {
+        console.warn('General settings format unexpected:', data)
+      }
     } catch (error) {
       console.error('Error fetching settings:', error)
       toast({
@@ -107,20 +98,7 @@ export default function GeneralSettingsPage() {
   const handleConfirmSave = async (password: string) => {
     try {
       setIsSaving(true)
-      const response = await fetch(`${apiBase}/admin/settings/general`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ ...settings, current_password: password }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to save settings');
-      }
+      await apiClient.updateGeneralSettings({ ...settings, current_password: password })
 
       toast({
         title: "Settings saved",
@@ -186,30 +164,6 @@ export default function GeneralSettingsPage() {
                     value={settings.university_name}
                     onChange={handleInputChange}
                     placeholder="Enter institution name"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="admin_email">Admin Email</Label>
-                  <Input
-                    id="admin_email"
-                    name="admin_email"
-                    type="email"
-                    value={settings.admin_email}
-                    onChange={handleInputChange}
-                    placeholder="admin@example.com"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="support_email">Support Email</Label>
-                  <Input
-                    id="support_email"
-                    name="support_email"
-                    type="email"
-                    value={settings.support_email}
-                    onChange={handleInputChange}
-                    placeholder="support@example.com"
                   />
                 </div>
 

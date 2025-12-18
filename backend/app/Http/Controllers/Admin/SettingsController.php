@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class SettingsController extends Controller
 {
@@ -355,10 +357,8 @@ Events Management Team'),
     {
         try {
             $settings = [
-                'system_name' => Cache::get('system_name', 'University of Mindanao Events Management'),
+                'system_name' => Cache::get('system_name', 'UM Event Management System'),
                 'university_name' => Cache::get('university_name', 'University of Mindanao'),
-                'admin_email' => Cache::get('admin_email', 'admin@umindanao.edu.ph'),
-                'support_email' => Cache::get('support_email', 'support@umindanao.edu.ph'),
                 'system_description' => Cache::get('system_description', 'Comprehensive event and venue management system for the University of Mindanao.'),
                 'application_name' => Cache::get('application_name', 'Event Management System'),
                 'maintenance_mode' => Cache::get('maintenance_mode', false),
@@ -385,8 +385,6 @@ Events Management Team'),
                 'current_password' => 'required|string',
                 'system_name' => 'required|string|max:255',
                 'university_name' => 'required|string|max:255',
-                'admin_email' => 'required|email',
-                'support_email' => 'required|email',
                 'system_description' => 'nullable|string|max:1000',
                 'maintenance_mode' => 'boolean',
                 'auto_approval_enabled' => 'boolean',
@@ -409,8 +407,11 @@ Events Management Team'),
             }
 
             return response()->json(['message' => 'General settings updated successfully']);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to update general settings'], 500);
+            Log::error('General Settings Update Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to update general settings: ' . $e->getMessage()], 500);
         }
     }
 }

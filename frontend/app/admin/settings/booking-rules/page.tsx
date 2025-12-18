@@ -1,5 +1,6 @@
 "use client"
 
+import { apiClient } from "@/lib/api"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -28,7 +29,6 @@ interface BookingRules {
 
 export default function BookingRulesPage() {
   const { toast } = useToast()
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [rules, setRules] = useState<BookingRules>({
@@ -55,11 +55,13 @@ export default function BookingRulesPage() {
   const fetchRules = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${apiBase}/admin/settings/booking-rules`)
-      if (!response.ok) throw new Error('Failed to fetch rules')
-
-      const data = await response.json()
-      setRules(data.rules)
+      const data = await apiClient.getBookingRules()
+      if (data.settings) {
+        setRules(data.settings)
+      } else {
+        // Fallback or error if settings key is missing
+        console.warn('Booking rules format unexpected:', data)
+      }
     } catch (error) {
       console.error('Error fetching rules:', error)
       toast({
@@ -97,20 +99,7 @@ export default function BookingRulesPage() {
   const handleConfirmPassword = async (password: string) => {
     try {
       setIsSaving(true)
-      const response = await fetch(`${apiBase}/admin/settings/booking-rules`, {
-        method: 'PUT', // Changed to PUT to match controller
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ ...rules, current_password: password }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to save rules');
-      }
+      await apiClient.updateBookingRules({ ...rules, current_password: password })
 
       toast({
         title: "Booking rules updated",
