@@ -10,9 +10,10 @@ import { useRouter } from "next/navigation"
 
 export function NotificationsPanel() {
   const { user } = useAuth()
-  const { notifications, markNotificationAsRead } = useData()
+  const { notifications, markNotificationAsRead, markAllNotificationsAsRead } = useData()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -42,22 +43,13 @@ export function NotificationsPanel() {
       if (user?.role === "ADMIN") {
         router.push("/admin/requests")
       } else {
-        // For organizers, maybe my-bookings or similar. Assuming /profile or just no redirect for now if path is unknown
-        // But plan said /requests or similar. Let's try /profile since my-bookings isn't visible in root.
-        // Actually, if they are an organizer, they might have access to a simplified request view or just their history.
-        // Let's check where organizers see their bookings.
-        // User bookings are usually on profile or specific page.
-        // Safest default is to close sheet or go to dashboard.
-        // But for Approvals/Rejections, they want to see the booking.
-        // Let's assume /profile for organizers as it has booking history in many apps, or just stick to admin redirect for now.
-        // Actually, let's just redirect to /profile if not admin, assuming that's where they see their stuff.
         router.push("/my-bookings")
       }
     }
+    setIsOpen(false) // Close sheet after clicking
   }
-
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <button className="relative p-2 text-gray-600 hover:text-[#c41e3a]">
           <Bell className="h-5 w-5" />
@@ -65,11 +57,23 @@ export function NotificationsPanel() {
         </button>
       </SheetTrigger>
       <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Notifications</SheetTitle>
-          <SheetDescription>
-            {unreadCount > 0 ? `You have ${unreadCount} unread notification(s)` : "No new notifications"}
-          </SheetDescription>
+        <SheetHeader className="flex flex-row items-center justify-between">
+          <div className="space-y-1">
+            <SheetTitle>Notifications</SheetTitle>
+            <SheetDescription>
+              {unreadCount > 0 ? `You have ${unreadCount} unread notification(s)` : "No new notifications"}
+            </SheetDescription>
+          </div>
+          {unreadCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={markAllNotificationsAsRead}
+              className="text-xs h-8"
+            >
+              Mark all as read
+            </Button>
+          )}
         </SheetHeader>
 
         <div className="mt-6 space-y-4">

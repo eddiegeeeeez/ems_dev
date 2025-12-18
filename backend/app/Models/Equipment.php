@@ -19,6 +19,7 @@ class Equipment extends Model
         'available_quantity',
         'is_active',
         'college_id',
+        'venue_id',
     ];
 
     protected $casts = [
@@ -28,6 +29,11 @@ class Equipment extends Model
     public function college(): BelongsTo
     {
         return $this->belongsTo(College::class);
+    }
+
+    public function venue(): BelongsTo
+    {
+        return $this->belongsTo(Venue::class);
     }
 
     public function bookings(): HasMany

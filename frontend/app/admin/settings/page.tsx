@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Settings, Bell, Shield, Database, Mail } from 'lucide-react'
-import { OTPVerificationModal } from "@/components/otp-verification-modal"
+import { PasswordConfirmationModal } from "@/components/password-confirmation-modal"
 import { useToast } from "@/hooks/use-toast"
 import { ProtectedRoute } from "@/components/protected-route"
 
@@ -42,7 +42,7 @@ export default function SystemSettingsPage() {
       setIsLoading(true)
       const response = await fetch(`${apiBase}/admin/settings/general`)
       if (!response.ok) throw new Error('Failed to fetch settings')
-      
+
       const data = await response.json()
       setGeneralSettings(data.settings)
     } catch (error) {
@@ -78,23 +78,25 @@ export default function SystemSettingsPage() {
     setShowOTPModal(true)
   }
 
-  const verifyAndSaveSettings = async (pin: string) => {
+  const verifyAndSaveSettings = async (password: string) => {
     try {
-      // In production, verify OTP with backend first
-      if (pin !== "123456") {
-        throw new Error('Invalid OTP')
-      }
-
       setIsSaving(true)
       // Save general settings if that's what's being saved
       if (otpAction === 'general') {
         const response = await fetch(`${apiBase}/admin/settings/general`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(generalSettings),
+          method: 'PUT', // Changed to PUT to match controller
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ ...generalSettings, current_password: password }),
         })
 
-        if (!response.ok) throw new Error('Failed to save settings')
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to save settings');
+        }
       }
 
       toast({
@@ -102,16 +104,15 @@ export default function SystemSettingsPage() {
         description: `${otpAction === 'general' ? 'General' : 'Security'} settings saved successfully`,
       })
       setOTPAction(null)
+      setShowOTPModal(false)
     } catch (error: any) {
-      if (error.message === 'Invalid OTP') {
-        throw error // Re-throw to be handled by OTP modal
-      }
+      console.error('Error saving settings:', error)
       toast({
         title: "Error",
-        description: "Failed to save settings. Please try again.",
+        description: error.message || "Failed to save settings. Please try again.",
         variant: "destructive"
       })
-      throw error
+      // Do not close modal so user can try password again
     } finally {
       setIsSaving(false)
     }
@@ -164,7 +165,7 @@ export default function SystemSettingsPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="system_name">System Name</Label>
-                  <Input 
+                  <Input
                     id="system_name"
                     name="system_name"
                     value={generalSettings.system_name}
@@ -174,7 +175,7 @@ export default function SystemSettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin_email">Admin Email</Label>
-                  <Input 
+                  <Input
                     id="admin_email"
                     name="admin_email"
                     type="email"
@@ -186,7 +187,7 @@ export default function SystemSettingsPage() {
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
-                    <input 
+                    <input
                       id="maintenance_mode"
                       name="maintenance_mode"
                       type="checkbox"
@@ -200,7 +201,7 @@ export default function SystemSettingsPage() {
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    <input 
+                    <input
                       id="auto_approval_enabled"
                       name="auto_approval_enabled"
                       type="checkbox"
@@ -215,7 +216,7 @@ export default function SystemSettingsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button 
+                  <Button
                     onClick={() => handleSaveSettings('general')}
                     disabled={isSaving}
                     className="bg-[#8B1538] hover:bg-[#6B1028]"
@@ -235,7 +236,7 @@ export default function SystemSettingsPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center space-x-3">
-                  <input 
+                  <input
                     id="email_notifications"
                     type="checkbox"
                     checked={emailNotifications}
@@ -278,7 +279,7 @@ export default function SystemSettingsPage() {
                 <p className="text-sm text-gray-600">
                   Security settings help protect your system and user data. Changes to security settings require verification.
                 </p>
-                <Button 
+                <Button
                   onClick={() => handleSaveSettings('security')}
                   className="bg-[#8B1538] hover:bg-[#6B1028]"
                 >
@@ -306,13 +307,13 @@ export default function SystemSettingsPage() {
         </Tabs>
       </div>
 
-      <OTPVerificationModal 
+      <PasswordConfirmationModal
         open={showOTPModal}
         onOpenChange={setShowOTPModal}
-        onVerify={verifyAndSaveSettings}
-        onResend={() => Promise.resolve()}
+        onConfirm={verifyAndSaveSettings}
+        isLoading={isSaving}
         title="Verify Settings Change"
-        description="Enter your OTP to confirm these changes"
+        description="Please key in your admin password to confirm these changes."
       />
     </ProtectedRoute>
   )

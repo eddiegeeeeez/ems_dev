@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FileText, Save } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
+import { PasswordConfirmationModal } from "@/components/password-confirmation-modal"
 
 interface BookingRules {
   require_approval: boolean
@@ -56,7 +57,7 @@ export default function BookingRulesPage() {
       setIsLoading(true)
       const response = await fetch(`${apiBase}/admin/settings/booking-rules`)
       if (!response.ok) throw new Error('Failed to fetch rules')
-      
+
       const data = await response.json()
       setRules(data.rules)
     } catch (error) {
@@ -87,28 +88,43 @@ export default function BookingRulesPage() {
     }))
   }
 
-  const handleSaveRules = async () => {
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+
+  const handleSaveClick = () => {
+    setShowPasswordModal(true)
+  }
+
+  const handleConfirmPassword = async (password: string) => {
     try {
       setIsSaving(true)
       const response = await fetch(`${apiBase}/admin/settings/booking-rules`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rules),
+        method: 'PUT', // Changed to PUT to match controller
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ ...rules, current_password: password }),
       })
 
-      if (!response.ok) throw new Error('Failed to save rules')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save rules');
+      }
 
       toast({
         title: "Booking rules updated",
         description: "All booking rules have been saved successfully.",
       })
-    } catch (error) {
+      setShowPasswordModal(false)
+    } catch (error: any) {
       console.error('Error saving rules:', error)
       toast({
         title: "Error",
-        description: "Failed to save booking rules",
+        description: error.message || "Failed to save booking rules",
         variant: "destructive"
       })
+      // Do not close modal on error so user can retry password
     } finally {
       setIsSaving(false)
     }
@@ -140,28 +156,27 @@ export default function BookingRulesPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2 flex items-end">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <input 
-                      id="require_approval"
-                      name="require_approval"
-                      type="checkbox"
-                      checked={rules.require_approval}
-                      onChange={handleCheckboxChange}
-                      className="rounded border-gray-300"
-                    />
-                    <Label htmlFor="require_approval" className="cursor-pointer">
-                      Require Admin Approval
-                    </Label>
-                  </div>
-                  <p className="text-sm text-gray-600">All bookings must be reviewed by administrators</p>
+              <div className="space-y-2">
+                <Label htmlFor="require_approval">Administrator Approval</Label>
+                <div className="flex items-center space-x-2 h-10">
+                  <input
+                    id="require_approval"
+                    name="require_approval"
+                    type="checkbox"
+                    checked={rules.require_approval}
+                    onChange={handleCheckboxChange}
+                    className="h-4 w-4 rounded border-gray-300 text-[#8B1538] focus:ring-[#8B1538]"
+                  />
+                  <Label htmlFor="require_approval" className="font-normal cursor-pointer">
+                    Require approval for new bookings
+                  </Label>
                 </div>
+                <p className="text-sm text-gray-500">All bookings must be reviewed by administrators</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="approval_deadline_hours">Approval Deadline (hours)</Label>
-                <Input 
+                <Input
                   id="approval_deadline_hours"
                   name="approval_deadline_hours"
                   type="number"
@@ -170,12 +185,12 @@ export default function BookingRulesPage() {
                   onChange={handleInputChange}
                   placeholder="48"
                 />
-                <p className="text-sm text-gray-600">Time administrators have to approve pending requests</p>
+                <p className="text-sm text-gray-500">Time administrators have to approve pending requests</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="auto_reject_hours">Auto-Reject After (hours)</Label>
-                <Input 
+                <Input
                   id="auto_reject_hours"
                   name="auto_reject_hours"
                   type="number"
@@ -184,12 +199,12 @@ export default function BookingRulesPage() {
                   onChange={handleInputChange}
                   placeholder="72"
                 />
-                <p className="text-sm text-gray-600">Automatically reject bookings not approved within this time</p>
+                <p className="text-sm text-gray-500">Automatically reject bookings not approved within this time</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="min_advance_notice_hours">Minimum Advance Notice (hours)</Label>
-                <Input 
+                <Input
                   id="min_advance_notice_hours"
                   name="min_advance_notice_hours"
                   type="number"
@@ -198,7 +213,7 @@ export default function BookingRulesPage() {
                   onChange={handleInputChange}
                   placeholder="24"
                 />
-                <p className="text-sm text-gray-600">Minimum hours before event to submit booking</p>
+                <p className="text-sm text-gray-500">Minimum hours before event to submit booking</p>
               </div>
             </div>
           </CardContent>
@@ -212,8 +227,8 @@ export default function BookingRulesPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="operating_hours_start">Operating Hours Start (HH:MM)</Label>
-                <Input 
+                <Label htmlFor="operating_hours_start">Operating Hours Start</Label>
+                <Input
                   id="operating_hours_start"
                   name="operating_hours_start"
                   type="time"
@@ -223,8 +238,8 @@ export default function BookingRulesPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="operating_hours_end">Operating Hours End (HH:MM)</Label>
-                <Input 
+                <Label htmlFor="operating_hours_end">Operating Hours End</Label>
+                <Input
                   id="operating_hours_end"
                   name="operating_hours_end"
                   type="time"
@@ -245,7 +260,7 @@ export default function BookingRulesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="min_booking_duration">Minimum Duration (hours)</Label>
-                <Input 
+                <Input
                   id="min_booking_duration"
                   name="min_booking_duration"
                   type="number"
@@ -254,12 +269,12 @@ export default function BookingRulesPage() {
                   onChange={handleInputChange}
                   placeholder="1"
                 />
-                <p className="text-sm text-gray-600">Minimum hours for a single booking</p>
+                <p className="text-sm text-gray-500">Minimum hours for a single booking</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="max_booking_duration">Maximum Duration (hours)</Label>
-                <Input 
+                <Input
                   id="max_booking_duration"
                   name="max_booking_duration"
                   type="number"
@@ -268,12 +283,12 @@ export default function BookingRulesPage() {
                   onChange={handleInputChange}
                   placeholder="8"
                 />
-                <p className="text-sm text-gray-600">Maximum hours for a single booking</p>
+                <p className="text-sm text-gray-500">Maximum hours for a single booking</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="max_advance_booking_days">Maximum Advance Booking (days)</Label>
-                <Input 
+                <Input
                   id="max_advance_booking_days"
                   name="max_advance_booking_days"
                   type="number"
@@ -282,7 +297,7 @@ export default function BookingRulesPage() {
                   onChange={handleInputChange}
                   placeholder="90"
                 />
-                <p className="text-sm text-gray-600">Maximum days in advance users can book</p>
+                <p className="text-sm text-gray-500">Maximum days in advance users can book</p>
               </div>
             </div>
           </CardContent>
@@ -295,28 +310,27 @@ export default function BookingRulesPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2 flex items-end">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <input 
-                      id="allow_cancellation"
-                      name="allow_cancellation"
-                      type="checkbox"
-                      checked={rules.allow_cancellation}
-                      onChange={handleCheckboxChange}
-                      className="rounded border-gray-300"
-                    />
-                    <Label htmlFor="allow_cancellation" className="cursor-pointer">
-                      Allow Cancellations
-                    </Label>
-                  </div>
-                  <p className="text-sm text-gray-600">Allow users to cancel their bookings</p>
+              <div className="space-y-2">
+                <Label htmlFor="allow_cancellation">Cancellation Policy</Label>
+                <div className="flex items-center space-x-2 h-10">
+                  <input
+                    id="allow_cancellation"
+                    name="allow_cancellation"
+                    type="checkbox"
+                    checked={rules.allow_cancellation}
+                    onChange={handleCheckboxChange}
+                    className="h-4 w-4 rounded border-gray-300 text-[#8B1538] focus:ring-[#8B1538]"
+                  />
+                  <Label htmlFor="allow_cancellation" className="font-normal cursor-pointer">
+                    Allow users to cancel bookings
+                  </Label>
                 </div>
+                <p className="text-sm text-gray-500">Enable self-service cancellation</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="cancellation_deadline_hours">Cancellation Deadline (hours)</Label>
-                <Input 
+                <Input
                   id="cancellation_deadline_hours"
                   name="cancellation_deadline_hours"
                   type="number"
@@ -325,31 +339,30 @@ export default function BookingRulesPage() {
                   onChange={handleInputChange}
                   placeholder="24"
                 />
-                <p className="text-sm text-gray-600">Hours before event to allow cancellations</p>
+                <p className="text-sm text-gray-500">Hours before event to allow cancellations</p>
               </div>
 
-              <div className="space-y-2 flex items-end">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <input 
-                      id="require_documents"
-                      name="require_documents"
-                      type="checkbox"
-                      checked={rules.require_documents}
-                      onChange={handleCheckboxChange}
-                      className="rounded border-gray-300"
-                    />
-                    <Label htmlFor="require_documents" className="cursor-pointer">
-                      Require Documents
-                    </Label>
-                  </div>
-                  <p className="text-sm text-gray-600">Require users to submit event documents</p>
+              <div className="space-y-2">
+                <Label htmlFor="require_documents">Documentation</Label>
+                <div className="flex items-center space-x-2 h-10">
+                  <input
+                    id="require_documents"
+                    name="require_documents"
+                    type="checkbox"
+                    checked={rules.require_documents}
+                    onChange={handleCheckboxChange}
+                    className="h-4 w-4 rounded border-gray-300 text-[#8B1538] focus:ring-[#8B1538]"
+                  />
+                  <Label htmlFor="require_documents" className="font-normal cursor-pointer">
+                    Require event documents
+                  </Label>
                 </div>
+                <p className="text-sm text-gray-500">Require users to submit event documents</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="document_deadline_days">Document Deadline (days)</Label>
-                <Input 
+                <Input
                   id="document_deadline_days"
                   name="document_deadline_days"
                   type="number"
@@ -358,12 +371,12 @@ export default function BookingRulesPage() {
                   onChange={handleInputChange}
                   placeholder="3"
                 />
-                <p className="text-sm text-gray-600">Days before event to submit documents</p>
+                <p className="text-sm text-gray-500">Days before event to submit documents</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="equipment_request_deadline_days">Equipment Request Deadline (days)</Label>
-                <Input 
+                <Input
                   id="equipment_request_deadline_days"
                   name="equipment_request_deadline_days"
                   type="number"
@@ -372,15 +385,15 @@ export default function BookingRulesPage() {
                   onChange={handleInputChange}
                   placeholder="3"
                 />
-                <p className="text-sm text-gray-600">Days before event to request equipment</p>
+                <p className="text-sm text-gray-500">Days before event to request equipment</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <div className="flex justify-end">
-          <Button 
-            onClick={handleSaveRules}
+          <Button
+            onClick={handleSaveClick}
             disabled={isSaving}
             className="bg-[#8B1538] hover:bg-[#6B1028]"
           >
@@ -389,6 +402,15 @@ export default function BookingRulesPage() {
           </Button>
         </div>
       </div>
+
+      <PasswordConfirmationModal
+        open={showPasswordModal}
+        onOpenChange={setShowPasswordModal}
+        onConfirm={handleConfirmPassword}
+        isLoading={isSaving}
+        title="Confirm Booking Rules Changes"
+        description="Please key in your admin password to confirm these changes."
+      />
     </div>
   )
 }

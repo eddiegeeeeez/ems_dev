@@ -274,4 +274,19 @@ class AuditService
             "System setting changed: $settingKey"
         );
     }
+
+    /**
+     * Log user profile update
+     */
+    public static function logUserProfileUpdate($userId, $userName, array $oldValues, array $newValues): AuditLog
+    {
+        return self::log(
+            'user_profile_updated',
+            'User',
+            $userId,
+            $oldValues,
+            $newValues,
+            "User profile updated: $userName"
+        );
+    }
 }

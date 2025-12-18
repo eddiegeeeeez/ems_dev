@@ -22,6 +22,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { TwoFactorSetupModal } from "@/components/profile/two-factor-setup-modal"
 
@@ -492,43 +493,47 @@ export default function ProfileContent() {
             <CardDescription>Manage your account security and authentication.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-0">
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 min-w-0 pr-4">
-                <p className="font-medium text-gray-900">Two-Factor Authentication</p>
-                <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0" style={{ minWidth: '210px' }}>
-                {user?.two_factor_enabled_at ? (
-                  <>
-                    <span className="px-3 py-1.5 bg-green-100 text-green-700 text-sm font-medium rounded-full whitespace-nowrap">
-                      Enabled
-                    </span>
-                    <Button
-                      variant="outline"
-                      onClick={handleDisableTwoFactor}
-                      className="whitespace-nowrap h-9 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
-                    >
-                      Disable
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <span className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-full whitespace-nowrap">
-                      Disabled
-                    </span>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowTwoFactorModal(true)}
-                      className="whitespace-nowrap h-9"
-                    >
-                      Enable
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
+            {user?.role === 'ADMIN' && (
+              <>
+                <div className="flex items-center justify-between py-4">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <p className="font-medium text-gray-900">Two-Factor Authentication</p>
+                    <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0" style={{ minWidth: '210px' }}>
+                    {user?.two_factor_enabled_at ? (
+                      <>
+                        <span className="px-3 py-1.5 bg-green-100 text-green-700 text-sm font-medium rounded-full whitespace-nowrap">
+                          Enabled
+                        </span>
+                        <Button
+                          variant="outline"
+                          onClick={handleDisableTwoFactor}
+                          className="whitespace-nowrap h-9 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                        >
+                          Disable
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-full whitespace-nowrap">
+                          Disabled
+                        </span>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowTwoFactorModal(true)}
+                          className="whitespace-nowrap h-9"
+                        >
+                          Enable
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
 
-            <Separator />
+                <Separator />
+              </>
+            )}
 
             <div className="flex items-center justify-between py-4">
               <div className="flex-1 min-w-0 pr-4">
@@ -551,19 +556,7 @@ export default function ProfileContent() {
                 <p className="text-sm text-gray-600">Manage devices that are logged into your account</p>
               </div>
               <div className="flex-shrink-0 flex justify-end" style={{ minWidth: '210px' }}>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Active Sessions",
-                      description: "Viewing active sessions feature coming soon",
-                    })
-                  }}
-                  className="whitespace-nowrap h-9"
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  View Sessions
-                </Button>
+                <SessionsDialog />
               </div>
             </div>
           </CardContent>
@@ -576,5 +569,86 @@ export default function ProfileContent() {
         onEnable={handleEnableTwoFactor}
       />
     </Tabs>
+  )
+}
+
+function SessionsDialog() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [sessions, setSessions] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
+
+  const fetchSessions = async () => {
+    setIsLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/profile/sessions', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSessions(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch sessions', error)
+      toast({
+        title: "Error",
+        description: "Failed to load active sessions",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" onClick={fetchSessions} className="whitespace-nowrap h-9">
+          <Shield className="w-4 h-4 mr-2" />
+          View Sessions
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className="max-w-2xl">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Active Sessions</AlertDialogTitle>
+          <AlertDialogDescription>
+            These are the devices and browsers currently logged into your account.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="py-4 space-y-4">
+          {isLoading ? (
+            <div className="text-center py-4">Loading sessions...</div>
+          ) : sessions.length > 0 ? (
+            sessions.map((session, i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white rounded-full border">
+                    <Shield className="w-4 h-4 text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">
+                      {session.agent?.browser ? `${session.agent.browser} on ${session.agent.platform}` : 'Unknown Device'}
+                      {session.is_current_device && <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Current Device</span>}
+                    </p>
+                    <p className="text-xs text-gray-500">{session.ip_address} • Last active {session.last_active}</p>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-4 text-gray-500">No active sessions info available.</div>
+          )}
+        </div>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setIsOpen(false)}>Close</AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

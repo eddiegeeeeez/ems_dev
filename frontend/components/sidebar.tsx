@@ -67,7 +67,6 @@ const adminSections = [
     links: [
       { href: "/admin/users", label: "Manage Users", icon: Users },
       { href: "/admin/departments", label: "Departments", icon: GitBranch },
-      { href: "/admin/audit-logs", label: "Audit Logs", icon: FileSearch },
     ]
   },
   {

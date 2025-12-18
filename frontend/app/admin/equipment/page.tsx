@@ -50,9 +50,12 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { Equipment } from "@/lib/types"
+import { apiClient } from "@/lib/api"
+import { useRouter } from "next/navigation"
 
 export default function AdminEquipmentPage() {
-  const { equipment, venues } = useData()
+  const { equipment, venues, colleges } = useData()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -69,11 +72,18 @@ export default function AdminEquipmentPage() {
     name: "",
     category: "",
     venueId: "",
+    collegeId: "",
     quantity: 0,
     available: 0,
   })
 
-  const getVenueName = (venueId: string) => {
+  // Helper to refresh data (simple page reload or could add refresh method to context)
+  const refreshData = () => {
+    window.location.reload()
+  }
+
+  const getVenueName = (venueId?: string) => {
+    if (!venueId) return "Any Venue"
     return venues.find((v) => v.id === venueId)?.name || "Unknown Venue"
   }
 
@@ -81,29 +91,31 @@ export default function AdminEquipmentPage() {
     setFormData({
       name: "",
       category: "",
-      venueId: "",
+      venueId: "null", // API handles "null" string or undefined? We'll convert to null before sending
+      collegeId: colleges.length > 0 ? colleges[0].id : "",
       quantity: 0,
       available: 0,
     })
     setIsAddOpen(true)
   }
 
-  const handleEditEquipment = (equipmentId: string, equipmentName: string) => {
+  const handleEditEquipment = (equipmentId: string) => {
     const eq = equipment.find((e) => e.id === equipmentId)
     if (eq) {
       setSelectedEquipment(eq)
       setFormData({
         name: eq.name,
         category: eq.category,
-        venueId: eq.venueId,
+        venueId: eq.venueId || eq.venue_id || "null",
+        collegeId: eq.collegeId || eq.college_id || (colleges.length > 0 ? colleges[0].id : ""),
         quantity: eq.quantity,
-        available: eq.available,
+        available: eq.available_quantity ?? eq.available ?? eq.quantity,
       })
       setIsEditOpen(true)
     }
   }
 
-  const handleDeleteEquipment = (equipmentId: string, equipmentName: string) => {
+  const handleDeleteEquipment = (equipmentId: string) => {
     const eq = equipment.find((e) => e.id === equipmentId)
     if (eq) {
       setSelectedEquipment(eq)
@@ -111,34 +123,73 @@ export default function AdminEquipmentPage() {
     }
   }
 
-  const handleSubmitAdd = () => {
+  const handleSubmitAdd = async () => {
+    if (!formData.collegeId) {
+      alert("Please select a college (required by system)")
+      return
+    }
+
     setIsLoading(true)
-    console.log("[v0] Adding equipment:", formData)
-    // TODO: Implement API call to add equipment
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const payload = {
+        name: formData.name,
+        category: formData.category,
+        quantity: formData.quantity,
+        available_quantity: formData.available, // Send available quantity
+        college_id: formData.collegeId,
+        venue_id: formData.venueId === "null" || !formData.venueId ? null : formData.venueId,
+        description: "", // Optional
+      }
+
+      await apiClient.createEquipment(payload)
       setIsAddOpen(false)
-    }, 1000)
+      refreshData()
+    } catch (error) {
+      console.error("Failed to add equipment:", error)
+      alert("Failed to add equipment. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSubmitEdit = () => {
+  const handleSubmitEdit = async () => {
+    if (!selectedEquipment) return
     setIsLoading(true)
-    console.log("[v0] Editing equipment:", selectedEquipment?.id, formData)
-    // TODO: Implement API call to edit equipment
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const payload = {
+        name: formData.name,
+        category: formData.category,
+        quantity: formData.quantity,
+        available_quantity: formData.available, // Send available quantity
+        college_id: formData.collegeId,
+        venue_id: formData.venueId === "null" || !formData.venueId ? null : formData.venueId,
+        description: selectedEquipment.description || "",
+      }
+
+      await apiClient.updateEquipment(selectedEquipment.id, payload)
       setIsEditOpen(false)
-    }, 1000)
+      refreshData()
+    } catch (error) {
+      console.error("Failed to update equipment:", error)
+      alert("Failed to update equipment.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSubmitDelete = () => {
+  const handleSubmitDelete = async () => {
+    if (!selectedEquipment) return
     setIsLoading(true)
-    console.log("[v0] Deleting equipment:", selectedEquipment?.id)
-    // TODO: Implement API call to delete equipment
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      await apiClient.deleteEquipment(selectedEquipment.id)
       setIsDeleteOpen(false)
-    }, 1000)
+      refreshData()
+    } catch (error) {
+      console.error("Failed to delete equipment:", error)
+      alert("Failed to delete equipment.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const columns: ColumnDef<Equipment>[] = [
@@ -175,7 +226,7 @@ export default function AdminEquipmentPage() {
       cell: ({ row }) => {
         const category = row.getValue("category") as string
         const getCategoryTextColor = (value: string) => {
-          switch (value.toLowerCase()) {
+          switch (value?.toLowerCase()) {
             case "audio-visual":
               return "text-purple-700"
             case "supplies":
@@ -194,10 +245,12 @@ export default function AdminEquipmentPage() {
       },
     },
     {
-      accessorKey: "venueId",
+      accessorKey: "venue_id", // Updated accessor
       header: "Venue",
       cell: ({ row }) => {
-        return <div className="text-sm">{getVenueName(row.getValue("venueId"))}</div>
+        // Handle both snake_case and camelCase
+        const vId = row.original.venue_id || row.original.venueId
+        return <div className="text-sm">{getVenueName(vId)}</div>
       },
     },
     {
@@ -210,7 +263,7 @@ export default function AdminEquipmentPage() {
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
               className="h-auto p-0 font-semibold text-gray-900"
             >
-              Total Qty
+              Qty
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -219,7 +272,7 @@ export default function AdminEquipmentPage() {
       cell: ({ row }) => <div className="text-center font-medium text-sm">{row.getValue("quantity")}</div>,
     },
     {
-      accessorKey: "available",
+      accessorKey: "available_quantity",
       header: ({ column }) => {
         return (
           <div className="w-full flex justify-center">
@@ -235,9 +288,8 @@ export default function AdminEquipmentPage() {
         )
       },
       cell: ({ row }) => {
-        const available = row.getValue("available") as number
-        const availableColor =
-          available > 0 ? "text-[#4caf50]" : "text-red-600"
+        const available = row.original.available_quantity ?? row.original.available ?? 0
+        const availableColor = available > 0 ? "text-[#4caf50]" : "text-red-600"
         return (
           <div className={`text-center font-semibold text-sm ${availableColor}`}>
             {available}
@@ -261,12 +313,12 @@ export default function AdminEquipmentPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleEditEquipment(eq.id, eq.name)}>
+                <DropdownMenuItem onClick={() => handleEditEquipment(eq.id)}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleDeleteEquipment(eq.id, eq.name)}
+                  onClick={() => handleDeleteEquipment(eq.id)}
                   className="text-red-600"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -345,7 +397,7 @@ export default function AdminEquipmentPage() {
                         }
                       >
                         {column.id === "quantity" && "Total Qty"}
-                        {column.id === "available" && "Available"}
+                        {column.id === "Venue" && "Venue"}
                         {column.id === "category" && "Category"}
                         {column.id === "venueId" && "Venue"}
                         {column.id === "name" && "Equipment Name"}
@@ -441,7 +493,7 @@ export default function AdminEquipmentPage() {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add Equipment</DialogTitle>
-              <DialogDescription>Add new equipment to a venue</DialogDescription>
+              <DialogDescription>Add new equipment to a venue or general inventory</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -467,12 +519,28 @@ export default function AdminEquipmentPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="venue">Venue</Label>
-                <Select value={formData.venueId} onValueChange={(value) => setFormData({ ...formData, venueId: value })}>
+                <Label htmlFor="college">Owner (College)</Label>
+                <Select value={formData.collegeId} onValueChange={(value) => setFormData({ ...formData, collegeId: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select venue" />
+                    <SelectValue placeholder="Select college" />
                   </SelectTrigger>
                   <SelectContent>
+                    {colleges.map((col) => (
+                      <SelectItem key={col.id} value={col.id}>
+                        {col.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="venue">Venue (Optional)</Label>
+                <Select value={formData.venueId} onValueChange={(value) => setFormData({ ...formData, venueId: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select venue (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="null">Any / General Inventory</SelectItem>
                     {venues.map((venue) => (
                       <SelectItem key={venue.id} value={venue.id}>
                         {venue.name}
@@ -481,28 +549,15 @@ export default function AdminEquipmentPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Total Quantity</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    min="0"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="available">Available</Label>
-                  <Input
-                    id="available"
-                    type="number"
-                    min="0"
-                    max={formData.quantity}
-                    value={formData.available}
-                    onChange={(e) => setFormData({ ...formData, available: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantity</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="0"
+                  value={formData.quantity}
+                  onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+                />
               </div>
             </div>
             <DialogFooter>
@@ -547,12 +602,28 @@ export default function AdminEquipmentPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-venue">Venue</Label>
-                <Select value={formData.venueId} onValueChange={(value) => setFormData({ ...formData, venueId: value })}>
+                <Label htmlFor="edit-college">Owner (College)</Label>
+                <Select value={formData.collegeId} onValueChange={(value) => setFormData({ ...formData, collegeId: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select venue" />
+                    <SelectValue placeholder="Select college" />
                   </SelectTrigger>
                   <SelectContent>
+                    {colleges.map((col) => (
+                      <SelectItem key={col.id} value={col.id}>
+                        {col.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-venue">Venue (Optional)</Label>
+                <Select value={formData.venueId} onValueChange={(value) => setFormData({ ...formData, venueId: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select venue (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="null">Any / General Inventory</SelectItem>
                     {venues.map((venue) => (
                       <SelectItem key={venue.id} value={venue.id}>
                         {venue.name}
@@ -561,28 +632,15 @@ export default function AdminEquipmentPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-quantity">Total Quantity</Label>
-                  <Input
-                    id="edit-quantity"
-                    type="number"
-                    min="0"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-available">Available</Label>
-                  <Input
-                    id="edit-available"
-                    type="number"
-                    min="0"
-                    max={formData.quantity}
-                    value={formData.available}
-                    onChange={(e) => setFormData({ ...formData, available: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-quantity">Quantity</Label>
+                <Input
+                  id="edit-quantity"
+                  type="number"
+                  min="0"
+                  value={formData.quantity}
+                  onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+                />
               </div>
             </div>
             <DialogFooter>

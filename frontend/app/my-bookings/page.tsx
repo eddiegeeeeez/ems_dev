@@ -205,7 +205,7 @@ export default function MyBookingsPage() {
           rejected: "rejected",
           completed: "completed"
         }
-        const statusVariant = statusMap[row.original.status] || "pending"
+        const statusVariant = (statusMap[row.original.status] || "pending") as "pending" | "approved" | "rejected" | "completed"
         return (
           <Status status={statusVariant}>
             <StatusIndicator />
@@ -228,18 +228,12 @@ export default function MyBookingsPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              {(row.original.status === "approved" || row.original.status === "completed") && (
-                <DropdownMenuItem onClick={() => setSelectedBooking(row.original)}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View QR
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem onClick={() => setSelectedBooking(row.original)}>
+                <Eye className="h-4 w-4 mr-2" />
+                View Details
+              </DropdownMenuItem>
               {row.original.status === "pending" && (
                 <>
-                  <DropdownMenuItem onClick={() => handleEditBooking(row.original.venueId, row.original.eventTitle)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleCancelBooking(row.original.id, row.original.eventTitle)}
                     className="text-red-600"

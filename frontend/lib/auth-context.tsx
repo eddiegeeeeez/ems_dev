@@ -216,7 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Clear user state immediately
       setUser(null)
-      setIsAuthenticated(false)
+
       setLoginError(null)
 
       // Call backend logout
@@ -239,7 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       // Ensure state is cleared
       setUser(null)
-      setIsAuthenticated(false)
+
       setLoginError(null)
 
       console.log('[Auth] Local auth state cleared, redirecting to home')

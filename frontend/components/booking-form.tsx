@@ -6,6 +6,7 @@ import type { Venue } from "@/lib/types"
 import { useData } from "@/lib/data-context"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
+import { apiClient } from "@/lib/api"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -28,7 +29,7 @@ export function BookingForm({ venue, onSuccess }: BookingFormProps) {
   const [equipmentModalOpen, setEquipmentModalOpen] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
-  const venueEquipment = equipment.filter((eq) => eq.venueId === venue.id)
+  const venueEquipment = equipment.filter((eq) => (eq.venueId || eq.venue_id) === venue.id)
 
   const [formData, setFormData] = useState({
     eventTitle: "",
@@ -108,38 +109,35 @@ export function BookingForm({ venue, onSuccess }: BookingFormProps) {
         throw new Error("End time must be after start time")
       }
 
-      // Prepare booking data for backend
-      const bookingData = {
-        venue_id: venue.id,
-        event_title: formData.eventTitle,
-        event_description: formData.eventDescription || null,
-        start_datetime: `${formData.startDate} ${formData.startTime}:00`,
-        end_datetime: `${formData.endDate || formData.startDate} ${formData.endTime}:00`,
-        expected_attendees: Number.parseInt(formData.expectedAttendees) || 1,
-        equipment: Object.entries(selectedEquipment).map(([equipmentId, quantity]) => ({
-          equipment_id: equipmentId,
-          quantity: quantity,
-        })),
-      }
+      // Prepare FormData for backend
+      const payload = new FormData()
+      payload.append('venue_id', venue.id)
+      payload.append('event_title', formData.eventTitle)
+      if (formData.eventDescription) payload.append('event_description', formData.eventDescription)
+      payload.append('start_datetime', `${formData.startDate} ${formData.startTime}:00`)
+      payload.append('end_datetime', `${formData.endDate || formData.startDate} ${formData.endTime}:00`)
+      payload.append('expected_attendees', formData.expectedAttendees || "1")
 
-      console.log("[BookingForm] Submitting booking:", bookingData)
+      // Equipment
+      const equipmentList = Object.entries(selectedEquipment).map(([equipmentId, quantity]) => ({
+        equipment_id: equipmentId,
+        quantity: quantity,
+      }))
 
-      // Call backend API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/bookings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Use Sanctum cookie authentication
-        body: JSON.stringify(bookingData)
+      equipmentList.forEach((item, index) => {
+        payload.append(`equipment[${index}][equipment_id]`, item.equipment_id)
+        payload.append(`equipment[${index}][quantity]`, item.quantity.toString())
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to create booking')
+      // File
+      if (uploadedFile) {
+        payload.append('documents[]', uploadedFile)
       }
 
-      const result = await response.json()
+      console.log("[BookingForm] Submitting booking via FormData")
+
+      // Call backend API using apiClient
+      const result = await apiClient.createBooking(payload)
       console.log("[BookingForm] Booking created successfully:", result)
 
       setSuccess(true)

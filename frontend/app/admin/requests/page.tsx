@@ -56,6 +56,13 @@ export default function AdminRequestsPage() {
   const [processedDetails, setProcessedDetails] = useState<{ title: string; action: 'approved' | 'rejected' } | null>(null)
   const [bookings, setBookings] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    next_page_url: null as string | null,
+    prev_page_url: null as string | null
+  })
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
     id: true,
     eventTitle: true,
@@ -67,10 +74,10 @@ export default function AdminRequestsPage() {
   })
 
   // Fetch bookings from admin endpoint with user information
-  const fetchAdminBookings = async () => {
+  const fetchAdminBookings = async (page = 1) => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/requests`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/requests?page=${page}&status=${filter}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -94,9 +101,21 @@ export default function AdminRequestsPage() {
       const data = await response.json()
       console.log("[AdminRequests] Fetched bookings:", data)
 
-      // Handle response format
-      const bookingsData = data.bookings || data.data || data || []
-      setBookings(bookingsData)
+      // Handle paginated response
+      if (data.bookings && data.bookings.data) {
+        setBookings(data.bookings.data)
+        setPagination({
+          current_page: data.bookings.current_page,
+          last_page: data.bookings.last_page,
+          total: data.bookings.total,
+          next_page_url: data.bookings.next_page_url,
+          prev_page_url: data.bookings.prev_page_url
+        })
+      } else {
+        // Fallback for non-paginated or error structure
+        const bookingsData = data.bookings || data.data || data || []
+        setBookings(Array.isArray(bookingsData) ? bookingsData : [])
+      }
     } catch (error) {
       console.error("[AdminRequests] Error fetching bookings:", error)
       setBookings([])
@@ -105,12 +124,13 @@ export default function AdminRequestsPage() {
     }
   }
 
-  // Fetch on mount
+  // Fetch on mount and when filter changes
   useEffect(() => {
-    fetchAdminBookings()
-  }, [])
+    fetchAdminBookings(1)
+  }, [filter])
 
-  const filteredBookings = bookings.filter((b) => b.status === filter)
+  // No longer needed as backend filters
+  const filteredBookings = bookings
 
   const handleApprove = async (bookingId: string) => {
     try {
@@ -378,6 +398,31 @@ export default function AdminRequestsPage() {
                         )}
                       </TableBody>
                     </Table>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  <div className="p-4 border-t flex items-center justify-between">
+                    <p className="text-sm text-gray-600">
+                      Page {pagination.current_page} of {pagination.last_page} ({pagination.total} requests total)
+                    </p>
+                    <div className="space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchAdminBookings(pagination.current_page - 1)}
+                        disabled={!pagination.prev_page_url}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchAdminBookings(pagination.current_page + 1)}
+                        disabled={!pagination.next_page_url}
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}

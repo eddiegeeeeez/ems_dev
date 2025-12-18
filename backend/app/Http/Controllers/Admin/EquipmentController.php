@@ -16,7 +16,8 @@ class EquipmentController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $equipment = Equipment::latest()
+            $equipment = Equipment::with(['venue', 'college'])
+                ->latest()
                 ->get();
 
             $stats = [
@@ -45,7 +46,8 @@ class EquipmentController extends Controller
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'quantity' => 'required|integer|min:1',
-                'department_id' => 'required|exists:departments,id',
+                'college_id' => 'required|exists:colleges,id',
+                'venue_id' => 'nullable|exists:venues,id',
                 'category' => 'nullable|string|max:100',
             ]);
 
@@ -55,10 +57,10 @@ class EquipmentController extends Controller
             $equipment = Equipment::create($validated);
             return response()->json([
                 'message' => 'Equipment added successfully',
-                'equipment' => $equipment->load('department')
+                'equipment' => $equipment->load(['venue', 'college'])
             ], 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to create equipment'], 500);
+            return response()->json(['error' => 'Failed to create equipment: ' . $e->getMessage()], 500);
         }
     }
 
@@ -68,7 +70,7 @@ class EquipmentController extends Controller
     public function show(Equipment $equipment): JsonResponse
     {
         try {
-            $equipment->load('department');
+            $equipment->load(['venue', 'college']);
             return response()->json(['equipment' => $equipment]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch equipment details'], 500);
@@ -85,14 +87,15 @@ class EquipmentController extends Controller
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'quantity' => 'required|integer|min:1',
-                'department_id' => 'required|exists:departments,id',
+                'college_id' => 'required|exists:colleges,id',
+                'venue_id' => 'nullable|exists:venues,id',
                 'category' => 'nullable|string|max:100',
             ]);
 
             $equipment->update($validated);
             return response()->json([
                 'message' => 'Equipment updated successfully',
-                'equipment' => $equipment->load('department')
+                'equipment' => $equipment->load(['venue', 'college'])
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to update equipment'], 500);

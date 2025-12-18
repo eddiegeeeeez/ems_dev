@@ -15,7 +15,6 @@ interface DataContextType {
   notifications: Notification[]
   users: User[]
   colleges: College[]
-  auditLogs: AuditLog[]
   loading: boolean
   error: string | null
   addBooking: (booking: Booking) => void
@@ -23,6 +22,7 @@ interface DataContextType {
   cancelBooking: (id: string) => void
   addNotification: (notification: Notification) => void
   markNotificationAsRead: (id: string) => void
+  markAllNotificationsAsRead: () => void
   getVenueById: (id: string) => Venue | undefined
   getBookingsByOrganizer: (organizerId: string) => Booking[]
   getBookingsByVenue: (venueId: string) => Booking[]
@@ -49,7 +49,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [users, setUsers] = useState<User[]>(mockUsers)
   const [colleges, setColleges] = useState<College[]>([])
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasInitialized, setHasInitialized] = useState(false)
@@ -67,7 +66,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           setBookings([])
           setNotifications([])
           setColleges([])
-          setAuditLogs([])
           setLoading(false)
           setError(null)
         }
@@ -105,37 +103,36 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           console.warn("Failed to fetch venues:", err)
         }
 
-        // Fetch equipment (admin endpoint, only if user is admin)
-        if (user?.role === 'ADMIN') {
-          try {
-            const equipmentRes = await fetch(`${API_BASE_URL}/api/admin/equipment`, {
-              credentials: 'include',
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-              },
-            })
-            if (equipmentRes.ok) {
-              const response = await equipmentRes.json()
-              // Handle paginated response: { equipment: { data: [...] } }
-              let equipmentData = []
-              if (response.equipment?.data) {
-                equipmentData = response.equipment.data
-              } else if (Array.isArray(response.equipment)) {
-                equipmentData = response.equipment
-              } else if (Array.isArray(response.data)) {
-                equipmentData = response.data
-              } else if (Array.isArray(response)) {
-                equipmentData = response
-              }
-              setEquipment(equipmentData)
-              console.log('[DataProvider] Loaded equipment:', equipmentData.length)
-            } else {
-              console.warn('[DataProvider] Equipment fetch failed:', equipmentRes.status)
+        // Fetch equipment (for all authenticated users)
+        try {
+          // Use public endpoint accessible to organizers too
+          const equipmentRes = await fetch(`${API_BASE_URL}/api/equipment`, {
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+          })
+          if (equipmentRes.ok) {
+            const response = await equipmentRes.json()
+            // Handle paginated response: { equipment: { data: [...] } } or flat { equipment: [...] }
+            let equipmentData = []
+            if (response.equipment?.data) {
+              equipmentData = response.equipment.data
+            } else if (Array.isArray(response.equipment)) {
+              equipmentData = response.equipment
+            } else if (Array.isArray(response.data)) {
+              equipmentData = response.data
+            } else if (Array.isArray(response)) {
+              equipmentData = response
             }
-          } catch (err) {
-            console.warn("Failed to fetch equipment:", err)
+            setEquipment(equipmentData)
+            console.log('[DataProvider] Loaded equipment:', equipmentData.length)
+          } else {
+            console.warn('[DataProvider] Equipment fetch failed:', equipmentRes.status)
           }
+        } catch (err) {
+          console.warn("Failed to fetch equipment:", err)
         }
 
         // Fetch bookings
@@ -209,38 +206,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Fetch audit logs (admin endpoint, only if user is admin)
-        if (user?.role === 'ADMIN') {
-          try {
-            const auditRes = await fetch(`${API_BASE_URL}/api/admin/audit-logs`, {
-              credentials: 'include',
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-              },
-            })
-            if (auditRes.ok) {
-              const response = await auditRes.json()
-              // Handle paginated response: { logs: { data: [...] } }
-              let auditData = []
-              if (response.logs?.data) {
-                auditData = response.logs.data
-              } else if (Array.isArray(response.logs)) {
-                auditData = response.logs
-              } else if (Array.isArray(response.data)) {
-                auditData = response.data
-              } else if (Array.isArray(response)) {
-                auditData = response
-              }
-              setAuditLogs(auditData)
-              console.log('[DataProvider] Loaded audit logs:', auditData.length)
-            } else {
-              console.warn('[DataProvider] Audit logs fetch failed:', auditRes.status)
-            }
-          } catch (err) {
-            console.warn("Failed to fetch audit logs:", err)
-          }
-        }
+
 
         setHasInitialized(true)
       } catch (err) {
@@ -339,6 +305,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
   }
 
+  const markAllNotificationsAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
+
   const getVenueById = (id: string) => venues.find((v) => v.id === id)
 
   const getBookingsByOrganizer = (organizerId: string) => bookings.filter((b) => b.organizerId === organizerId)
@@ -373,7 +343,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         notifications,
         users,
         colleges,
-        auditLogs,
         loading,
         error,
         addBooking,
@@ -384,6 +353,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         refreshVenues,
         addNotification,
         markNotificationAsRead,
+        markAllNotificationsAsRead,
         getVenueById,
         getBookingsByOrganizer,
         getBookingsByVenue,

@@ -30,9 +30,15 @@ export interface Equipment {
   name: string
   category: string
   quantity: number
-  available: number
-  venueId: string
+  available?: number // Legacy/Frontend
+  available_quantity?: number // Snake_case from backend
+  venueId?: string // CamelCase legacy/mapped
+  venue_id?: string | null // Snake_case from backend
+  collegeId?: string // CamelCase legacy/mapped
+  college_id?: string // Snake_case from backend
   description: string
+  venue?: Venue
+  college?: College
 }
 
 // Assuming BookingEquipment and BookingDocument are defined elsewhere or will be added.

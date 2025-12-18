@@ -76,6 +76,7 @@ class SettingsController extends Controller
     {
         try {
             $validated = $request->validate([
+                'current_password' => 'required|string',
                 'require_approval' => 'boolean',
                 'approval_deadline_hours' => 'required|integer|min:1',
                 'auto_reject_hours' => 'required|integer|min:1',
@@ -91,6 +92,14 @@ class SettingsController extends Controller
                 'document_deadline_days' => 'required|integer|min:1',
                 'equipment_request_deadline_days' => 'required|integer|min:1',
             ]);
+
+            // Verify password
+            if (!\Hash::check($validated['current_password'], $request->user()->password)) {
+                 return response()->json(['error' => 'Incorrect password provided'], 403);
+            }
+
+            // Remove password from data to save
+            unset($validated['current_password']);
 
             foreach ($validated as $key => $value) {
                 Cache::put($key, $value);
@@ -373,6 +382,7 @@ Events Management Team'),
     {
         try {
             $validated = $request->validate([
+                'current_password' => 'required|string',
                 'system_name' => 'required|string|max:255',
                 'university_name' => 'required|string|max:255',
                 'admin_email' => 'required|email',
@@ -385,6 +395,14 @@ Events Management Team'),
                 'min_booking_duration' => 'required|integer|min:1',
                 'allow_weekend_bookings' => 'boolean',
             ]);
+
+            // Verify password
+            if (!\Hash::check($validated['current_password'], $request->user()->password)) {
+                 return response()->json(['error' => 'Incorrect password provided'], 403);
+            }
+
+            // Remove password from data to save
+            unset($validated['current_password']);
 
             foreach ($validated as $key => $value) {
                 Cache::put($key, $value);

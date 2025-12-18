@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Upload, X } from 'lucide-react'
 import type { Venue } from "@/lib/types"
+import { getStorageUrl } from "@/lib/utils"
 
 interface EditVenueModalProps {
   open: boolean
@@ -53,7 +54,7 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
         capacity: venue.capacity,
         image: null,
       })
-      setImagePreview(null)
+      setImagePreview(venue.image ? getStorageUrl(venue.image) : null)
     }
   }, [venue, open])
 
@@ -65,7 +66,7 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
         console.log("[v0] Invalid file type - must be an image")
         return
       }
-      
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         console.log("[v0] File too large - max 5MB")
@@ -73,7 +74,7 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
       }
 
       setFormData({ ...formData, image: file })
-      
+
       // Create preview
       const reader = new FileReader()
       reader.onloadend = () => {
@@ -133,9 +134,9 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
             <div className="mt-2">
               {imagePreview ? (
                 <div className="relative inline-block">
-                  <img 
-                    src={imagePreview} 
-                    alt="Venue preview" 
+                  <img
+                    src={imagePreview}
+                    alt="Venue preview"
                     className="max-w-sm max-h-60 rounded-lg object-cover border border-gray-200"
                   />
                   <button

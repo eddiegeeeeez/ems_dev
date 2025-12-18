@@ -63,6 +63,13 @@ class BookingController extends Controller
                             'name' => $booking->venue->name,
                             'location' => $booking->venue->location,
                         ],
+                        'user' => [
+                            'id' => (string) $booking->user->id,
+                            'name' => $booking->user->name,
+                            'email' => $booking->user->email,
+                            'department' => $booking->user->department,
+                            'college' => $booking->user->college,
+                        ],
                     ];
                 });
 
@@ -88,6 +95,13 @@ class BookingController extends Controller
             $validated = $request->validated();
             
             // Create the booking
+            if (!Auth::user()->isOrganizer() && !Auth::user()->isAdmin()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only organizers can create bookings'
+                ], 403);
+            }
+
             $booking = Booking::create([
                 'user_id' => Auth::id(),
                 'venue_id' => $validated['venue_id'],
@@ -96,8 +110,24 @@ class BookingController extends Controller
                 'start_datetime' => $validated['start_datetime'],
                 'end_datetime' => $validated['end_datetime'],
                 'expected_attendees' => $validated['expected_attendees'],
+                'expected_attendees' => $validated['expected_attendees'],
                 'status' => 'pending',
+                'documents' => [],
             ]);
+
+            // Handle file upload
+            if ($request->hasFile('documents')) {
+                $documents = [];
+                foreach ($request->file('documents') as $file) {
+                    $path = $file->store('documents', 'public');
+                    $documents[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'url' => \Illuminate\Support\Facades\Storage::url($path),
+                        'path' => $path
+                    ];
+                }
+                $booking->update(['documents' => $documents]);
+            }
 
             // Attach equipment if provided
             if (!empty($validated['equipment'])) {
@@ -109,6 +139,16 @@ class BookingController extends Controller
                     ]);
                 }
             }
+
+            // Log booking creation
+            \App\Services\AuditService::log(
+                'booking_created', 
+                'Booking', 
+                $booking->id, 
+                null, 
+                $booking->toArray(), 
+                "New booking created: {$booking->event_title}"
+            );
 
             return response()->json([
                 'success' => true,
@@ -189,7 +229,18 @@ class BookingController extends Controller
                 'expectedAttendees' => 'integer|min:1',
             ]);
 
+            $oldValues = $booking->only(array_keys($validated));
             $booking->update($validated);
+
+            // Log booking update
+            \App\Services\AuditService::log(
+                'booking_updated',
+                'Booking',
+                $booking->id,
+                $oldValues,
+                $validated,
+                "Booking updated: {$booking->event_title}"
+            );
 
             return response()->json([
                 'success' => true,
@@ -222,6 +273,16 @@ class BookingController extends Controller
             }
 
             $booking->update(['status' => 'cancelled']);
+
+            // Log cancellation
+            \App\Services\AuditService::log(
+                'booking_cancelled', 
+                'Booking', 
+                $booking->id, 
+                ['status' => 'pending'], 
+                ['status' => 'cancelled'], 
+                "Booking cancelled: {$booking->event_title}"
+            );
 
             return response()->json([
                 'success' => true,

@@ -15,13 +15,16 @@ class RequestController extends Controller
     /**
      * Display a listing of booking requests.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
+            $status = $request->query('status', 'pending');
             $bookings = Booking::with('user', 'venue', 'equipment.equipment')
+                ->where('status', $status)
                 ->latest()
-                ->get()
-                ->map(function ($booking) {
+                ->paginate(10);
+
+            $transformedBookings = $bookings->getCollection()->map(function ($booking) {
                     return [
                         'id' => $booking->id,
                         'organizerId' => $booking->user_id,
@@ -63,8 +66,11 @@ class RequestController extends Controller
                                 ] : null,
                             ];
                         }),
+                        'documents' => $booking->documents ?? [],
                     ];
                 });
+
+            $bookings->setCollection($transformedBookings);
 
             $stats = [
                 'pending' => Booking::where('status', 'pending')->count(),

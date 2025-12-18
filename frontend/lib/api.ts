@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api').replace(/\/+$/, '');
+const baseURL = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`;
 
 class ApiClient {
   private baseURL: string;
@@ -9,31 +10,53 @@ class ApiClient {
 
   async fetch(endpoint: string, options: RequestInit = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    console.log(`[ApiClient] Fetching: ${url}`, options);
+
+    // Attempt to get CSRF token from cookies
+    let xsrfToken = '';
+    if (typeof document !== 'undefined') {
+      const match = document.cookie.match(new RegExp('(^| )XSRF-TOKEN=([^;]+)'));
+      if (match) {
+        xsrfToken = decodeURIComponent(match[2]);
+      }
+    }
+
+    const isFormData = options.body instanceof FormData;
 
     const defaultOptions: RequestInit = {
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        ...(xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
+        ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
       },
     };
 
-    const response = await fetch(url, {
-      ...defaultOptions,
-      ...options,
-      headers: {
-        ...defaultOptions.headers,
-        ...options.headers,
-      },
-    });
+    try {
+      const response = await fetch(url, {
+        ...defaultOptions,
+        ...options,
+        headers: {
+          ...defaultOptions.headers,
+          ...options.headers,
+        },
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: response.statusText }));
-      throw new Error(error.message || `API Error: ${response.statusText}`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error(error.message || `API Error: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error(`[ApiClient] Request failed: ${url}`, error);
+      // Temporary: alert the user to debug "Failed to fetch"
+      if ((error as Error).message === 'Failed to fetch') {
+        alert(`Network Error: Failed to reach ${url}. Check if backend is running.`);
+      }
+      throw error;
     }
-
-    return response.json();
   }
 
   // Auth
@@ -103,9 +126,10 @@ class ApiClient {
   }
 
   async createBooking(data: any) {
+    const isFormData = data instanceof FormData;
     return this.fetch('/bookings', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: isFormData ? data : JSON.stringify(data),
     });
   }
 
@@ -128,13 +152,13 @@ class ApiClient {
   }
 
   async approveBooking(id: string) {
-    return this.fetch(`/api/admin/requests/${id}/approve`, {
+    return this.fetch(`/admin/requests/${id}/approve`, {
       method: 'POST',
     });
   }
 
   async rejectBooking(id: string, reason?: string) {
-    return this.fetch(`/api/admin/requests/${id}/reject`, {
+    return this.fetch(`/admin/requests/${id}/reject`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
     });
@@ -265,4 +289,4 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient(API_URL);
+export const apiClient = new ApiClient(baseURL);

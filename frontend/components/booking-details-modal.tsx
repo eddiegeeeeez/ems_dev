@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Status, StatusIndicator, StatusLabel } from "@/components/ui/shadcn-io/status"
 import { QrCodeDisplay } from "@/components/qr-code-display"
-import { formatTo12Hour } from "@/lib/utils"
+import { formatTo12Hour, getStorageUrl } from "@/lib/utils"
 import type { Booking } from "@/lib/types"
 import { useData } from "@/lib/data-context"
 import { Calendar, Clock, Users, MapPin, Package, User, Mail, FileText, Download } from 'lucide-react'
@@ -245,7 +245,7 @@ export function BookingDetailsModal({
                 {booking.documents.map((doc, index) => (
                   <a
                     key={index}
-                    href={doc.url}
+                    href={getStorageUrl(doc.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between gap-3 bg-white rounded-md p-3 border border-green-100 hover:border-green-300 hover:bg-green-50/50 transition-colors group"

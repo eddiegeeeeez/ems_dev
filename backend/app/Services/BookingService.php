@@ -18,6 +18,16 @@ class BookingService
     {
         $booking = Booking::create($data);
         $this->notifyAdmins('new_booking_request', $booking);
+        
+        // Log booking creation
+        \App\Services\AuditService::log(
+            'booking_created', 
+            'Booking', 
+            $booking->id, 
+            null, 
+            $data, 
+            "New booking created: {$booking->event_title}"
+        );
 
         return $booking;
     }
@@ -42,6 +52,9 @@ class BookingService
             $booking->user->notify(new BookingApprovedNotification($booking));
         }
 
+        // Log approval
+        \App\Services\AuditService::logBookingApproval($booking->id, $notes);
+
         return $booking;
     }
 
@@ -65,8 +78,8 @@ class BookingService
             $booking->user->notify(new BookingRejectedNotification($booking));
         }
         
-        // Audit logging disabled for now
-        // TODO: Implement audit logging if needed
+        // Log rejection
+        \App\Services\AuditService::logBookingRejection($booking->id, $reason);
 
         return $booking;
     }
@@ -135,6 +148,18 @@ class BookingService
         // Get admin users
         $admins = \App\Models\User::where('role', 'ADMIN')->get();
 
+        // Ensure relationships are loaded for message details
+        if (!$booking->relationLoaded('user')) {
+            $booking->load('user');
+        }
+        if (!$booking->relationLoaded('venue')) {
+            $booking->load('venue');
+        }
+
+        $organizer = $booking->user ? $booking->user->name : 'Unknown Organizer';
+        $date = $booking->start_datetime ? $booking->start_datetime->format('M d, Y') : 'N/A';
+        $time = $booking->start_datetime ? $booking->start_datetime->format('g:i A') : 'N/A';
+
         foreach ($admins as $admin) {
             // Send email notification
             Mail::to($admin->email)->send(new BookingRequestReceived($booking));
@@ -144,7 +169,7 @@ class BookingService
                 'notifiable_type' => User::class,
                 'notifiable_id' => $admin->id,
                 'data' => [
-                    'message' => "New booking request for {$booking->event_title} at {$booking->venue->name}",
+                    'message' => "New request from {$organizer}: {$booking->event_title} at {$booking->venue->name} on {$date} at {$time}",
                     'booking_id' => $booking->id,
                 ],
             ]);

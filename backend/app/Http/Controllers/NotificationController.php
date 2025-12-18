@@ -28,6 +28,19 @@ class NotificationController extends Controller
                 ->latest()
                 ->take(50)
                 ->get()
+                ->filter(function ($notification) use ($user) {
+                    // Filter out equipment notifications for non-admins
+                    if ($user->role !== 'ADMIN') {
+                        $title = $notification->data['title'] ?? '';
+                        $message = $notification->data['message'] ?? '';
+                        // Case-insensitive check for 'equipment' in title or message
+                        if (stripos($title, 'equipment') !== false || stripos($message, 'equipment') !== false) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                ->values() // Reset keys after filter
                 ->map(function ($notification) {
                     return [
                         'id' => $notification->id,

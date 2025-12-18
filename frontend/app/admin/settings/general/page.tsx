@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Settings, Save } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
+import { PasswordConfirmationModal } from "@/components/password-confirmation-modal"
+import { ProtectedRoute } from "@/components/protected-route"
 
 interface GeneralSettings {
   system_name: string
@@ -29,6 +31,7 @@ export default function GeneralSettingsPage() {
   const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [settings, setSettings] = useState<GeneralSettings>({
     system_name: "",
     university_name: "",
@@ -51,9 +54,15 @@ export default function GeneralSettingsPage() {
   const fetchSettings = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${apiBase}/admin/settings/general`)
+      const response = await fetch(`${apiBase}/admin/settings/general`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      })
       if (!response.ok) throw new Error('Failed to fetch settings')
-      
+
       const data = await response.json()
       setSettings(data.settings)
     } catch (error) {
@@ -91,28 +100,41 @@ export default function GeneralSettingsPage() {
     }))
   }
 
-  const handleSaveSettings = async () => {
+  const handleSaveClick = () => {
+    setShowPasswordModal(true)
+  }
+
+  const handleConfirmSave = async (password: string) => {
     try {
       setIsSaving(true)
       const response = await fetch(`${apiBase}/admin/settings/general`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ ...settings, current_password: password }),
       })
 
-      if (!response.ok) throw new Error('Failed to save settings')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save settings');
+      }
 
       toast({
         title: "Settings saved",
         description: "General settings have been updated successfully.",
       })
-    } catch (error) {
+      setShowPasswordModal(false)
+    } catch (error: any) {
       console.error('Error saving settings:', error)
       toast({
         title: "Error",
-        description: "Failed to save settings",
+        description: error.message || "Failed to save settings",
         variant: "destructive"
       })
+      // Don't close modal so they can try password again
     } finally {
       setIsSaving(false)
     }
@@ -127,194 +149,205 @@ export default function GeneralSettingsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">General Settings</h1>
-          <p className="text-gray-600 mt-1">Configure basic system information</p>
+    <ProtectedRoute requiredRole="admin">
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">General Settings</h1>
+            <p className="text-gray-600 mt-1">Configure basic system information</p>
+          </div>
+          <Settings className="w-8 h-8 text-[#8B1538]" />
         </div>
-        <Settings className="w-8 h-8 text-[#8B1538]" />
-      </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>System Information</CardTitle>
-            <CardDescription>Basic configuration and branding</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="system_name">System Name</Label>
-                <Input 
-                  id="system_name"
-                  name="system_name"
-                  value={settings.system_name}
-                  onChange={handleInputChange}
-                  placeholder="Enter system name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="university_name">Institution Name</Label>
-                <Input 
-                  id="university_name"
-                  name="university_name"
-                  value={settings.university_name}
-                  onChange={handleInputChange}
-                  placeholder="Enter institution name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="admin_email">Admin Email</Label>
-                <Input 
-                  id="admin_email"
-                  name="admin_email"
-                  type="email"
-                  value={settings.admin_email}
-                  onChange={handleInputChange}
-                  placeholder="admin@example.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="support_email">Support Email</Label>
-                <Input 
-                  id="support_email"
-                  name="support_email"
-                  type="email"
-                  value={settings.support_email}
-                  onChange={handleInputChange}
-                  placeholder="support@example.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="timezone">Timezone</Label>
-                <Select value={settings.timezone} onValueChange={(value) => handleSelectChange('timezone', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select timezone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Asia/Manila">Asia/Manila (UTC+8)</SelectItem>
-                    <SelectItem value="Asia/Bangkok">Asia/Bangkok (UTC+7)</SelectItem>
-                    <SelectItem value="Asia/Singapore">Asia/Singapore (UTC+8)</SelectItem>
-                    <SelectItem value="UTC">UTC</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="advance_booking_days">Advance Booking Days</Label>
-                <Input 
-                  id="advance_booking_days"
-                  name="advance_booking_days"
-                  type="number"
-                  min="1"
-                  value={settings.advance_booking_days}
-                  onChange={handleInputChange}
-                  placeholder="90"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="system_description">System Description</Label>
-              <Textarea 
-                id="system_description"
-                name="system_description"
-                rows={4}
-                value={settings.system_description}
-                onChange={handleInputChange}
-                placeholder="Enter system description"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Booking Configuration</CardTitle>
-            <CardDescription>Default booking behavior settings</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="min_booking_duration">Minimum Booking Duration (hours)</Label>
-                <Input 
-                  id="min_booking_duration"
-                  name="min_booking_duration"
-                  type="number"
-                  min="1"
-                  value={settings.min_booking_duration}
-                  onChange={handleInputChange}
-                  placeholder="1"
-                />
-              </div>
-
-              <div className="space-y-4 flex items-end">
-                <div className="flex items-center space-x-3">
-                  <input 
-                    id="allow_weekend_bookings"
-                    name="allow_weekend_bookings"
-                    type="checkbox"
-                    checked={settings.allow_weekend_bookings}
-                    onChange={handleCheckboxChange}
-                    className="rounded border-gray-300"
+        <div className="grid grid-cols-1 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>System Information</CardTitle>
+              <CardDescription>Basic configuration and branding</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="system_name">System Name</Label>
+                  <Input
+                    id="system_name"
+                    name="system_name"
+                    value={settings.system_name}
+                    onChange={handleInputChange}
+                    placeholder="Enter system name"
                   />
-                  <Label htmlFor="allow_weekend_bookings" className="cursor-pointer">
-                    Allow Weekend Bookings
-                  </Label>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="university_name">Institution Name</Label>
+                  <Input
+                    id="university_name"
+                    name="university_name"
+                    value={settings.university_name}
+                    onChange={handleInputChange}
+                    placeholder="Enter institution name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="admin_email">Admin Email</Label>
+                  <Input
+                    id="admin_email"
+                    name="admin_email"
+                    type="email"
+                    value={settings.admin_email}
+                    onChange={handleInputChange}
+                    placeholder="admin@example.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="support_email">Support Email</Label>
+                  <Input
+                    id="support_email"
+                    name="support_email"
+                    type="email"
+                    value={settings.support_email}
+                    onChange={handleInputChange}
+                    placeholder="support@example.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="timezone">Timezone</Label>
+                  <Select value={settings.timezone} onValueChange={(value) => handleSelectChange('timezone', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Asia/Manila">Asia/Manila (UTC+8)</SelectItem>
+                      <SelectItem value="Asia/Bangkok">Asia/Bangkok (UTC+7)</SelectItem>
+                      <SelectItem value="Asia/Singapore">Asia/Singapore (UTC+8)</SelectItem>
+                      <SelectItem value="UTC">UTC</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="advance_booking_days">Advance Booking Days</Label>
+                  <Input
+                    id="advance_booking_days"
+                    name="advance_booking_days"
+                    type="number"
+                    min="1"
+                    value={settings.advance_booking_days}
+                    onChange={handleInputChange}
+                    placeholder="90"
+                  />
                 </div>
               </div>
 
-              <div className="space-y-4 flex items-end">
-                <div className="flex items-center space-x-3">
-                  <input 
-                    id="auto_approval_enabled"
-                    name="auto_approval_enabled"
-                    type="checkbox"
-                    checked={settings.auto_approval_enabled}
-                    onChange={handleCheckboxChange}
-                    className="rounded border-gray-300"
+              <div className="space-y-2">
+                <Label htmlFor="system_description">System Description</Label>
+                <Textarea
+                  id="system_description"
+                  name="system_description"
+                  rows={4}
+                  value={settings.system_description}
+                  onChange={handleInputChange}
+                  placeholder="Enter system description"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Booking Configuration</CardTitle>
+              <CardDescription>Default booking behavior settings</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="min_booking_duration">Minimum Booking Duration (hours)</Label>
+                  <Input
+                    id="min_booking_duration"
+                    name="min_booking_duration"
+                    type="number"
+                    min="1"
+                    value={settings.min_booking_duration}
+                    onChange={handleInputChange}
+                    placeholder="1"
                   />
-                  <Label htmlFor="auto_approval_enabled" className="cursor-pointer">
-                    Enable Auto-Approval for Bookings
-                  </Label>
+                </div>
+
+                <div className="space-y-4 flex items-end">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      id="allow_weekend_bookings"
+                      name="allow_weekend_bookings"
+                      type="checkbox"
+                      checked={settings.allow_weekend_bookings}
+                      onChange={handleCheckboxChange}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor="allow_weekend_bookings" className="cursor-pointer">
+                      Allow Weekend Bookings
+                    </Label>
+                  </div>
+                </div>
+
+                <div className="space-y-4 flex items-end">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      id="auto_approval_enabled"
+                      name="auto_approval_enabled"
+                      type="checkbox"
+                      checked={settings.auto_approval_enabled}
+                      onChange={handleCheckboxChange}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor="auto_approval_enabled" className="cursor-pointer">
+                      Enable Auto-Approval for Bookings
+                    </Label>
+                  </div>
+                </div>
+
+                <div className="space-y-4 flex items-end">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      id="maintenance_mode"
+                      name="maintenance_mode"
+                      type="checkbox"
+                      checked={settings.maintenance_mode}
+                      onChange={handleCheckboxChange}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor="maintenance_mode" className="cursor-pointer">
+                      Maintenance Mode
+                    </Label>
+                  </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-4 flex items-end">
-                <div className="flex items-center space-x-3">
-                  <input 
-                    id="maintenance_mode"
-                    name="maintenance_mode"
-                    type="checkbox"
-                    checked={settings.maintenance_mode}
-                    onChange={handleCheckboxChange}
-                    className="rounded border-gray-300"
-                  />
-                  <Label htmlFor="maintenance_mode" className="cursor-pointer">
-                    Maintenance Mode
-                  </Label>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleSaveSettings} 
-            disabled={isSaving}
-            className="bg-[#8B1538] hover:bg-[#6B1028]"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? "Saving..." : "Save Settings"}
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              onClick={handleSaveClick}
+              disabled={isSaving}
+              className="bg-[#8B1538] hover:bg-[#6B1028]"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? "Saving..." : "Save Settings"}
+            </Button>
+          </div>
         </div>
+
+        <PasswordConfirmationModal
+          open={showPasswordModal}
+          onOpenChange={setShowPasswordModal}
+          onConfirm={handleConfirmSave}
+          isLoading={isSaving}
+          title="Confirm Settings Changes"
+          description="Please enter your admin password to save these changes."
+        />
       </div>
-    </div>
+    </ProtectedRoute>
   )
 }

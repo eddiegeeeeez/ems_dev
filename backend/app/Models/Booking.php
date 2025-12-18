@@ -32,6 +32,7 @@ class Booking extends Model
         'end_time',
         'duration_in_hours',
         'qr_code',
+        'documents',
     ];
 
     protected static function boot()
@@ -49,6 +50,7 @@ class Booking extends Model
     protected $casts = [
         'start_datetime' => 'datetime',
         'end_datetime' => 'datetime',
+        'documents' => 'array',
     ];
 
     protected $appends = [

@@ -21,6 +21,15 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\VenueController as AdminVenueController;
 
 // Public routes
+Route::any('/debug-log/{any?}', function (Request $request) {
+    \Log::info('Incoming API Request', [
+        'method' => $request->method(),
+        'url' => $request->fullUrl(),
+        'headers' => $request->headers->all(),
+    ]);
+    return response()->json(['status' => 'logged']);
+})->where('any', '.*');
+
 Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'message' => 'API is running']);
 });
@@ -60,9 +69,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [VenueController::class, 'show']);
     });
     
+    // Equipment (Public/Organizer access)
+    Route::get('/equipment', [EquipmentController::class, 'index']);
+
     // Bookings
     Route::prefix('bookings')->group(function () {
-        Route::get('/search/qr-code', [BookingController::class, 'searchByQrCode']);
+        // Route::get('/search/qr-code', [BookingController::class, 'searchByQrCode']);
         Route::get('/', [BookingController::class, 'index']);
         Route::post('/', [BookingController::class, 'store']);
         Route::get('/{id}', [BookingController::class, 'show']);
@@ -144,10 +156,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Users Management
         Route::prefix('users')->group(function () {
             Route::get('/', [UserController::class, 'index']);
-            Route::get('/{id}', [UserController::class, 'show']);
-            Route::post('/{id}/role', [UserController::class, 'updateRole']);
-            Route::post('/{id}/deactivate', [UserController::class, 'deactivate']);
-            Route::post('/{id}/activate', [UserController::class, 'activate']);
+            Route::get('/{user}', [UserController::class, 'show']);
+            Route::post('/{user}/role', [UserController::class, 'updateRole']);
+            Route::post('/{user}/deactivate', [UserController::class, 'deactivate']);
+            Route::post('/{user}/activate', [UserController::class, 'activate']);
         });
         
         // Colleges & Programs

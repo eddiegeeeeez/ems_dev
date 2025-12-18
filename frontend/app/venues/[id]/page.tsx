@@ -1,6 +1,7 @@
 "use client"
 
 import { useData } from "@/lib/data-context"
+import { getStorageUrl } from "@/lib/utils"
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { BookingForm } from "@/components/booking-form"
@@ -54,7 +55,7 @@ export default function VenueDetailPage() {
               {/* Image */}
               <div className="relative h-96 w-full overflow-hidden rounded-lg bg-gray-200">
                 <Image
-                  src={venue.image || "/placeholder.svg"}
+                  src={getStorageUrl(venue.image)}
                   alt={venue.name}
                   fill
                   className="object-cover"
