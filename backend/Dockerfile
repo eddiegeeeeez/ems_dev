@@ -30,6 +30,7 @@ COPY . .
 RUN if [ -d "backend" ]; then cp -rp backend/. . && rm -rf backend frontend; fi
 
 # Install dependencies
+RUN rm -f composer.lock
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Set permissions
