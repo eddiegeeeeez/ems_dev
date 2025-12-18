@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.4-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,8 +13,10 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Enable Apache mod_rewrite
-# Handle Apache MPM conflicts (Ensure only prefork is used for mod_php)
-RUN rm -f /etc/apache2/mods-enabled/mpm_*.load && a2enmod mpm_prefork rewrite
+# Handle Apache MPM conflicts (Explicitly disable others before enabling prefork)
+RUN a2dismod mpm_event || true
+RUN a2dismod mpm_worker || true
+RUN a2enmod mpm_prefork rewrite
 
 # Set working directory
 WORKDIR /var/www/html
