@@ -14,6 +14,9 @@ RUN \
 
 COPY . .
 
+# Handle Monorepo Build Context
+RUN if [ -d "frontend" ]; then cp -rp frontend/. . && rm -rf backend frontend; fi
+
 # Build the application
 # Note: valid API URL must be provided or allowed to default in build for statics
 # For run-time dynamic env, we rely on public var handling

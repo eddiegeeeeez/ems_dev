@@ -249,7 +249,7 @@ export function AddVenueModal({ open, onOpenChange, onConfirm, isLoading = false
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will create a new venue "{formData.name}" with a capacity of {formData.capacity}.
+              This will create a new venue &quot;{formData.name}&quot; with a capacity of {formData.capacity}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

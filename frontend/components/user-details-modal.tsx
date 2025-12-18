@@ -193,7 +193,7 @@ export function UserDetailsModal({ user, open, onOpenChange, onRoleChange, onPos
                 </div>
 
                 <p className="text-xs text-gray-500 bg-blue-50 p-3 rounded border border-blue-200">
-                  <strong>Note:</strong> Changing a user's role will immediately affect their access permissions and available features.
+                  <strong>Note:</strong> Changing a user&apos;s role will immediately affect their access permissions and available features.
                 </p>
               </div>
             </div>

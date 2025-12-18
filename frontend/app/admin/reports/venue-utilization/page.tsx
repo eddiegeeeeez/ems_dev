@@ -305,7 +305,7 @@ export default function VenueUtilizationPage() {
       <div className="space-y-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Venue Statistics</h2>
-          <p className="text-sm text-gray-500">Detailed breakdown of each venue's usage</p>
+          <p className="text-sm text-gray-500">Detailed breakdown of each venue&apos;s usage</p>
         </div>
         <div>
           <DataTable columns={columns} data={venueStats} searchKey="name" />

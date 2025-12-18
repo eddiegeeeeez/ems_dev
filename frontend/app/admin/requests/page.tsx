@@ -458,7 +458,7 @@ export default function AdminRequestsPage() {
                   Request Processed Successfully
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  The booking for <strong>"{processedDetails?.title}"</strong> has been {processedDetails?.action}.
+                  The booking for <strong>&quot;{processedDetails?.title}&quot;</strong> has been {processedDetails?.action}.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

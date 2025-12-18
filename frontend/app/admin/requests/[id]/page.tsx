@@ -28,7 +28,7 @@ export default function BookingRequestDetailsPage() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Booking Not Found</h1>
-            <p className="text-gray-600 mb-4">The booking request you're looking for doesn't exist.</p>
+            <p className="text-gray-600 mb-4">The booking request you&apos;re looking for doesn&apos;t exist.</p>
             <Button onClick={() => router.push("/admin/requests")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Requests
