@@ -9,7 +9,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Schedule automatic rejection of expired pending bookings
-Schedule::command('bookings:reject-expired')
+Schedule::command('booking:expire-pending')
     ->hourly()
     ->withoutOverlapping()
     ->runInBackground();

@@ -323,5 +323,18 @@ class BookingSeeder extends Seeder
         }
 
         $this->command->info('✓ Created ' . count($bookings) . ' bookings from June 2025 to December 2025');
+
+        // Generate 150 seeded random bookings
+        Booking::factory()->count(150)->create()->each(function ($booking) {
+            // Attach 1-3 random equipment items
+            $equipment = Equipment::inRandomOrder()->limit(rand(1, 3))->get();
+            foreach ($equipment as $item) {
+                BookingEquipment::create([
+                    'booking_id' => $booking->id,
+                    'equipment_id' => $item->id,
+                    'quantity_requested' => rand(1, 5),
+                ]);
+            }
+        });
     }
 }

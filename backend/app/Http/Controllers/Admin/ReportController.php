@@ -20,26 +20,22 @@ class ReportController extends Controller
     public function venueUtilizationData(): JsonResponse
     {
         try {
-            $venues = Venue::with('bookings')->get();
+            $venues = Venue::withCount(['bookings as approved_bookings_count' => function ($query) {
+                $query->where('status', 'approved');
+            }])->get();
+
             $data = $venues->map(function ($venue) {
-                $total_bookings = $venue->bookings->count();
-                $completed_bookings = $venue->bookings->where('status', 'completed')->count();
-                $utilization = $total_bookings > 0 ? ($completed_bookings / $total_bookings) * 100 : 0;
                 return [
                     'name' => $venue->name,
                     'capacity' => $venue->capacity,
-                    'total_bookings' => $total_bookings,
-                    'completed_bookings' => $completed_bookings,
-                    'utilization' => round($utilization, 2),
+                    'total_bookings' => $venue->bookings()->count(),
+                    'bookings' => $venue->approved_bookings_count, // Use approved count for "Active Bookings"
+                    'utilization' => $venue->approved_bookings_count, 
                 ];
             });
 
             $labels = $venues->pluck('name')->toArray();
-            $chartData = $venues->map(function ($venue) {
-                $completed = $venue->bookings->where('status', 'completed')->count();
-                $total = $venue->bookings->count();
-                return $total > 0 ? ($completed / $total) * 100 : 0;
-            })->toArray();
+            $chartData = $venues->pluck('approved_bookings_count')->toArray();
 
             return response()->json([
                 'data' => $data,

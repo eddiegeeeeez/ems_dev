@@ -55,6 +55,7 @@ export default function AdminRequestsPage() {
   const [successDialogOpen, setSuccessDialogOpen] = useState(false)
   const [processedDetails, setProcessedDetails] = useState<{ title: string; action: 'approved' | 'rejected' } | null>(null)
   const [bookings, setBookings] = useState<any[]>([])
+  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, completed: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [pagination, setPagination] = useState({
     current_page: 1,
@@ -100,6 +101,10 @@ export default function AdminRequestsPage() {
 
       const data = await response.json()
       console.log("[AdminRequests] Fetched bookings:", data)
+
+      if (data.stats) {
+        setStats(data.stats)
+      }
 
       // Handle paginated response
       if (data.bookings && data.bookings.data) {
@@ -241,13 +246,13 @@ export default function AdminRequestsPage() {
           <Tabs value={filter} onValueChange={handleFilterChange}>
             <TabsList className="mb-6 w-full grid grid-cols-3 h-auto gap-1 bg-gray-200 p-1">
               <TabsTrigger value="pending" className="text-xs sm:text-sm py-2">
-                Pending ({bookings.filter((b) => b.status === "pending").length})
+                Pending ({stats.pending})
               </TabsTrigger>
               <TabsTrigger value="approved" className="text-xs sm:text-sm py-2">
-                Approved ({bookings.filter((b) => b.status === "approved").length})
+                Approved ({stats.approved})
               </TabsTrigger>
               <TabsTrigger value="rejected" className="text-xs sm:text-sm py-2">
-                Rejected ({bookings.filter((b) => b.status === "rejected").length})
+                Rejected ({stats.rejected})
               </TabsTrigger>
             </TabsList>
 

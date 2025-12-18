@@ -37,6 +37,71 @@ class EquipmentController extends Controller
     }
 
     /**
+     * Check equipment availability for a specific time range.
+     */
+    public function checkAvailability(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'start_datetime' => 'required|date',
+                'end_datetime' => 'required|date|after:start_datetime',
+            ]);
+
+            $start = $validated['start_datetime'];
+            $end = $validated['end_datetime'];
+
+            // Get all equipment
+            $equipmentList = Equipment::all();
+            
+            // Get bookings that overlap with the requested time
+            // Overlap formula: (StartA < EndB) and (EndA > StartB)
+            $overlappingBookings = \App\Models\Booking::where(function ($query) use ($start, $end) {
+                    $query->where('start_datetime', '<', $end)
+                          ->where('end_datetime', '>', $start);
+                })
+                ->whereIn('status', ['pending', 'approved']) // Only count pending and approved
+                ->with('equipment')
+                ->get();
+
+            $reservedQuantities = [];
+
+            foreach ($overlappingBookings as $booking) {
+                foreach ($booking->equipment as $be) {
+                    if (!isset($reservedQuantities[$be->equipment_id])) {
+                        $reservedQuantities[$be->equipment_id] = 0;
+                    }
+                    $reservedQuantities[$be->equipment_id] += $be->quantity;
+                }
+            }
+
+            // Calculate available quantity for each item
+            $availability = $equipmentList->map(function ($item) use ($reservedQuantities) {
+                $reserved = $reservedQuantities[$item->id] ?? 0;
+                $available = max(0, $item->quantity - $reserved);
+                
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'total_quantity' => $item->quantity,
+                    'reserved_quantity' => $reserved,
+                    'available_quantity' => $available,
+                    'venue_id' => $item->venue_id, // Keep for frontend filtering
+                    'category' => $item->category,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $availability
+            ]);
+
+        } catch (\Exception $e) {
+             \Log::error('Availability check error: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to check availability: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Store a newly created equipment.
      */
     public function store(Request $request): JsonResponse

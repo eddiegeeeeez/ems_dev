@@ -20,7 +20,7 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { Download, Calendar } from 'lucide-react'
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function AdminReportsPage() {
   const { bookings, venues } = useData()
@@ -35,16 +35,48 @@ export default function AdminReportsPage() {
     completed: bookings.filter((b) => b.status === "completed").length,
   }
 
-  // Venue utilization
-  const venueUtilization = venues.map((venue) => {
-    const venueBookings = bookings.filter((b) => b.venueId === venue.id && b.status === "approved")
-    return {
-      name: venue.name,
-      bookings: venueBookings.length,
-      capacity: venue.capacity,
-      utilization: ((venueBookings.length / 12) * 100).toFixed(1), // Assuming 12 months
+  const [venueUtilization, setVenueUtilization] = useState<{
+    name: string
+    bookings: number
+    capacity: number
+    utilization: number | string
+  }[]>([])
+
+  const [loadingReports, setLoadingReports] = useState(false)
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      setLoadingReports(true)
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+
+        // Auth cookie handling
+        const getCookie = (name: string) => {
+          return document.cookie.split('; ').find((row) => row.startsWith(name + '='))?.split('=')[1]
+        }
+        const xsrf = typeof window !== 'undefined' && getCookie('XSRF-TOKEN') ? decodeURIComponent(getCookie('XSRF-TOKEN') as string) : ''
+
+        const res = await fetch(`${apiBase}/api/admin/reports/venue-utilization`, {
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-XSRF-TOKEN': xsrf,
+          },
+          credentials: 'include',
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setVenueUtilization(data.data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch reports:", error)
+      } finally {
+        setLoadingReports(false)
+      }
     }
-  })
+
+    fetchReports()
+  }, [])
 
   // Booking trends by month
   const bookingTrends = [
@@ -179,7 +211,7 @@ export default function AdminReportsPage() {
               <CardDescription>Monthly booking activity</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartLineDots 
+              <ChartLineDots
                 data={bookingTrends}
                 dataKey1="bookings"
                 dataKey2="approved"
@@ -215,9 +247,9 @@ export default function AdminReportsPage() {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
                         border: '1px solid #e5e7eb',
                         borderRadius: '6px'
                       }}
@@ -240,29 +272,29 @@ export default function AdminReportsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={venueUtilization} margin={{ top: 20, right: 30, bottom: 80, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="name" 
-                    angle={-45} 
-                    textAnchor="end" 
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
                     height={100}
                     stroke="#6b7280"
                     style={{ fontSize: '11px' }}
                   />
-                  <YAxis 
+                  <YAxis
                     stroke="#6b7280"
                     style={{ fontSize: '12px' }}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
                       borderRadius: '6px'
                     }}
                   />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar 
-                    dataKey="bookings" 
-                    fill="#c41e3a" 
+                  <Bar
+                    dataKey="bookings"
+                    fill="#c41e3a"
                     name="Approved Bookings"
                     radius={[4, 4, 0, 0]}
                   />
@@ -295,7 +327,7 @@ export default function AdminReportsPage() {
                       <td className="py-3 px-4 text-center text-gray-600">{venue.bookings}</td>
                       <td className="py-3 px-4 text-center text-gray-600">{venue.capacity}</td>
                       <td className="py-3 px-4 text-center">
-                        <Badge className="bg-[#4caf50] text-white">{venue.utilization}%</Badge>
+                        <Badge className="bg-[#4caf50] text-white">{venue.utilization}</Badge>
                       </td>
                     </tr>
                   ))}
@@ -304,7 +336,7 @@ export default function AdminReportsPage() {
             </div>
           </CardContent>
         </Card>
-      
+
       </div>
     </AdminGuard>
   )

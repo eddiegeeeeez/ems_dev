@@ -1,7 +1,9 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useData } from "@/lib/data-context"
+import { apiClient } from "@/lib/api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,22 +16,52 @@ import { ProtectedRoute } from "@/components/protected-route"
 
 function DashboardContent() {
   const { user, isLoading: authLoading } = useAuth()
-  const { bookings, getBookingsByOrganizer } = useData()
+  // const { bookings, getBookingsByOrganizer } = useData() // Removing reliance on DataContext for stats
+  const [isLoading, setIsLoading] = useState(true)
+  const [stats, setStats] = useState({
+    total: 0,
+    approved: 0,
+    pending: 0,
+    rejected: 0,
+    cancelled: 0
+  })
+  const [recentBookings, setRecentBookings] = useState<any[]>([])
 
-  const isLoading = authLoading || !user
-  const userBookings = user?.role === "ORGANIZER" ? getBookingsByOrganizer(user.id) : []
-  const pendingCount = userBookings.filter((b) => b.status === "pending").length
-  const approvedCount = userBookings.filter((b) => b.status === "approved").length
-  const totalCount = userBookings.length
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!user) return
+
+      try {
+        setIsLoading(true)
+        const response = await apiClient.getDashboard()
+        // Check structure: response.data.bookingStats
+        if (response.data && response.data.bookingStats) {
+          setStats(response.data.bookingStats)
+          setRecentBookings(response.data.upcomingBookings || [])
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (!authLoading && user) {
+      fetchDashboardData()
+    }
+  }, [user, authLoading])
+
 
   const handleViewAllBookings = () => {
-    console.log("[v0] View all bookings clicked for user:", user?.id)
     window.location.href = "/my-bookings"
   }
 
   const handleBrowseVenues = () => {
-    console.log("[v0] Browse venues clicked")
     window.location.href = "/venues"
+  }
+
+  if (authLoading) {
+    return <div>Loading...</div> // Simple loading or skeleton
   }
 
   return (
@@ -37,7 +69,7 @@ function DashboardContent() {
       <DashboardHeader
         user={user}
       />
-      
+
       <div className="w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
         {/* Stats Cards - Responsive Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 md:mb-8">
@@ -84,7 +116,7 @@ function DashboardContent() {
                   <Calendar className="w-4 h-4 text-gray-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-end text-3xl font-bold text-gray-900">{totalCount}</div>
+                  <div className="text-end text-3xl font-bold text-gray-900">{stats.total}</div>
                   <p className="text-sm text-gray-600 mt-1">All your bookings</p>
                 </CardContent>
               </Card>
@@ -95,7 +127,7 @@ function DashboardContent() {
                   <Clock className="w-4 h-4 text-gray-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-end text-3xl font-bold text-amber-600">{pendingCount}</div>
+                  <div className="text-end text-3xl font-bold text-amber-600">{stats.pending}</div>
                   <p className="text-sm text-gray-600 mt-1">Awaiting review</p>
                 </CardContent>
               </Card>
@@ -106,7 +138,7 @@ function DashboardContent() {
                   <CheckCircle className="w-4 h-4 text-gray-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-end text-3xl font-bold text-green-600">{approvedCount}</div>
+                  <div className="text-end text-3xl font-bold text-green-600">{stats.approved}</div>
                   <p className="text-sm text-gray-600 mt-1">Successfully approved</p>
                 </CardContent>
               </Card>
@@ -152,7 +184,7 @@ function DashboardContent() {
                   <Skeleton className="h-4 w-20" />
                 </div>
               </div>
-            ) : userBookings.length === 0 ? (
+            ) : recentBookings.length === 0 ? (
               <div className="text-center py-8 md:py-12">
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-600 mb-4">No bookings yet</p>
@@ -174,13 +206,13 @@ function DashboardContent() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {userBookings.slice(0, 5).map((booking) => (
+                    {recentBookings.map((booking) => (
                       <TableRow key={booking.id} className="hover:bg-gray-50">
                         <TableCell>
-                          <div className="font-medium text-sm text-gray-900">{booking.eventTitle}</div>
+                          <div className="font-medium text-sm text-gray-900">{booking.event_title || booking.eventTitle}</div>
                         </TableCell>
                         <TableCell className="text-sm text-gray-600">
-                          {new Date(booking.startDate).toLocaleDateString()} at {booking.startTime}
+                          {new Date(booking.start_date || booking.startDate).toLocaleDateString()} at {booking.start_time || booking.startTime}
                         </TableCell>
                         <TableCell>
                           <Status status={booking.status === "approved" ? "approved" : booking.status === "pending" ? "pending" : booking.status === "completed" ? "completed" : "rejected"}>

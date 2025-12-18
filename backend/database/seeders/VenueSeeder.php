@@ -141,5 +141,8 @@ class VenueSeeder extends Seeder
         foreach ($venues as $venue) {
             Venue::create($venue);
         }
+
+        // Generate 150 seeded random venues
+        Venue::factory()->count(150)->create();
     }
 }

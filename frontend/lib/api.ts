@@ -309,6 +309,10 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  async checkEquipmentAvailability(start: string, end: string) {
+    return this.fetch(`/equipment/availability?start_datetime=${encodeURIComponent(start)}&end_datetime=${encodeURIComponent(end)}`);
+  }
 }
 
 export const apiClient = new ApiClient(baseURL);

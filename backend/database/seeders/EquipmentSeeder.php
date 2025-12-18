@@ -64,5 +64,8 @@ class EquipmentSeeder extends Seeder
         foreach ($equipment as $item) {
             Equipment::create($item);
         }
+
+        // Generate 150 seeded random equipment items
+        Equipment::factory()->count(150)->create();
     }
 }

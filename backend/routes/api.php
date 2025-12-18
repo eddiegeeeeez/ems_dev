@@ -51,6 +51,14 @@ Route::prefix('auth')->middleware(['web'])->group(function () {
         ->middleware($logoutLimit);  // 30 per min (prod) or 100 per min (dev)
     Route::get('/user', [LoginController::class, 'user'])
         ->middleware(['auth:sanctum', \Illuminate\Session\Middleware\StartSession::class]);
+
+    Route::post('/validate-password', function (Request $request) {
+        $request->validate(['password' => 'required']);
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, $request->user()->password)) {
+            return response()->json(['message' => 'Invalid password'], 403);
+        }
+        return response()->json(['message' => 'Password verified']);
+    })->middleware('auth:sanctum');
 });
 
 // Protected routes
@@ -70,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     
     // Equipment (Public/Organizer access)
+    Route::get('/equipment/availability', [EquipmentController::class, 'checkAvailability']);
     Route::get('/equipment', [EquipmentController::class, 'index']);
 
     // Bookings

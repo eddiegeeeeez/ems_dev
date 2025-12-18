@@ -78,5 +78,15 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]);
         }
+        // Generate 150 seeded random organizers for testing
+        User::factory()->count(150)->make()->each(function ($user) use ($departmentToCollege) {
+             $dept = array_rand($departmentToCollege);
+             $user->department = $dept;
+             $user->college = $departmentToCollege[$dept];
+             $user->role = 'ORGANIZER';
+             // Generate a deterministic avatar based on name
+             $user->avatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($user->name);
+             $user->save();
+        });
     }
 }

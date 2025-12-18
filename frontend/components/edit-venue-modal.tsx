@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Upload, X } from 'lucide-react'
+import { Upload, X, Trash2 } from 'lucide-react'
 import type { Venue } from "@/lib/types"
 import { getStorageUrl } from "@/lib/utils"
 
@@ -23,6 +23,7 @@ interface EditVenueModalProps {
   onOpenChange: (open: boolean) => void
   venue: Venue | null
   onConfirm: (venueData: EditVenueData) => void
+  onDelete?: () => void
   isLoading?: boolean
 }
 
@@ -34,7 +35,7 @@ export interface EditVenueData {
   image?: File | null
 }
 
-export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading = false }: EditVenueModalProps) {
+export function EditVenueModal({ open, onOpenChange, venue, onConfirm, onDelete, isLoading = false }: EditVenueModalProps) {
   const [formData, setFormData] = useState<EditVenueData>({
     name: "",
     location: "",
@@ -167,11 +168,23 @@ export function EditVenueModal({ open, onOpenChange, venue, onConfirm, isLoading
           </div>
         </div>
 
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline" disabled={isLoading}>Cancel</Button>
-          </DialogClose>
-          <Button onClick={handleConfirm} disabled={!formData.name || !formData.location || !formData.capacity || isLoading} className="bg-[#c41e3a] hover:bg-[#a01830] text-white">{isLoading ? "Updating..." : "Update Venue"}</Button>
+        <DialogFooter className="sm:justify-between">
+          <div className="flex w-full justify-between items-center sm:w-auto">
+            {onDelete && (
+              <Button type="button" variant="destructive" onClick={onDelete} disabled={isLoading} className="mr-auto">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Remove
+              </Button>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <DialogClose asChild>
+                <Button variant="outline" disabled={isLoading}>Cancel</Button>
+              </DialogClose>
+              <Button onClick={handleConfirm} disabled={!formData.name || !formData.location || !formData.capacity || isLoading} className="bg-[#c41e3a] hover:bg-[#a01830] text-white">
+                {isLoading ? "Updating..." : "Update Venue"}
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -29,7 +29,38 @@ export function BookingForm({ venue, onSuccess }: BookingFormProps) {
   const [equipmentModalOpen, setEquipmentModalOpen] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
+  const [availableEquipment, setAvailableEquipment] = useState<any[]>([])
+
   const venueEquipment = equipment.filter((eq) => (eq.venueId || eq.venue_id) === venue.id)
+
+  const handleOpenEquipmentModal = async () => {
+    if (!formData.startDate || !formData.startTime || !formData.endTime) {
+      setError("Please select event dates and times first to check equipment availability.")
+      return
+    }
+
+    const start = `${formData.startDate} ${formData.startTime}:00`
+    const end = `${formData.endDate || formData.startDate} ${formData.endTime}:00`
+
+    try {
+      const res = await apiClient.checkEquipmentAvailability(start, end)
+      if (res.success && Array.isArray(res.data)) {
+        // Filter for this venue and map to match Equipment interface expected by Modal
+        // Backend returns snake_case and 'available_quantity'
+        const mapped = res.data
+          .filter((e: any) => String(e.venue_id) === String(venue.id))
+          .map((e: any) => ({
+            ...e,
+            available: e.available_quantity // Map for Modal UI
+          }))
+        setAvailableEquipment(mapped)
+        setEquipmentModalOpen(true)
+      }
+    } catch (e) {
+      console.error(e)
+      setError("Failed to check equipment availability")
+    }
+  }
 
   const [formData, setFormData] = useState({
     eventTitle: "",
@@ -292,10 +323,7 @@ export function BookingForm({ venue, onSuccess }: BookingFormProps) {
                 <h3 className="font-semibold text-gray-900 text-sm md:text-base">Equipment (Optional)</h3>
                 <Button
                   type="button"
-                  onClick={() => {
-                    console.log("[v0] Equipment modal opened")
-                    setEquipmentModalOpen(true)
-                  }}
+                  onClick={handleOpenEquipmentModal}
                   size="sm"
                   className="bg-[#4caf50] hover:bg-[#45a049] text-white text-xs"
                 >
@@ -410,7 +438,7 @@ export function BookingForm({ venue, onSuccess }: BookingFormProps) {
       <EquipmentModal
         open={equipmentModalOpen}
         onOpenChange={setEquipmentModalOpen}
-        equipment={venueEquipment}
+        equipment={availableEquipment}
         onAddEquipment={handleAddEquipment}
         selectedEquipment={selectedEquipment}
       />

@@ -23,6 +23,7 @@ export interface Venue {
   image: string
   description: string
   status: "available" | "maintenance" | "inactive"
+  is_active?: boolean
 }
 
 export interface Equipment {
