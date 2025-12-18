@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       }).catch(fetchError => {
         console.error('[Auth] Network error - Cannot reach API server:', fetchError)
-        throw new Error('Cannot connect to server. Please ensure the backend is running on http://localhost:8000')
+        throw new Error(`Cannot connect to server at ${apiBase}. Please ensure the backend is running.`)
       })
 
       console.log('[Auth] Login response status:', response.status)

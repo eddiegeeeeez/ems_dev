@@ -14,8 +14,7 @@ RUN apt-get update && apt-get install -y \
 
 # Enable Apache mod_rewrite
 # Handle Apache MPM conflicts (Ensure only prefork is used for mod_php)
-RUN a2dismod mpm_event mpm_worker || true
-RUN a2enmod mpm_prefork rewrite
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.load && a2enmod mpm_prefork rewrite
 
 # Set working directory
 WORKDIR /var/www/html
